@@ -5,6 +5,7 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -13,10 +14,9 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetContainerDsl
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import java.io.File
-import java.nio.file.Files
-import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
@@ -139,13 +139,17 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
         val resourceDirs = getResourceDirs(kotlinCompilation).map { "$it/**" }
+
         val copyResourcesTask = tasks.register(taskName, Copy::class.java) { task ->
             task.from(project.projectDir)
             task.include(resourceDirs)
             task.into(outputDirectory)
             task.mustRunAfter(mustRunAfterTask)
         }
-        tasks.named(dependantTask).configure { it.dependsOn(copyResourcesTask) }
+        tasks.named(dependantTask).configure {
+            it.dependsOn(copyResourcesTask)
+        }
+
         return copyResourcesTask
     }
 
@@ -157,46 +161,55 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     ): TaskProvider<Task> {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
+        val confFile = project.projectDir
+            .resolve("karma.config.d")
+            .apply { mkdirs() }
+            .resolve("proxy-resources.js")
+        
         val proxyResourcesTask = tasks.register(taskName) { task ->
             @Suppress("ObjectLiteralToLambda")
             task.doLast(object : Action<Task> {
                 override fun execute(_task: Task) {
                     // Create karma configuration file in the expected location, deleting it when we're done.
-                    project.projectDir
-                        .resolve("karma.config.d")
-                        .apply { mkdirs() }
-                        .resolve("proxy-resources.js")
-                        .apply { deleteOnExit() }
-                        .printWriter()
-                        .use { confWriter ->
-                            getResourceDirs(kotlinCompilation).forEach { resourceDir ->
-                                confWriter.println(
-                                    """
-                                    |config.files.push({
-                                    |   pattern: __dirname + "/$resourceDir/**",
-                                    |   watched: false,
-                                    |   included: false,
-                                    |   served: true,
-                                    |   nocache: false
-                                    |});
-                                    """.trimMargin()
-                                )
-                            }
+                    confFile.printWriter().use { confWriter ->
+                        getResourceDirs(kotlinCompilation).forEach { resourceDir ->
                             confWriter.println(
                                 """
-                                |config.set({
-                                |    "proxies": {
-                                |       "/": __dirname + "/"
-                                |    }
+                                |config.files.push({
+                                |   pattern: __dirname + "/$resourceDir/**",
+                                |   watched: false,
+                                |   included: false,
+                                |   served: true,
+                                |   nocache: false
                                 |});
                                 """.trimMargin()
                             )
                         }
+                        confWriter.println(
+                            """
+                            |config.set({
+                            |    "proxies": {
+                            |       "/": __dirname + "/"
+                            |    }
+                            |});
+                            """.trimMargin()
+                        )
+                    }
                 }
             })
             task.mustRunAfter(mustRunAfterTask)
         }
-        tasks.named(dependantTask).configure { it.dependsOn(proxyResourcesTask) }
+        tasks.named(dependantTask).configure {
+            it.dependsOn(proxyResourcesTask)
+        }
+
+        val cleanupConfFileTask = tasks.register("${taskName}Cleanup", Delete::class.java) {
+            it.delete = setOf(confFile)
+        }
+        tasks.named(getTaskName(kotlinCompilation.target.name, "browser", kotlinCompilation.name)) {
+            it.finalizedBy(cleanupConfFileTask)
+        }
+
         return proxyResourcesTask
     }
 }

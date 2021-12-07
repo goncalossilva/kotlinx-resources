@@ -10,10 +10,10 @@ import platform.posix.fclose
 import platform.posix.fgets
 import platform.posix.fopen
 
-actual public class Resource actual constructor(private val path: String) {
-    actual public fun exists(): Boolean = access(path, F_OK) != -1
+public actual class Resource actual constructor(private val path: String) {
+    public actual fun exists(): Boolean = access(path, F_OK) != -1
 
-    actual public fun readText(): String = buildString {
+    public actual fun readText(): String = buildString {
         val file = fopen(path, "r") ?: throw RuntimeException("Cannot open file $path")
         try {
             memScoped {

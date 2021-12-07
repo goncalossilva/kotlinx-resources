@@ -2,6 +2,8 @@ package com.goncalossilva.resource
 
 import org.w3c.xhr.XMLHttpRequest
 
+private external fun require(name: String): dynamic
+
 /* It's impossible to separate browser/node JS runtimes, as they can't be published separately.
  * See: https://youtrack.jetbrains.com/issue/KT-47038
  *
@@ -54,6 +56,8 @@ public actual class Resource actual constructor(path: String) {
      * Node-based resource implementation.
      */
     private class ResourceNode(val path: String) {
+        val fs = require("fs")
+
         fun exists(): Boolean = fs.existsSync(path)
 
         fun readText(): String =

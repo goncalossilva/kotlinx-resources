@@ -18,7 +18,6 @@ rootProject.plugins.withType<NodeJsRootPlugin> {
 
 repositories {
     mavenCentral()
-    jcenter() // For kotlinx-nodejs, can be removed when updating from 0.0.7.
 }
 
 kotlin {
@@ -71,11 +70,6 @@ kotlin {
             }
         }
 
-        val jsMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-nodejs:0.0.7")
-            }
-        }
         val jsTest by getting {
             dependencies {
                 implementation(npm("karma-detect-browsers", "^2.0"))

@@ -33,7 +33,7 @@ kotlin {
         }
     }
 
-    js("jsBrowser", IR) {
+    js(IR) {
         browser {
             testTask {
                 useKarma {
@@ -50,8 +50,6 @@ kotlin {
                 }
             }
         }
-    }
-    js("jsNode", IR) {
         nodejs()
     }
 
@@ -73,15 +71,14 @@ kotlin {
             }
         }
 
-        val jsBrowserTest by getting {
-            dependencies {
-                implementation(npm("karma-detect-browsers", "^2.0"))
-            }
-        }
-
-        val jsNodeMain by getting {
+        val jsMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-nodejs:0.0.7")
+            }
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(npm("karma-detect-browsers", "^2.0"))
             }
         }
 

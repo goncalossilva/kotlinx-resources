@@ -36,61 +36,51 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> {
         val project = kotlinCompilation.target.project
-        when {
-            /*
-             * For Apple platforms, move resources into the binary's output directory so that they
-             * can be loaded using `NSBundle.mainBundle` and related APIs.
-             */
-            isAppleCompilation(kotlinCompilation) -> {
-                val target = kotlinCompilation.target
-                target.binaries.forEach { binary ->
-                    setupCopyResourcesTask(
-                        kotlinCompilation = kotlinCompilation,
-                        taskName = getTaskName("copyResources", binary.name, target.targetName),
-                        outputDirectory = binary.outputDirectory,
-                        mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                        dependantTask = binary.linkTaskName
-                    )
-                }
-            }
 
-            /*
-             * For Node, move resources into the script's output directory so that they are in path.
-             *
-             * Unfortunately, this is partly hardcoded, since it's not possible to reconstruct
-             * the folder path from the outside (it's also not configurable, see KT-40416).
-             */
-            isJsNodeCompilation(kotlinCompilation) -> {
+        /*
+         * For Apple platforms, move resources into the binary's output directory so that they
+         * can be loaded using `NSBundle.mainBundle` and related APIs.
+         */
+        if(isAppleCompilation(kotlinCompilation)) {
+            val target = kotlinCompilation.target
+            target.binaries.forEach { binary ->
                 setupCopyResourcesTask(
                     kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
-                    outputDirectory = kotlinCompilation.npmProject.dir,
+                    taskName = getTaskName("copyResources", binary.name, target.targetName),
+                    outputDirectory = binary.outputDirectory,
                     mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                    dependantTask = kotlinCompilation.compileKotlinTaskName
-                )
-            }
-
-            /*
-             * For the browser, move resources into the script's output directory and leverage
-             * Karma's proxies to load them from the filesystem.
-             */
-            isJsBrowserCompilation(kotlinCompilation) -> {
-                setupCopyResourcesTask(
-                    kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
-                    outputDirectory = kotlinCompilation.npmProject.dir,
-                    mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                    dependantTask = kotlinCompilation.compileKotlinTaskName
-                )
-                setupProxyResourcesTask(
-                    kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
-                    // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
-                    mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                    dependantTask = kotlinCompilation.compileKotlinTaskName
+                    dependantTask = binary.linkTaskName
                 )
             }
         }
+
+        /*
+         * For Node and the browser, move resources into the script's output directory.
+         */
+        if (isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) {
+            setupCopyResourcesTask(
+                kotlinCompilation = kotlinCompilation,
+                taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
+                outputDirectory = kotlinCompilation.npmProject.dir,
+                mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
+                dependantTask = kotlinCompilation.compileKotlinTaskName
+            )
+        }
+
+        /*
+         * For the browser, move resources into the script's output directory and leverage
+         * Karma's proxies to load them from the filesystem.
+         */
+        if (isJsBrowserCompilation(kotlinCompilation)) {
+            setupProxyResourcesTask(
+                kotlinCompilation = kotlinCompilation,
+                taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
+                // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
+                mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
+                dependantTask = kotlinCompilation.compileKotlinTaskName
+            )
+        }
+
         return project.provider { emptyList() }
     }
 

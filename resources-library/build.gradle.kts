@@ -3,11 +3,12 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 
 plugins {
     kotlin("multiplatform") version "1.6.0"
-    id("com.goncalossilva.resources")
-    id("pl.allegro.tech.build.axion-release") version "1.13.6"
-}
 
-version = scmVersion.version
+    id("com.goncalossilva.resources")
+
+    id("maven-publish")
+    id("signing")
+}
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
     rootProject.configure<NodeJsRootExtension> {
@@ -16,8 +17,8 @@ rootProject.plugins.withType<NodeJsRootPlugin> {
 }
 
 repositories {
-    jcenter()
     mavenCentral()
+    jcenter() // For kotlinx-nodejs, can be removed when updating from 0.0.7.
 }
 
 kotlin {
@@ -146,4 +147,65 @@ kotlin {
             linuxArm64Test.dependsOn(this)
         }
     }
+}
+
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+}
+
+publishing {
+    // Configure all publications.
+    @Suppress("LocalVariableName")
+    publications.withType<MavenPublication> {
+        val publicationDescriptionLibrary: String by project
+        val publicationUrl: String by project
+        val publicationLicenseName: String by project
+        val publicationLicenseUrl: String by project
+        val publicationScmUrl: String by project
+        val publicationScmConnection: String by project
+        val publicationScmDeveloperConnection: String by project
+        val publicationDeveloperId: String by project
+        val publicationDeveloperName: String by project
+
+        // Publish docs with each artifact.
+        artifact(javadocJar)
+
+        // Provide information requited by Maven Central.
+        pom {
+            name.set(rootProject.name)
+            description.set(publicationDescriptionLibrary)
+            url.set(publicationUrl)
+
+            licenses {
+                license {
+                    name.set(publicationLicenseName)
+                    url.set(publicationLicenseUrl)
+                }
+            }
+
+            scm {
+                url.set(publicationScmUrl)
+                connection.set(publicationScmConnection)
+                developerConnection.set(publicationScmDeveloperConnection)
+            }
+
+            developers {
+                developer {
+                    id.set(publicationDeveloperId)
+                    name.set(publicationDeveloperName)
+                }
+            }
+        }
+    }
+}
+
+signing {
+    // Use `signingKey` and `signingPassword` properties to sign artifacts, if provided.
+    // Otherwise, default to `signing.keyId`, `signing.password` and `signing.secretKeyRingFile`.
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+    }
+    sign(publishing.publications)
 }

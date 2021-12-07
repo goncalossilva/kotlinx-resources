@@ -154,15 +154,12 @@ publishing {
     // Configure all publications.
     @Suppress("LocalVariableName")
     publications.withType<MavenPublication> {
-        val publicationDescriptionLibrary: String by project
-        val publicationUrl: String by project
-        val publicationLicenseName: String by project
-        val publicationLicenseUrl: String by project
-        val publicationScmUrl: String by project
-        val publicationScmConnection: String by project
-        val publicationScmDeveloperConnection: String by project
-        val publicationDeveloperId: String by project
-        val publicationDeveloperName: String by project
+        val artifactId: String by project
+        if (name == "kotlinMultiplatform") {
+            setArtifactId(artifactId)
+        } else {
+            setArtifactId("$artifactId-$name")
+        }
 
         // Publish docs with each artifact.
         artifact(javadocJar)
@@ -170,26 +167,26 @@ publishing {
         // Provide information requited by Maven Central.
         pom {
             name.set(rootProject.name)
-            description.set(publicationDescriptionLibrary)
-            url.set(publicationUrl)
+            description.set(findProperty("publicationDescriptionLibrary") as String)
+            url.set(findProperty("publicationUrl") as String)
 
             licenses {
                 license {
-                    name.set(publicationLicenseName)
-                    url.set(publicationLicenseUrl)
+                    name.set(findProperty("publicationLicenseName") as String)
+                    url.set(findProperty("publicationLicenseUrl") as String)
                 }
             }
 
             scm {
-                url.set(publicationScmUrl)
-                connection.set(publicationScmConnection)
-                developerConnection.set(publicationScmDeveloperConnection)
+                url.set(findProperty("publicationScmUrl") as String)
+                connection.set(findProperty("publicationScmConnection") as String)
+                developerConnection.set(findProperty("publicationScmDeveloperConnection") as String)
             }
 
             developers {
                 developer {
-                    id.set(publicationDeveloperId)
-                    name.set(publicationDeveloperName)
+                    id.set(findProperty("publicationDeveloperId") as String)
+                    name.set(findProperty("publicationDeveloperName") as String)
                 }
             }
         }

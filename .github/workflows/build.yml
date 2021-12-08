@@ -15,4 +15,4 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - run: ./gradlew :resources-library:build ./gradlew :resources-plugin:build
+      - run: ./gradlew :resources-library:build :resources-plugin:build

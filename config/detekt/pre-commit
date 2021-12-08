@@ -3,7 +3,7 @@
 printf "Running detekt...\r"
 
 OUTPUT="/tmp/detekt-$(date +%s)"
-./gradlew detekt -PautoCorrect=true > "$OUTPUT"
+./gradlew :resources-plugin:detekt :resources-library:detekt -PautoCorrect=true > "$OUTPUT"
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then

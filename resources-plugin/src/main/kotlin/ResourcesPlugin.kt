@@ -1,6 +1,5 @@
 package com.goncalossilva.resources
 
-import com.goncalossilva.resources.BuildConfig
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.provider.Provider
@@ -18,6 +17,7 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import java.io.File
 import kotlin.contracts.contract
 
+@Suppress("TooManyFunctions")
 class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     override fun getCompilerPluginId() = BuildConfig.PLUGIN_ID
 

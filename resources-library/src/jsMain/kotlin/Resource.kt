@@ -4,7 +4,8 @@ import org.w3c.xhr.XMLHttpRequest
 
 private external fun require(name: String): dynamic
 
-/* It's impossible to separate browser/node JS runtimes, as they can't be published separately.
+/*
+ * It's impossible to separate browser/node JS runtimes, as they can't be published separately.
  * See: https://youtrack.jetbrains.com/issue/KT-47038
  *
  * Workaround inspired by Ktor: https://github.com/ktorio/ktor/blob/b8f18e40baabf9756a16843d6cbd80bff6f006c6/ktor-utils/js/src/io/ktor/util/PlatformUtilsJs.kt#L9-L15
@@ -27,7 +28,7 @@ public actual class Resource actual constructor(path: String) {
 
     private companion object {
         private val IS_BROWSER: Boolean = js(
-            "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'" // ktlint-disable max-line-length
+            "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'"
         ) as Boolean
         private val IS_NODE: Boolean = js(
             "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
@@ -58,9 +59,12 @@ public actual class Resource actual constructor(path: String) {
     private class ResourceNode(val path: String) {
         val fs = require("fs")
 
-        fun exists(): Boolean = fs.existsSync(path)
+        fun exists(): Boolean = fs.existsSync(path) as Boolean
 
-        fun readText(): String =
-            runCatching { fs.readFileSync(path, "utf8") }.getOrElse { throw RuntimeException(it) }
+        fun readText(): String = runCatching {
+            fs.readFileSync(path, "utf8")
+        }.getOrElse {
+            throw RuntimeException(it)
+        } as String
     }
 }

@@ -1,11 +1,26 @@
-name: Publish library
+name: Build and publish
 
 on:
   push:
+    branches: [ main ]
     tags: [ v* ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - run: ./gradlew build
+
   publish-library:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,6 +40,8 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
 
   publish-plugin:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

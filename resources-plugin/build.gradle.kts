@@ -6,9 +6,9 @@ plugins {
     id("com.github.gmazzo.buildconfig") version "3.0.3"
 
     id("java-gradle-plugin")
-    id("com.gradle.plugin-publish") version "0.18.0"
     id("maven-publish")
     id("signing")
+    id("com.gradle.plugin-publish") version "0.18.0"
 
     id("io.gitlab.arturbosch.detekt") version "1.19.0"
 }

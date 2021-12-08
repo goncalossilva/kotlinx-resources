@@ -1,4 +1,4 @@
-package com.goncalossilva.resource
+package com.goncalossilva.resources
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

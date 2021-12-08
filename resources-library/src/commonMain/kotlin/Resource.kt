@@ -1,4 +1,4 @@
-package com.goncalossilva.resource
+package com.goncalossilva.resources
 
 /**
  * Provides access to resource on [path].
@@ -6,7 +6,7 @@ package com.goncalossilva.resource
  * The path should be relative to the project's directory, such as
  * `src/commonTest/resources/some/optional/folders/file.txt`.
  */
-expect public class Resource(path: String) {
+public expect class Resource(path: String) {
     /**
      * Returns true when the resource exists, false when it doesn't.
      */

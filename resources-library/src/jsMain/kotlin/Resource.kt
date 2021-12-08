@@ -1,4 +1,4 @@
-package com.goncalossilva.resource
+package com.goncalossilva.resources
 
 import org.w3c.xhr.XMLHttpRequest
 

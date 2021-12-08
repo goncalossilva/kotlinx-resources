@@ -4,11 +4,16 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 plugins {
     kotlin("multiplatform") version "1.6.0"
 
-    id("com.goncalossilva.resources")
-
     id("maven-publish")
     id("signing")
 }
+
+buildscript {
+    dependencies {
+        classpath("com.goncalossilva:resources")
+    }
+}
+apply(plugin = "com.goncalossilva.resources")
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
     rootProject.configure<NodeJsRootExtension> {

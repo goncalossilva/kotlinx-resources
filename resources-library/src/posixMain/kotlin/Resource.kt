@@ -1,4 +1,4 @@
-package com.goncalossilva.resource
+package com.goncalossilva.resources
 
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.allocArray

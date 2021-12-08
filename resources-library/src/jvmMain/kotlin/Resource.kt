@@ -1,4 +1,4 @@
-package com.goncalossilva.resource
+package com.goncalossilva.resources
 
 import java.io.File
 

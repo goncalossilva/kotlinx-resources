@@ -34,6 +34,7 @@ ext["gradle.publish.key"] = property("gradlePublishKey") as String
 ext["gradle.publish.secret"] = property("gradlePublishSecret") as String
 
 buildConfig {
+    packageName.set(pluginId)
     buildConfigField("String", "GROUP_ID", "\"$group\"")
     buildConfigField("String", "ARTIFACT_ID", "\"$artifactId\"")
     buildConfigField("String", "PLUGIN_ID", "\"$pluginId\"")
@@ -55,7 +56,7 @@ gradlePlugin {
         id = pluginId
         displayName = publicationDisplayNamePlugin
         description = publicationDescriptionPlugin
-        implementationClass = "com.goncalossilva.ResourcesPlugin"
+        implementationClass = "com.goncalossilva.resources.ResourcesPlugin"
     }
 }
 

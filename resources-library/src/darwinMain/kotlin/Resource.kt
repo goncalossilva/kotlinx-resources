@@ -1,4 +1,4 @@
-package com.goncalossilva.resource
+package com.goncalossilva.resources
 
 import platform.Foundation.NSBundle
 import platform.Foundation.NSString

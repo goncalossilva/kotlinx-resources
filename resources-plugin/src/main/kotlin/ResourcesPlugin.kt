@@ -1,6 +1,6 @@
-package com.goncalossilva
+package com.goncalossilva.resources
 
-import com.goncalossilva.resources_plugin.BuildConfig
+import com.goncalossilva.resources.BuildConfig
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.provider.Provider
@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetContainerDsl
-import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import java.io.File
 import kotlin.contracts.contract

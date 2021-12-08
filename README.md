@@ -3,6 +3,7 @@
 [![badge-version]](https://search.maven.org/search?q=g:com.goncalossilva%20a:resources*)
 ![badge-jvm][badge-jvm]
 ![badge-js][badge-js]
+![badge-android][badge-android]
 ![badge-ios][badge-ios]
 ![badge-watchos][badge-watchos]
 ![badge-tvos][badge-tvos]
@@ -84,9 +85,9 @@ SOFTWARE.
 ```
 
 [badge-version]: https://img.shields.io/maven-central/v/com.goncalossilva/resources?style=flat
-[badge-android]: https://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
 [badge-ios]: https://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat
 [badge-js]: https://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat
+[badge-android]: https://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat
 [badge-jvm]: https://img.shields.io/badge/platform-jvm-DB413D.svg?style=flat
 [badge-linux]: https://img.shields.io/badge/platform-linux-2D3F6C.svg?style=flat
 [badge-windows]: https://img.shields.io/badge/platform-windows-4D76CD.svg?style=flat

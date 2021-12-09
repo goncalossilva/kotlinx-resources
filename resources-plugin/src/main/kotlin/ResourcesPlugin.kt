@@ -23,7 +23,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun getPluginArtifact() = SubpluginArtifact(
         groupId = BuildConfig.GROUP_ID,
-        artifactId = BuildConfig.ARTIFACT_ID
+        artifactId = BuildConfig.ARTIFACT_ID,
+        version = BuildConfig.VERSION
     )
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>) =

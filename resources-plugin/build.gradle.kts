@@ -40,6 +40,7 @@ buildConfig {
     buildConfigField("String", "GROUP_ID", "\"$group\"")
     buildConfigField("String", "ARTIFACT_ID", "\"$artifactId\"")
     buildConfigField("String", "PLUGIN_ID", "\"$pluginId\"")
+    buildConfigField("String", "VERSION", "\"$version\"")
 }
 
 pluginBundle {

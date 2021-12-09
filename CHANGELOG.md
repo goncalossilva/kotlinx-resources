@@ -10,6 +10,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 - Removed cross-dependency from the library to the plugin.
 
+### Fixed
+
+- Add explicit version to plugin artifact to prevent issues with resolution.  
+
 ## [0.2.0] - 2021-12-08
 
 ### Added

@@ -22,6 +22,10 @@ dependencies {
     implementation(kotlin("stdlib"))
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(8)
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "1.8"

@@ -2,18 +2,18 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 
 plugins {
-    kotlin("multiplatform") version "1.6.0"
+    alias(libs.plugins.kotlin.multiplatform)
 
     id("maven-publish")
     id("signing")
-    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    alias(libs.plugins.nexus.publish)
 
-    id("io.gitlab.arturbosch.detekt") version "1.19.0"
+    alias(libs.plugins.detekt)
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
     rootProject.configure<NodeJsRootExtension> {
-        nodeVersion = "16.13.1"
+        nodeVersion = libs.versions.nodejs.get()
     }
 }
 

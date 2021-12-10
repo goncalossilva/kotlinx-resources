@@ -2,10 +2,11 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 
 plugins {
-    kotlin("multiplatform") version "1.6.0"
+    alias(libs.plugins.kotlin.multiplatform)
 
-    id("io.gitlab.arturbosch.detekt") version "1.19.0"
+    alias(libs.plugins.detekt)
 }
+
 buildscript {
     dependencies {
         classpath("com.goncalossilva:resources")
@@ -15,7 +16,7 @@ apply(plugin = "com.goncalossilva.resources")
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
     rootProject.configure<NodeJsRootExtension> {
-        nodeVersion = "16.13.1"
+        nodeVersion = libs.versions.nodejs.get()
     }
 }
 

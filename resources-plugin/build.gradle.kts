@@ -1,16 +1,16 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.0"
+    alias(libs.plugins.kotlin.jvm)
 
-    id("com.github.gmazzo.buildconfig") version "3.0.3"
+    alias(libs.plugins.buildconfig)
 
     id("java-gradle-plugin")
     id("maven-publish")
     id("signing")
-    id("com.gradle.plugin-publish") version "0.18.0"
+    alias(libs.plugins.gradle.publish)
 
-    id("io.gitlab.arturbosch.detekt") version "1.19.0"
+    alias(libs.plugins.detekt)
 }
 
 repositories {

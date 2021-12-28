@@ -170,7 +170,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             @Suppress("ObjectLiteralToLambda")
             task.doLast(object : Action<Task> {
                 override fun execute(_task: Task) {
-                    // Create karma configuration file in the expected location, deleting it when we're done.
+                    // Create karma configuration file in the expected location, deleting when done.
                     confFile.printWriter().use { confWriter ->
                         getResourceDirs(kotlinCompilation).forEach { resourceDir ->
                             confWriter.println(

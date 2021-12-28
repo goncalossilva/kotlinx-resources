@@ -1,6 +1,7 @@
 # kotlinx-resources
 
-[![badge-version]](https://search.maven.org/search?q=g:com.goncalossilva%20a:resources*)
+[![badge-library-version]](https://search.maven.org/search?q=g:com.goncalossilva%20a:resources*)
+[![badge-plugin-version]](https://plugins.gradle.org/plugin/com.goncalossilva.resources)
 ![badge-jvm][badge-jvm]
 ![badge-js][badge-js]
 ![badge-nodejs][badge-nodejs]
@@ -63,7 +64,8 @@ This library is inspired by [this gist](https://gist.github.com/dellisd/a1df4278
 
 Released under the [MIT License](https://opensource.org/licenses/MIT).
 
-[badge-version]: https://img.shields.io/maven-central/v/com.goncalossilva/resources?style=flat
+[badge-library-version]: https://img.shields.io/maven-central/v/com.goncalossilva/resources?style=flat
+[badge-plugin-version]: https://img.shields.io/gradle-plugin-portal/v/com.goncalossilva.resources?style=flat
 [badge-ios]: https://img.shields.io/badge/platform-ios-CDCDCD.svg?style=flat
 [badge-js]: https://img.shields.io/badge/platform-js-F8DB5D.svg?style=flat
 [badge-nodejs]: https://img.shields.io/badge/platform-nodejs-68a063.svg?style=flat

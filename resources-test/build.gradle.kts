@@ -1,8 +1,11 @@
+import com.goncalossilva.useanybrowser.useAnyBrowser
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+
+    alias(libs.plugins.useanybrowser)
 
     alias(libs.plugins.detekt)
 }
@@ -38,16 +41,7 @@ kotlin {
         browser {
             testTask {
                 useKarma {
-                    // List all browsers so that the plugin downloads their runners and sets up
-                    // failure capture. `karma-detect-browsers` (below) figures out which ones are
-                    // available, and `karma.config.d/select-browser.js` selects one to run tests.
-                    useChromeHeadless()
-                    useChromiumHeadless()
-                    useFirefoxHeadless()
-                    useFirefoxDeveloperHeadless()
-                    useOpera()
-                    useSafari()
-                    useIe()
+                    useAnyBrowser()
                 }
             }
         }

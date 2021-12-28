@@ -1,5 +1,6 @@
 [versions]
 kotlin = "1.6.10"
+useanybrowser = "0.1.0"
 buildconfig = "3.0.3"
 gradle-publish = "0.18.0"
 nexus-publish = "1.1.0"
@@ -9,6 +10,7 @@ nodejs = "16.13.1"
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+useanybrowser = { id = "com.goncalossilva.useanybrowser", version.ref = "useanybrowser" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }

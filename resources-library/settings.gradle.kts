@@ -1,1 +1,0 @@
-enableFeaturePreview("VERSION_CATALOGS")

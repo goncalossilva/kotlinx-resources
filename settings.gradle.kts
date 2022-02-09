@@ -7,5 +7,3 @@ includeBuild("resources-plugin") {
     }
 }
 includeBuild("resources-library")
-
-enableFeaturePreview("VERSION_CATALOGS")

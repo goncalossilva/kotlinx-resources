@@ -67,12 +67,6 @@ kotlin {
                 implementation("com.goncalossilva:resources-library")
             }
         }
-
-        val jsTest by getting {
-            dependencies {
-                implementation(npm("karma-detect-browsers", "^2.0"))
-            }
-        }
     }
 }
 

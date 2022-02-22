@@ -1073,7 +1073,7 @@ karma-chrome-launcher@3.1.0:
   dependencies:
     which "^1.2.1"
 
-"karma-detect-browsers@>=2.3.0 <3.0.0":
+karma-detect-browsers@^2.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/karma-detect-browsers/-/karma-detect-browsers-2.3.3.tgz#e0d8f9c1a1b0cc58d8668c245441eaf9d832c6ee"
   integrity sha512-ltFVyA3ijThv9l9TQ+TKnccoMk6YAWn8OMaccL+n8pO2LGwMOcy6tUWy3Mnv9If29jqvVHDCWntj7wBQpPtv7Q==

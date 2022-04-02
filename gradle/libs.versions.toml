@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.6.10"
+kotlin = "1.6.20"
 useanybrowser = "0.1.0"
 buildconfig = "3.0.3"
 gradle-publish = "0.21.0"

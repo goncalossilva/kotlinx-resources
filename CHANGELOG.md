@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- Use invariant separators in path to better support Windows.
+
 ## [0.2.1] - 2021-12-09
 
 ### Changed

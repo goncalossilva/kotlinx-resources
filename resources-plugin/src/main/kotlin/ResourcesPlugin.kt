@@ -119,10 +119,12 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
 
     private fun getResourceDirs(kotlinCompilation: KotlinCompilation<*>): List<String> {
-        val projectDirPath = kotlinCompilation.target.project.projectDir.path
+        val projectDirPath = kotlinCompilation.target.project.projectDir.invariantSeparatorsPath
         return kotlinCompilation.allKotlinSourceSets.flatMap { sourceSet ->
             // Paths should be relative to the project's directory.
-            sourceSet.resources.srcDirs.map { it.path.removePrefix(projectDirPath).trimStart('/') }
+            sourceSet.resources.srcDirs.map {
+                it.invariantSeparatorsPath.removePrefix(projectDirPath).trimStart('/')
+            }
         }
     }
 
@@ -165,7 +167,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             .resolve("karma.config.d")
             .apply { mkdirs() }
             .resolve("proxy-resources.js")
-        
+
         val proxyResourcesTask = tasks.register(taskName) { task ->
             @Suppress("ObjectLiteralToLambda")
             task.doLast(object : Action<Task> {

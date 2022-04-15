@@ -31,7 +31,7 @@ jobs:
       - id: get_tag_version
         run: echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/v}"
       - run: ./gradlew :resources-library:assemble
-      - run: ./gradlew :resources-library:publishToSonatype closeAndReleaseSonatypeStagingRepository
+      - run: ./gradlew :resources-library:publishToSonatype :resources-library:closeAndReleaseSonatypeStagingRepository
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.get_tag_version.outputs.VERSION }}
           ORG_GRADLE_PROJECT_ossrhUsername: ${{ secrets.OSSRH_USERNAME }}

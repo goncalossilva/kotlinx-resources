@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.2.2] - 2022-04-16
+
 ### Fixed
 
 - Use invariant separators in path to better support Windows.

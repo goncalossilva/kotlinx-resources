@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.7.0"
 useanybrowser = "0.1.0"
-buildconfig = "3.0.3"
+buildconfig = "3.1.0"
 gradle-publish = "0.21.0"
 nexus-publish = "1.1.0"
 detekt = "1.20.0"

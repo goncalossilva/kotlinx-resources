@@ -4,7 +4,7 @@ useanybrowser = "0.1.0"
 buildconfig = "3.1.0"
 gradle-publish = "1.0.0"
 nexus-publish = "1.1.0"
-detekt = "1.20.0"
+detekt = "1.21.0"
 nodejs = "16.13.1"
 
 [plugins]

@@ -81,3 +81,8 @@ signing {
 tasks.named("publish") {
     dependsOn("publishPlugins")
 }
+
+detekt {
+    config = files("../config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+}

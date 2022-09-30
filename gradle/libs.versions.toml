@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.20"
-useanybrowser = "0.1.0"
+useanybrowser = "0.1.1"
 buildconfig = "3.1.0"
 gradle-publish = "1.0.0"
 nexus-publish = "1.1.0"

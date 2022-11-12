@@ -96,7 +96,6 @@ val javadocJar by tasks.registering(Jar::class) {
 
 publishing {
     // Configure all publications.
-    @Suppress("LocalVariableName")
     publications.withType<MavenPublication> {
         val artifactId: String by project
         if (name == "kotlinMultiplatform") {

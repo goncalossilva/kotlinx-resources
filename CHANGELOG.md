@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+
+- Support for iOS, watchOS, and tvOS simulators
+
 ## [0.2.3] - 2022-09-29
 
 ### Fixed

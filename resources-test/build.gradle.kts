@@ -30,23 +30,6 @@ repositories {
     gradlePluginPortal()
 }
 
-// see https://youtrack.jetbrains.com/issue/KT-45416/Do-not-use-iPhone-8-simulator-for-Gradle-tests
-fun KotlinMultiplatformExtension.overrideAppleDevices() {
-    val appleTargets = targets.withType(KotlinNativeTargetWithSimulatorTests::class.java)
-
-    appleTargets.forEach { target ->
-        when {
-            target.name.startsWith("ios") -> {
-                target.testRuns["test"].deviceId = "iPhone 14"
-            }
-            target.name.startsWith("watchos") -> {
-                target.testRuns["test"].deviceId = "Apple Watch Series 7 (45mm)"
-            }
-            else -> { /* do nothing */ }
-        }
-    }
-}
-
 kotlin {
     jvm {
         compilations.all {
@@ -74,7 +57,7 @@ kotlin {
     watchosSimulatorArm64()
     tvos()
     tvosSimulatorArm64()
-    overrideAppleDevices()
+    overrideAppleSimulators()
 
     mingwX64()
     macosX64()
@@ -119,6 +102,22 @@ kotlin {
         }
         val tvosSimulatorArm64Test by getting {
             dependsOn(tvosTest)
+        }
+    }
+}
+
+// https://youtrack.jetbrains.com/issue/KT-45416/Do-not-use-iPhone-8-simulator-for-Gradle-tests
+fun KotlinMultiplatformExtension.overrideAppleSimulators() {
+    val appleTargets = targets.withType(KotlinNativeTargetWithSimulatorTests::class.java)
+
+    appleTargets.forEach { target ->
+        when {
+            target.name.startsWith("ios") -> {
+                target.testRuns["test"].deviceId = "iPhone 14"
+            }
+            target.name.startsWith("watchos") -> {
+                target.testRuns["test"].deviceId = "Apple Watch Series 7 (45mm)"
+            }
         }
     }
 }

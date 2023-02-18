@@ -47,23 +47,23 @@ buildConfig {
     buildConfigField("String", "VERSION", "\"$version\"")
 }
 
-pluginBundle {
+gradlePlugin {
     val publicationUrl: String by project
     val publicationScmUrl: String by project
-    val publicationTags: String by project
-    website = publicationUrl
-    vcsUrl = publicationScmUrl
-    tags = publicationTags.split(',')
-}
 
-gradlePlugin {
+    website.set(publicationUrl)
+    vcsUrl.set(publicationScmUrl)
+
     val resources by plugins.creating {
         val publicationDisplayNamePlugin: String by project
         val publicationDescriptionPlugin: String by project
+        val publicationTags: String by project
+
         id = pluginId
+        implementationClass = "com.goncalossilva.resources.ResourcesPlugin"
         displayName = publicationDisplayNamePlugin
         description = publicationDescriptionPlugin
-        implementationClass = "com.goncalossilva.resources.ResourcesPlugin"
+        tags.set(publicationTags.split(','))
     }
 }
 

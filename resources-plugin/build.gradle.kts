@@ -18,8 +18,8 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("gradle-plugin"))
-    implementation(kotlin("stdlib"))
+    compileOnly(kotlin("gradle-plugin"))
+    compileOnly(kotlin("stdlib"))
 }
 
 tasks.withType<JavaCompile>().configureEach {

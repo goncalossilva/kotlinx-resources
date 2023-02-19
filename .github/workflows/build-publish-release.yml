@@ -28,7 +28,7 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - run: ./gradlew :resources-library:assemble
       - run: ./gradlew :resources-library:publishToSonatype :resources-library:closeAndReleaseSonatypeStagingRepository
         env:
@@ -48,7 +48,7 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - run: ./gradlew :resources-plugin:assemble
       - run: ./gradlew :resources-plugin:publish
         env:

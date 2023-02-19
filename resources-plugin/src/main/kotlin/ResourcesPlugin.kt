@@ -48,8 +48,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     kotlinCompilation = kotlinCompilation,
                     taskName = getTaskName("copyResources", binary.name, target.targetName),
                     outputDirectory = binary.outputDirectory,
-                    mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                    dependantTask = binary.linkTaskName
+                    mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
+                    dependantTasks = listOf(binary.linkTaskName)
                 )
             }
         }
@@ -62,8 +62,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 kotlinCompilation = kotlinCompilation,
                 taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
                 outputDirectory = kotlinCompilation.npmProject.dir,
-                mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                dependantTask = kotlinCompilation.compileKotlinTaskName
+                mustRunAfterTasks = listOf(
+                    ":${kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider!!.name}",
+                    kotlinCompilation.processResourcesTaskName,
+                ),
+                dependantTasks = listOf(kotlinCompilation.compileKotlinTaskName)
             )
         }
 
@@ -135,8 +138,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         kotlinCompilation: KotlinCompilation<*>,
         taskName: String,
         outputDirectory: File,
-        mustRunAfterTask: String,
-        dependantTask: String
+        mustRunAfterTasks: List<String>,
+        dependantTasks: List<String>
     ): TaskProvider<Copy>? {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
@@ -146,10 +149,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             task.from(project.projectDir)
             task.include(resourceDirs)
             task.into(outputDirectory)
-            task.mustRunAfter(mustRunAfterTask)
+            for (mustRunAfterTask in mustRunAfterTasks) {
+                task.mustRunAfter(mustRunAfterTask)
+            }
         }
-        tasks.named(dependantTask).configure {
-            it.dependsOn(copyResourcesTask)
+        for (dependantTask in dependantTasks) {
+            tasks.named(dependantTask).configure {
+                it.dependsOn(copyResourcesTask)
+            }
         }
 
         return copyResourcesTask
@@ -171,7 +178,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val proxyResourcesTask = tasks.register(taskName) { task ->
             @Suppress("ObjectLiteralToLambda")
             task.doLast(object : Action<Task> {
-                override fun execute(_task: Task) {
+                override fun execute(task: Task) {
                     // Create karma configuration file in the expected location, deleting when done.
                     confFile.printWriter().use { confWriter ->
                         getResourceDirs(kotlinCompilation).forEach { resourceDir ->

@@ -4,6 +4,12 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.2.5] - 2023-02-19
+
+### Fixed
+
+- Support for Kotlin 1.8 build tools.
+
 ## [0.2.4] - 2022-11-12
 
 ### Added

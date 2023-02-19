@@ -1,5 +1,8 @@
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -14,6 +17,13 @@ plugins {
 rootProject.plugins.withType<NodeJsRootPlugin> {
     rootProject.configure<NodeJsRootExtension> {
         nodeVersion = libs.versions.nodejs.get()
+    }
+}
+
+rootProject.plugins.withType(YarnPlugin::class.java) {
+    rootProject.configure<YarnRootExtension> {
+        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
+        yarnLockAutoReplace = true
     }
 }
 

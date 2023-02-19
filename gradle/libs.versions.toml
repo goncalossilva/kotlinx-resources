@@ -6,6 +6,7 @@ gradle-publish = "1.1.0"
 nexus-publish = "1.1.0"
 detekt = "1.22.0"
 nodejs = "18.14.1"
+yarn = "1.22.19"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

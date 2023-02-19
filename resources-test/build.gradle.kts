@@ -28,6 +28,7 @@ rootProject.plugins.withType<NodeJsRootPlugin> {
 
 rootProject.plugins.withType(YarnPlugin::class.java) {
     rootProject.configure<YarnRootExtension> {
+        version = libs.versions.yarn.get()
         yarnLockMismatchReport = YarnLockMismatchReport.WARNING
         yarnLockAutoReplace = true
     }

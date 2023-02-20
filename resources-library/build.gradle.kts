@@ -1,3 +1,5 @@
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.plugins.signing.Sign
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
@@ -101,6 +103,12 @@ kotlin {
     }
 }
 
+// TODO: Remove when https://youtrack.jetbrains.com/issue/KT-46466 is fixed.
+val signingTasks = tasks.withType<Sign>()
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    dependsOn(signingTasks)
+}
+
 val javadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
 }
@@ -115,7 +123,7 @@ publishing {
             setArtifactId("$artifactId-$name")
         }
 
-        // Publish docs with each artifact.
+        // Stub javadoc jar where missing.
         artifact(javadocJar)
 
         // Provide information requited by Maven Central.

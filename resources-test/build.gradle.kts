@@ -114,10 +114,6 @@ kotlin {
     }
 }
 
-val javadocJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-}
-
 detekt {
     config = files("../config/detekt/detekt.yml")
     buildUponDefaultConfig = true

@@ -50,11 +50,18 @@ class Resource(path: String) {
 }
 ```
 
-**Note that `path` should be relative to the project's directory**, such as `src/commonTest/resources/some/optional/folders/file.txt`. This is convenient from an implementation perspective, but also allows having resource files with the same name under difference resource folders.
+The resource files themselves must be:
+
+- **Located in the [resources folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources) of a source set.** For example, `src/commonTest/resources/` or `src/jsTest/resources/`.
+- **Accessed using a path relative to the project's directory, such as `src/commonTest/resources/optional/folders/file.txt`.** This allows having resource files with the same name under difference resource folders.
+
+With these in mind, you're ready to go.
 
 ## Example
 
-Library tests use the library itself, so they serve as a practical example. See [`ResourceTest`](resources-library/src/commonTest/kotlin/ResourceTest.kt) for example usage, and [`resources-library/src/commonTest/resources`](resources-library/src/commonTest/resources) for the associated folder structure for resources.
+Library tests use the library itself, so they serve as a practical example.
+
+See [`ResourceTest`](resources-test/src/commonTest/kotlin/ResourceTest.kt) for example usage, and [`resources-test/src/commonTest/resources`](resources-library/src/commonTest/resources) for the associated folder structure for resources.
 
 ## Acknowledgements
 

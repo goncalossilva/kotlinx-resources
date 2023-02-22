@@ -81,36 +81,6 @@ kotlin {
                 implementation("com.goncalossilva:resources-library")
             }
         }
-
-        val iosMain by getting
-        val iosTest by getting
-
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
-        }
-        val iosSimulatorArm64Test by getting {
-            dependsOn(iosTest)
-        }
-
-        val watchosMain by getting
-        val watchosTest by getting
-
-        val watchosSimulatorArm64Main by getting {
-            dependsOn(watchosMain)
-        }
-        val watchosSimulatorArm64Test by getting {
-            dependsOn(watchosTest)
-        }
-
-        val tvosMain by getting
-        val tvosTest by getting
-
-        val tvosSimulatorArm64Main by getting {
-            dependsOn(tvosMain)
-        }
-        val tvosSimulatorArm64Test by getting {
-            dependsOn(tvosTest)
-        }
     }
 }
 

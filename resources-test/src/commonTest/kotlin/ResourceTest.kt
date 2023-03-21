@@ -42,17 +42,17 @@ class ResourceTest {
 
     @Test
     fun readTextRootThrowsWhenNotFound() {
-        assertFailsWith(RuntimeException::class) {
+        assertFailsWith(FileReadException::class) {
             Resource("src/commonTest/resources/404.json").readText()
         }
     }
 
     @Test
     fun readTextNestedThrowsWhenNotFound() {
-        assertFailsWith(RuntimeException::class) {
+        assertFailsWith(FileReadException::class) {
             Resource("src/commonTest/resources/a/404.json").readText()
         }
-        assertFailsWith(RuntimeException::class) {
+        assertFailsWith(FileReadException::class) {
             Resource("src/commonTest/resources/a/folder/404.json").readText()
         }
     }

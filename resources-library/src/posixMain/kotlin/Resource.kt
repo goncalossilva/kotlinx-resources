@@ -9,12 +9,15 @@ import platform.posix.access
 import platform.posix.fclose
 import platform.posix.fgets
 import platform.posix.fopen
+import platform.posix.posix_errno
+import platform.posix.strerror
 
 public actual class Resource actual constructor(private val path: String) {
     public actual fun exists(): Boolean = access(path, F_OK) != -1
 
     public actual fun readText(): String = buildString {
-        val file = fopen(path, "r") ?: throw RuntimeException("Cannot open file $path")
+        val file = fopen(path, "r")
+            ?: throw FileReadException("$path: Open failed: ${strerror(posix_errno())}")
         try {
             memScoped {
                 val buffer = allocArray<ByteVar>(BUFFER_SIZE)

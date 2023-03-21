@@ -28,9 +28,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     )
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>) =
-        isCompiledForTesting(kotlinCompilation) && hasResources(kotlinCompilation) &&
-            (isAppleCompilation(kotlinCompilation) || isJsNodeCompilation(kotlinCompilation) ||
-                isJsBrowserCompilation(kotlinCompilation))
+        isCompiledForTesting(kotlinCompilation) && hasResources(kotlinCompilation) && (
+            isAppleCompilation(kotlinCompilation) || isJsNodeCompilation(kotlinCompilation) ||
+                isJsBrowserCompilation(kotlinCompilation)
+            )
 
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
@@ -41,7 +42,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
          * For Apple platforms, move resources into the binary's output directory so that they
          * can be loaded using `NSBundle.mainBundle` and related APIs.
          */
-        if(isAppleCompilation(kotlinCompilation)) {
+        if (isAppleCompilation(kotlinCompilation)) {
             val target = kotlinCompilation.target
             target.binaries.forEach { binary ->
                 setupCopyResourcesTask(
@@ -62,10 +63,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 kotlinCompilation = kotlinCompilation,
                 taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
                 outputDirectory = kotlinCompilation.npmProject.dir,
-                mustRunAfterTasks = listOf(
-                    ":${kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider!!.name}",
-                    kotlinCompilation.processResourcesTaskName,
-                ),
+                mustRunAfterTasks = mutableListOf(kotlinCompilation.processResourcesTaskName).apply {
+                    kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider?.let {
+                        add(":${it.name}")
+                    }
+                },
                 dependantTasks = listOf(kotlinCompilation.compileKotlinTaskName)
             )
         }

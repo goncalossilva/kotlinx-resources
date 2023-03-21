@@ -13,9 +13,9 @@ public expect class Resource(path: String) {
     public fun exists(): Boolean
 
     /**
-     * Returns the resource's content as a string.
+     * Returns the resource's content as a UTF-8 string.
      *
-     * @throws RuntimeException when the resource doesn't exist or can't be read.
+     * @throws FileReadException when the resource doesn't exist or can't be read.
      */
     public fun readText(): String
 }

@@ -17,13 +17,13 @@ public actual class Resource actual constructor(path: String) {
     public actual fun exists(): Boolean = when {
         IS_BROWSER -> resourceBrowser.exists()
         IS_NODE -> resourceNode.exists()
-        else -> throw RuntimeException("Unsupported runtime")
+        else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
     public actual fun readText(): String = when {
         IS_BROWSER -> resourceBrowser.readText()
         IS_NODE -> resourceNode.readText()
-        else -> throw RuntimeException("Unsupported runtime")
+        else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
     private companion object {
@@ -39,7 +39,7 @@ public actual class Resource actual constructor(path: String) {
     /*
      * Browser-based resource implementation.
      */
-    private class ResourceBrowser(path: String) {
+    private class ResourceBrowser(private val path: String) {
         private val request = XMLHttpRequest().apply {
             open("GET", path, false)
             send()
@@ -51,7 +51,7 @@ public actual class Resource actual constructor(path: String) {
         fun readText(): String = if (exists()) {
             request.responseText
         } else {
-            throw RuntimeException()
+            throw FileReadException("$path: No such file or directory")
         }
     }
 
@@ -65,8 +65,8 @@ public actual class Resource actual constructor(path: String) {
 
         fun readText(): String = runCatching {
             fs.readFileSync(path, "utf8")
-        }.getOrElse {
-            throw RuntimeException(it)
+        }.getOrElse { cause ->
+            throw FileReadException("$path: No such file or directory", cause)
         } as String
     }
 }

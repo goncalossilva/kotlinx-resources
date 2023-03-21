@@ -4,6 +4,11 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+
+- Throw `FileReadException` when failing to read resources, instead of `RuntimeException`.
+- Throw `UnsupportedOperationException` when using unsupported JS runtimes, instead of `RuntimeException`.
+
 ## [0.2.5] - 2023-02-19
 
 ### Fixed

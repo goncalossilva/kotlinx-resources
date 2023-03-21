@@ -27,6 +27,7 @@ public actual class Resource actual constructor(path: String) {
     }
 
     private companion object {
+        @Suppress("MaxLineLength")
         private val IS_BROWSER: Boolean = js(
             "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'"
         ) as Boolean
@@ -44,6 +45,7 @@ public actual class Resource actual constructor(path: String) {
             send()
         }
 
+        @Suppress("MagicNumber")
         fun exists(): Boolean = request.status in 200..299
 
         fun readText(): String = if (exists()) {

@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-03-23
+
 ### Added
 
 - Add `Resource.readBytes()` for reading resources as byte arrays.

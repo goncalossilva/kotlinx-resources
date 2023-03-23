@@ -127,7 +127,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val projectDirPath = kotlinCompilation.target.project.projectDir.invariantSeparatorsPath
         return kotlinCompilation.allKotlinSourceSets.flatMap { sourceSet ->
             // Paths should be relative to the project's directory.
-            sourceSet.resources.srcDirs.map {
+            sourceSet.resources.srcDirs.filter { it.exists() }.map {
                 it.invariantSeparatorsPath.removePrefix(projectDirPath).trimStart('/')
             }
         }

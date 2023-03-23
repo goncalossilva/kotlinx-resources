@@ -1,5 +1,7 @@
 package com.goncalossilva.resources
 
+import org.khronos.webgl.Int8Array
+import org.khronos.webgl.Uint8Array
 import org.w3c.xhr.XMLHttpRequest
 
 private external fun require(name: String): dynamic
@@ -26,6 +28,12 @@ public actual class Resource actual constructor(path: String) {
         else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
+    public actual fun readBytes(): ByteArray = when {
+        IS_BROWSER -> resourceBrowser.readBytes()
+        IS_NODE -> resourceNode.readBytes()
+        else -> throw UnsupportedOperationException("Unsupported JS runtime")
+    }
+
     private companion object {
         @Suppress("MaxLineLength")
         private val IS_BROWSER: Boolean = js(
@@ -40,18 +48,33 @@ public actual class Resource actual constructor(path: String) {
      * Browser-based resource implementation.
      */
     private class ResourceBrowser(private val path: String) {
-        private val request = XMLHttpRequest().apply {
+        private fun request(config: (XMLHttpRequest.() -> Unit)? = null) = XMLHttpRequest().apply {
             open("GET", path, false)
+            config?.invoke(this)
             send()
         }
 
         @Suppress("MagicNumber")
-        fun exists(): Boolean = request.status in 200..299
+        fun exists(): Boolean = request().status in 200..299
 
-        fun readText(): String = if (exists()) {
-            request.responseText
-        } else {
-            throw FileReadException("$path: No such file or directory")
+        fun readText(): String = request().let { request ->
+            if (exists()) {
+                request.responseText
+            } else {
+                throw FileReadException("$path: Read failed: ${request.statusText}")
+            }
+        }
+
+        fun readBytes(): ByteArray = request {
+            // https://web.archive.org/web/20071103070418/http://mgran.blogspot.com/2006/08/downloading-binary-streams-with.html
+            overrideMimeType("text/plain; charset=x-user-defined")
+        }.let { request ->
+            if (exists()) {
+                val response = request.responseText
+                ByteArray(response.length) { response[it].code.toUByte().toByte() }
+            } else {
+                throw FileReadException("$path: Read failed: ${request.statusText}")
+            }
         }
     }
 
@@ -64,9 +87,16 @@ public actual class Resource actual constructor(path: String) {
         fun exists(): Boolean = fs.existsSync(path) as Boolean
 
         fun readText(): String = runCatching {
-            fs.readFileSync(path, "utf8")
+            fs.readFileSync(path, "utf8") as String
         }.getOrElse { cause ->
-            throw FileReadException("$path: No such file or directory", cause)
-        } as String
+            throw FileReadException("$path: Read failed", cause)
+        }
+
+        fun readBytes(): ByteArray = runCatching {
+            val buffer = fs.readFileSync(path).unsafeCast<Uint8Array>()
+            Int8Array(buffer.buffer, buffer.byteOffset, buffer.length).unsafeCast<ByteArray>()
+        }.getOrElse { cause ->
+            throw FileReadException("$path: Read failed", cause)
+        }
     }
 }

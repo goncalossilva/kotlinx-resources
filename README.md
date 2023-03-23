@@ -47,6 +47,7 @@ Once that's done, a `Resource` class becomes available in all test sources, with
 class Resource(path: String) {
     fun exists(): Boolean
     fun readText(): String
+    fun readBytes(): ByteArray
 }
 ```
 

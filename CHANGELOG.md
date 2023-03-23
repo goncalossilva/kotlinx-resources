@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+
+- Add `Resource.readBytes()` for reading resources as byte arrays.
+
 ### Changed
 
 - Throw `FileReadException` when failing to read resources, instead of `RuntimeException`.

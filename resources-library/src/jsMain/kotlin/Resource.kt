@@ -4,8 +4,6 @@ import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 import org.w3c.xhr.XMLHttpRequest
 
-private external fun require(name: String): dynamic
-
 /*
  * It's impossible to separate browser/node JS runtimes, as they can't be published separately.
  * See: https://youtrack.jetbrains.com/issue/KT-47038
@@ -82,7 +80,19 @@ public actual class Resource actual constructor(path: String) {
      * Node-based resource implementation.
      */
     private class ResourceNode(val path: String) {
-        val fs = require("fs")
+        val fs = nodeRequire("fs")
+
+        private fun nodeRequire(name: String): dynamic {
+            // Alternative to declaring `private external fun require(name: String): dynamic` and
+            // using `require("fs")` directly, since it will cause webpack to complain when running
+            // on the browser, even though the code is unused.
+
+            return try {
+                js("module['' + 'require']")(name)
+            } catch (e: dynamic) {
+                throw IllegalArgumentException("Module not found: $name", e as? Throwable)
+            }
+        }
 
         fun exists(): Boolean = fs.existsSync(path) as Boolean
 

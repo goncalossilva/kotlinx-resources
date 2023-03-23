@@ -12,4 +12,10 @@ public actual class Resource actual constructor(private val path: String) {
     }.getOrElse { cause ->
         throw FileReadException("$path: No such file or directory", cause)
     }
+
+    public actual fun readBytes(): ByteArray = runCatching {
+        file.readBytes()
+    }.getOrElse { cause ->
+        throw FileReadException("$path: No such file or directory", cause)
+    }
 }

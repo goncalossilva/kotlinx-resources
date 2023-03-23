@@ -18,4 +18,11 @@ public expect class Resource(path: String) {
      * @throws FileReadException when the resource doesn't exist or can't be read.
      */
     public fun readText(): String
+
+    /**
+     * Returns the resource's content as a byte array.
+     *
+     * @throws FileReadException when the resource doesn't exist or can't be read.
+     */
+    public fun readBytes(): ByteArray
 }

@@ -201,7 +201,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                             |config.set({
                             |    "proxies": {
                             |       "/": __dirname + "/"
-                            |    }
+                            |    },
+                            |    "urlRoot": "/__karma__/"
                             |});
                             """.trimMargin()
                         )

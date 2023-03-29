@@ -47,7 +47,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             target.binaries.forEach { binary ->
                 setupCopyResourcesTask(
                     kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName("copyResources", binary.name, target.targetName),
+                    taskName = getTaskName(
+                        "copy",
+                        kotlinCompilation.compilationName,
+                        "resources",kotlinCompilation.target.targetName
+                    ),
                     outputDirectory = binary.outputDirectory,
                     mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
                     dependantTasks = listOf(binary.linkTaskName)
@@ -61,7 +65,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         if (isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) {
             setupCopyResourcesTask(
                 kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
+                taskName = getTaskName(
+                    "copy",
+                    kotlinCompilation.compilationName,
+                    "resources",kotlinCompilation.target.targetName
+                ),
                 outputDirectory = kotlinCompilation.npmProject.dir,
                 mustRunAfterTasks = mutableListOf(kotlinCompilation.processResourcesTaskName).apply {
                     kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider?.let {
@@ -79,7 +87,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         if (isJsBrowserCompilation(kotlinCompilation)) {
             setupProxyResourcesTask(
                 kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
+                taskName = getTaskName(
+                    "proxy",
+                    kotlinCompilation.compilationName,
+                    "resources",kotlinCompilation.target.targetName
+                ),
                 // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
                 mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
                 dependantTask = kotlinCompilation.compileKotlinTaskName

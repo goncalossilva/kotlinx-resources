@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.3.1] - 2023-03-29
+
 ### Changed
 
 - Added compilation name to task names to avoid colliding with [moko-resources](https://github.com/icerockdev/moko-resources). E.g., `copyResourcesDebugTestEtc` becomes `copyTestResourcesDebugTestEtc`.

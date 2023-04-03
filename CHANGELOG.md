@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.3.2] - 2023-04-03
+
 ### Changed
 
 - Removed compilation name in task names to avoid colliding with [native.cocoapods](https://kotlinlang.org/docs/native-cocoapods.html), an official plugin. Unfortunately, this does mean that `kotlinx-resources` is currently incompatible with `moko-resources`. 

@@ -51,10 +51,11 @@ class Resource(path: String) {
 }
 ```
 
-The resource files themselves must be:
+To setup resources correctly and avoid `FilNotFoundException` & co:
 
-- **Located in the [resources folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources) of a source set.** For example, `src/commonTest/resources/` or `src/jsTest/resources/`.
-- **Accessed using a path relative to the project's directory, such as `src/commonTest/resources/optional/folders/file.txt`.** This allows having resource files with the same name under difference resource folders.
+1. **Put them in the [resources folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources) of a source set.** For example, `src/commonTest/resources/` or `src/jsTest/resources/`.
+2. **Specify the path relative to the project's directory.** For example, `src/commonTest/resources/a-folder/a-file.txt`.
+
 
 With these in mind, you're ready to go.
 

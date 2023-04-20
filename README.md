@@ -23,7 +23,7 @@ List the plugin in your `build.gradle.kts`:
 
 ```kotlin
 plugins {
-    id("com.goncalossilva.resources")
+    id("com.goncalossilva.resources") version "<version>"
 }
 ```
 

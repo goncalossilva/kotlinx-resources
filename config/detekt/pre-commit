@@ -3,6 +3,8 @@
 printf "Running detekt...\r"
 
 OUTPUT="/tmp/detekt-$(date +%s)"
+trap 'rm -f "$OUTPUT"' EXIT
+
 ./gradlew :resources-plugin:detekt :resources-library:detekt detekt -PautoCorrect=true > "$OUTPUT"
 EXIT_CODE=$?
 
@@ -13,5 +15,4 @@ if [ $EXIT_CODE -ne 0 ]; then
   echo "*********************************************"
 fi
 
-rm "$OUTPUT"
 exit $EXIT_CODE

@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+
+- Made `BuildConfig` internal.
+
 ## [0.3.2] - 2023-04-03
 
 ### Changed

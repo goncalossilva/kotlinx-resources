@@ -62,6 +62,11 @@ kotlin {
     linuxArm64()
 
     sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
+            languageSettings.optIn("kotlinx.cinterop.BetaInteropApi")
+        }
+
         val commonMain by getting
         val iosX64Main by getting
         val iosArm64Main by getting

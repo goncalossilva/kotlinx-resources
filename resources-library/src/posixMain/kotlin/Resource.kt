@@ -39,7 +39,7 @@ public actual class Resource actual constructor(private val path: String) {
             memScoped {
                 val buffer = allocArray<ByteVar>(BUFFER_SIZE)
                 do {
-                    val size = fread(buffer, 1, BUFFER_SIZE.toULong(), file)
+                    val size = fread(buffer, 1u, BUFFER_SIZE.toULong(), file)
                     addAll(buffer.readBytes(size.toInt()).asIterable())
                 } while (size > 0u)
             }

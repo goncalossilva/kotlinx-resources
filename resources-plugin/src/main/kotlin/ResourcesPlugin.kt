@@ -28,7 +28,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     )
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>) =
-        isCompiledForTesting(kotlinCompilation) && hasResources(kotlinCompilation) && (
+        isCompiledForTesting(kotlinCompilation) && (
             isAppleCompilation(kotlinCompilation) || isJsNodeCompilation(kotlinCompilation) ||
                 isJsBrowserCompilation(kotlinCompilation)
             )
@@ -48,7 +48,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 setupCopyResourcesTask(
                     kotlinCompilation = kotlinCompilation,
                     taskName = getTaskName("copyResources", binary.name, target.targetName),
-                    outputDirectory = binary.outputDirectory,
+                    outputDir = binary.outputDirectory,
                     mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
                     dependantTasks = listOf(binary.linkTaskName)
                 )
@@ -62,9 +62,9 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             setupCopyResourcesTask(
                 kotlinCompilation = kotlinCompilation,
                 taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
-                outputDirectory = kotlinCompilation.npmProject.dir,
+                outputDir = kotlinCompilation.npmProject.dir,
                 mustRunAfterTasks = mutableListOf(kotlinCompilation.processResourcesTaskName).apply {
-                    kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider?.let {
+                    kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider.let {
                         add(":${it.name}")
                     }
                 },
@@ -118,11 +118,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
-    private fun hasResources(kotlinCompilation: KotlinCompilation<*>) =
-        kotlinCompilation.allKotlinSourceSets.any { sourceSet ->
-            sourceSet.resources.srcDirs.any { !it.listFiles().isNullOrEmpty() }
-        }
-
     private fun getResourceDirs(kotlinCompilation: KotlinCompilation<*>): List<String> {
         val projectDirPath = kotlinCompilation.target.project.projectDir.invariantSeparatorsPath
         return kotlinCompilation.allKotlinSourceSets.flatMap { sourceSet ->
@@ -139,18 +134,17 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     private fun setupCopyResourcesTask(
         kotlinCompilation: KotlinCompilation<*>,
         taskName: String,
-        outputDirectory: File,
+        outputDir: File,
         mustRunAfterTasks: List<String>,
         dependantTasks: List<String>
     ): TaskProvider<Copy>? {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
-        val resourceDirs = getResourceDirs(kotlinCompilation).map { "$it/**" }
 
         val copyResourcesTask = tasks.register(taskName, Copy::class.java) { task ->
             task.from(project.projectDir)
-            task.include(resourceDirs)
-            task.into(outputDirectory)
+            task.include(getResourceDirs(kotlinCompilation).map { "$it/**" })
+            task.into(outputDir)
             for (mustRunAfterTask in mustRunAfterTasks) {
                 task.mustRunAfter(mustRunAfterTask)
             }

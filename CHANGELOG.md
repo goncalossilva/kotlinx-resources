@@ -4,6 +4,12 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-08-01
+
+### Added
+
+- Support for Kotlin 1.9.0.
+
 ### Changed
 
 - Made `BuildConfig` internal.

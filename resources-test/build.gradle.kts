@@ -20,14 +20,14 @@ buildscript {
 }
 apply(plugin = "com.goncalossilva.resources")
 
-rootProject.plugins.withType<NodeJsRootPlugin> {
-    rootProject.configure<NodeJsRootExtension> {
+plugins.withType<NodeJsRootPlugin> {
+    configure<NodeJsRootExtension> {
         nodeVersion = libs.versions.nodejs.get()
     }
 }
 
-rootProject.plugins.withType(YarnPlugin::class.java) {
-    rootProject.configure<YarnRootExtension> {
+plugins.withType<YarnPlugin> {
+    configure<YarnRootExtension> {
         version = libs.versions.yarn.get()
         yarnLockMismatchReport = YarnLockMismatchReport.WARNING
         yarnLockAutoReplace = true

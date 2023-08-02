@@ -16,14 +16,14 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-rootProject.plugins.withType<NodeJsRootPlugin> {
-    rootProject.configure<NodeJsRootExtension> {
+plugins.withType<NodeJsRootPlugin> {
+    configure<NodeJsRootExtension> {
         nodeVersion = libs.versions.nodejs.get()
     }
 }
 
-rootProject.plugins.withType<YarnPlugin> {
-    rootProject.configure<YarnRootExtension> {
+plugins.withType<YarnPlugin> {
+    configure<YarnRootExtension> {
         version = libs.versions.yarn.get()
         yarnLockMismatchReport = YarnLockMismatchReport.WARNING
         yarnLockAutoReplace = true

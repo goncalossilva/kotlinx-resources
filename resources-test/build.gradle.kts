@@ -60,11 +60,14 @@ kotlin {
         nodejs()
     }
 
-    ios()
+    iosArm64()
+    iosX64()
     iosSimulatorArm64()
-    watchos()
+    watchosArm32()
+    watchosArm64()
     watchosSimulatorArm64()
-    tvos()
+    tvosArm64()
+    tvosX64()
     tvosSimulatorArm64()
 
     mingwX64()
@@ -72,6 +75,8 @@ kotlin {
     macosArm64()
     linuxX64()
     linuxArm64()
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         val commonMain by getting

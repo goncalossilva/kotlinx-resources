@@ -176,6 +176,6 @@ nexusPublishing {
 }
 
 detekt {
-    config = files("../config/detekt/detekt.yml")
+    config.setFrom(files("../config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
 }

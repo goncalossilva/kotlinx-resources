@@ -48,6 +48,16 @@ kotlin {
         nodejs()
     }
 
+    wasmJs {
+        browser {
+            testTask {
+                useKarma {
+                    useAnyBrowser()
+                }
+            }
+        }
+        nodejs()
+    }
     iosX64()
     iosArm64()
     iosSimulatorArm64()

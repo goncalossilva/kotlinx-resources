@@ -20,20 +20,6 @@ buildscript {
 }
 apply(plugin = "com.goncalossilva.resources")
 
-plugins.withType<NodeJsRootPlugin> {
-    configure<NodeJsRootExtension> {
-        nodeVersion = libs.versions.nodejs.get()
-    }
-}
-
-plugins.withType<YarnPlugin> {
-    configure<YarnRootExtension> {
-        version = libs.versions.yarn.get()
-        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
-        yarnLockAutoReplace = true
-    }
-}
-
 repositories {
     mavenCentral()
     gradlePluginPortal()
@@ -60,11 +46,14 @@ kotlin {
         nodejs()
     }
 
-    ios()
+    iosArm64()
+    iosX64()
     iosSimulatorArm64()
-    watchos()
+    watchosArm32()
+    watchosArm64()
     watchosSimulatorArm64()
-    tvos()
+    tvosArm64()
+    tvosX64()
     tvosSimulatorArm64()
 
     mingwX64()
@@ -72,6 +61,8 @@ kotlin {
     macosArm64()
     linuxX64()
     linuxArm64()
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         val commonMain by getting
@@ -83,6 +74,19 @@ kotlin {
         }
     }
 }
+
+rootProject.configure<NodeJsRootExtension> {
+    nodeVersion = libs.versions.nodejs.get()
+}
+
+rootProject.plugins.withType<YarnPlugin> {
+    rootProject.configure<YarnRootExtension> {
+        version = libs.versions.yarn.get()
+        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
+        yarnLockAutoReplace = true
+    }
+}
+
 
 detekt {
     config.setFrom(files("../config/detekt/detekt.yml"))

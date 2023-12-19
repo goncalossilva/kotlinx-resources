@@ -20,20 +20,6 @@ buildscript {
 }
 apply(plugin = "com.goncalossilva.resources")
 
-plugins.withType<NodeJsRootPlugin> {
-    configure<NodeJsRootExtension> {
-        nodeVersion = libs.versions.nodejs.get()
-    }
-}
-
-plugins.withType<YarnPlugin> {
-    configure<YarnRootExtension> {
-        version = libs.versions.yarn.get()
-        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
-        yarnLockAutoReplace = true
-    }
-}
-
 repositories {
     mavenCentral()
     gradlePluginPortal()
@@ -88,6 +74,19 @@ kotlin {
         }
     }
 }
+
+rootProject.configure<NodeJsRootExtension> {
+    nodeVersion = libs.versions.nodejs.get()
+}
+
+rootProject.plugins.withType<YarnPlugin> {
+    rootProject.configure<YarnRootExtension> {
+        version = libs.versions.yarn.get()
+        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
+        yarnLockAutoReplace = true
+    }
+}
+
 
 detekt {
     config.setFrom(files("../config/detekt/detekt.yml"))

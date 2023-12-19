@@ -17,20 +17,6 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-plugins.withType<NodeJsRootPlugin> {
-    configure<NodeJsRootExtension> {
-        nodeVersion = libs.versions.nodejs.get()
-    }
-}
-
-plugins.withType<YarnPlugin> {
-    configure<YarnRootExtension> {
-        version = libs.versions.yarn.get()
-        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
-        yarnLockAutoReplace = true
-    }
-}
-
 repositories {
     mavenCentral()
 }
@@ -91,6 +77,19 @@ tasks.withType<KotlinCompile>().configureEach {
         freeCompilerArgs = freeCompilerArgs + "-Xexpect-actual-classes"
     }
 }
+
+rootProject.configure<NodeJsRootExtension> {
+    nodeVersion = libs.versions.nodejs.get()
+}
+
+rootProject.plugins.withType<YarnPlugin> {
+    rootProject.configure<YarnRootExtension> {
+        version = libs.versions.yarn.get()
+        yarnLockMismatchReport = YarnLockMismatchReport.WARNING
+        yarnLockAutoReplace = true
+    }
+}
+
 
 // TODO: Remove when https://youtrack.jetbrains.com/issue/KT-46466 is fixed.
 val signingTasks = tasks.withType<Sign>()

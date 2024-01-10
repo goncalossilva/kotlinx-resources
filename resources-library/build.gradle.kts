@@ -35,6 +35,11 @@ kotlin {
         nodejs()
     }
 
+    wasmJs {
+        browser()
+        nodejs()
+    }
+
     iosArm64()
     iosX64()
     iosSimulatorArm64()
@@ -60,6 +65,14 @@ kotlin {
         }
 
         val commonMain by getting
+        val jsMain by getting
+        val wasmJsMain by getting
+        val jsSharedMain by creating {
+            dependsOn(commonMain)
+            jsMain.dependsOn(this)
+            wasmJsMain.dependsOn(this)
+        }
+
         val mingwX64Main by getting
         val linuxX64Main by getting
         val linuxArm64Main by getting

@@ -18,7 +18,7 @@ public actual class Resource actual constructor(private val path: String) {
     public actual fun exists(): Boolean = access(path, F_OK) != -1
 
     public actual fun readText(): String = buildString {
-        val file = fopen(path, "rb")
+        val file = fopen(path, "r")
             ?: throw FileReadException("$path: Open failed: ${strerror(posix_errno())}")
         try {
             memScoped {
@@ -33,7 +33,7 @@ public actual class Resource actual constructor(private val path: String) {
     }
 
     public actual fun readBytes(): ByteArray = mutableListOf<Byte>().apply {
-        val file = fopen(path, "r")
+        val file = fopen(path, "rb")
             ?: throw FileReadException("$path: Open failed: ${strerror(posix_errno())}")
         try {
             memScoped {

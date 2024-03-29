@@ -4,6 +4,12 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.4.1] - 2024-03-29
+
+### Fixed
+
+- Reading resource bytes on POSIX platforms (#106 - thanks @CharlieTap!)
+
 ## [0.4.0] - 2023-08-01
 
 ### Added

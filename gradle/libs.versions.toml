@@ -1,6 +1,6 @@
 [versions]
 useanybrowser = "0.2.1"
-kotlin = "1.9.23"
+kotlin = "1.9.24"
 buildconfig = "5.3.5"
 gradle-publish = "1.2.1"
 nexus-publish = "2.0.0"

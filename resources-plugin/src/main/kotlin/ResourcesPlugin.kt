@@ -2,6 +2,7 @@ package com.goncalossilva.resources
 
 import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
@@ -10,9 +11,9 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetContainerDsl
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import java.io.File
 import kotlin.contracts.contract
@@ -48,7 +49,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 setupCopyResourcesTask(
                     kotlinCompilation = kotlinCompilation,
                     taskName = getTaskName("copyResources", binary.name, target.targetName),
-                    outputDir = binary.outputDirectory,
+                    outputDir = project.provider { binary.outputDirectory },
                     mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
                     dependantTasks = listOf(binary.linkTaskName)
                 )
@@ -62,7 +63,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             setupCopyResourcesTask(
                 kotlinCompilation = kotlinCompilation,
                 taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
-                outputDir = kotlinCompilation.npmProject.dir,
+                outputDir = kotlinCompilation.npmProject.dir.map(Directory::getAsFile),
                 mustRunAfterTasks = mutableListOf(kotlinCompilation.processResourcesTaskName).apply {
                     kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider.let {
                         add(":${it.name}")
@@ -102,18 +103,18 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun isJsNodeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         contract {
-            returns(true) implies (kotlinCompilation is KotlinJsCompilation)
+            returns(true) implies (kotlinCompilation is KotlinJsIrCompilation)
         }
-        return kotlinCompilation is KotlinJsCompilation && kotlinCompilation.target.let {
+        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.let {
             it is KotlinJsSubTargetContainerDsl && it.isNodejsConfigured
         }
     }
 
     private fun isJsBrowserCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         contract {
-            returns(true) implies (kotlinCompilation is KotlinJsCompilation)
+            returns(true) implies (kotlinCompilation is KotlinJsIrCompilation)
         }
-        return kotlinCompilation is KotlinJsCompilation && kotlinCompilation.target.let {
+        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.let {
             it is KotlinJsSubTargetContainerDsl && it.isBrowserConfigured
         }
     }
@@ -134,7 +135,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     private fun setupCopyResourcesTask(
         kotlinCompilation: KotlinCompilation<*>,
         taskName: String,
-        outputDir: File,
+        outputDir: Provider<File>,
         mustRunAfterTasks: List<String>,
         dependantTasks: List<String>
     ): TaskProvider<Copy>? {

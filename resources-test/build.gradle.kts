@@ -42,8 +42,7 @@ kotlin {
         browser {
             testTask {
                 useKarma {
-
-//                    useAnyBrowser()
+                    useAnyBrowser()
                 }
             }
         }

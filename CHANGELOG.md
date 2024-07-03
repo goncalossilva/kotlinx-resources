@@ -4,6 +4,12 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.4.2] - 2024-07-03
+
+### Fixed
+
+- Re-add watchosX64 target
+
 ## [0.4.1] - 2024-03-29
 
 ### Fixed

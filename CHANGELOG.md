@@ -4,6 +4,16 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.9.0] - 2024-07-08
+
+> [!IMPORTANT]
+> Version 0.9.0 and higher of kotlinx-resources target Kotlin 2.0 are incompatible with Kotlin 1.9.
+> Only lower versions (even if published in the future), alongside the `k1` branch, target Kotlin 1.9.
+
+### Added
+
+- Support for Kotlin 2.0.0 (#115 - thanks @DRSchlaubi!)
+
 ## [0.4.2] - 2024-07-03
 
 ### Fixed

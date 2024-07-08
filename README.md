@@ -17,7 +17,7 @@ Kotlin Multiplatform (KMP) plugin and library that add support for reading resou
 
 The plugin and a library work in tandem to provide a unified API across platforms for reading resources from each source set's `resources` folder.
 
-## Usage
+## Setup
 
 List the plugin in your `build.gradle.kts`:
 
@@ -41,7 +41,14 @@ kotlin {
 }
 ```
 
-Once that's done, a `Resource` class becomes available in all test sources, with a simple API:
+> [!IMPORTANT]
+> The latest version targets Kotlin 2.0 and is incompatible with Kotlin 1.9.
+> On 2.0 and above, use the latest version available.
+> On 1.9, use the latest version _below v0.9.0_.
+
+## Usage
+
+Once setup is done done, a `Resource` class becomes available in all test sources, with a simple API:
 
 ```kotlin
 class Resource(path: String) {

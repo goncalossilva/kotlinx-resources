@@ -65,7 +65,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
                 outputDir = kotlinCompilation.npmProject.dir.map(Directory::getAsFile),
                 mustRunAfterTasks = mutableListOf(kotlinCompilation.processResourcesTaskName).apply {
-                    kotlinCompilation.npmProject.nodeJs.npmInstallTaskProvider.let {
+                    kotlinCompilation.npmProject.nodeJsRoot.npmInstallTaskProvider.let {
                         add(":${it.name}")
                     }
                 },

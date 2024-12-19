@@ -71,6 +71,10 @@ kotlin {
             linuxArm64Main.dependsOn(this)
         }
     }
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
 }
 
 tasks.withType<KotlinCompile>().configureEach {

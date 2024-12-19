@@ -6,7 +6,6 @@ package com.goncalossilva.resources
  * The path should be relative to the project's directory, such as
  * `src/commonTest/resources/some/optional/folders/file.txt`.
  */
-@OptIn(ExperimentalMultiplatform::class)
 public expect class Resource(path: String) {
     /**
      * Returns true when the resource exists, false when it doesn't.

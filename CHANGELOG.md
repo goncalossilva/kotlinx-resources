@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.10.0] - 2024-12-19
+
 > [!IMPORTANT]
 > Version 0.10.0 and higher of kotlinx-resources target Kotlin 2.1 and are incompatible with Kotlin 2.0.
 > Only version 0.9.0 target Kotlin 2.0, and versions below it target older versions.

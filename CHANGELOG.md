@@ -4,10 +4,18 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+> [!IMPORTANT]
+> Version 0.10.0 and higher of kotlinx-resources target Kotlin 2.1 and are incompatible with Kotlin 2.0.
+> Only version 0.9.0 target Kotlin 2.0, and versions below it target older versions.
+
+### Added
+
+- Support for Kotlin 2.1.0 (#115 - thanks @chadselph!)
+
 ## [0.9.0] - 2024-07-08
 
 > [!IMPORTANT]
-> Version 0.9.0 and higher of kotlinx-resources target Kotlin 2.0 are incompatible with Kotlin 1.9.
+> Version 0.9.0 of kotlinx-resources targets Kotlin 2.0 and is incompatible with Kotlin 1.9.
 > Only lower versions (even if published in the future), alongside the `k1` branch, target Kotlin 1.9.
 
 ### Added

@@ -41,10 +41,15 @@ kotlin {
 }
 ```
 
-> [!IMPORTANT]
-> The latest version targets Kotlin 2.0 and is incompatible with Kotlin 1.9.
-> On 2.0 and above, use the latest version available.
-> On 1.9, use the latest version _below v0.9.0_.
+### Compatibility
+
+Different Kotlin versions require different versions of the plugin/library:
+
+| Kotlin        | kotlinx-resources                |
+|---------------|----------------------------------|
+| 2.1 and above | 0.10 and above                   |
+| 2.0           | 0.9                              |
+| 1.9 and below | 0.8 and below (plus `k1` branch) |
 
 ## Usage
 

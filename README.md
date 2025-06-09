@@ -66,10 +66,28 @@ class Resource(path: String) {
 To setup resources correctly and avoid `FilNotFoundException` & co:
 
 1. **Put them in the [resources folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources) of a source set.** For example, `src/commonTest/resources/` or `src/jsTest/resources/`.
-2. **Specify the path relative to the project's directory.** For example, `src/commonTest/resources/a-folder/a-file.txt`.
-
+2. **Specify the path relative to the resources folder.** For example, if your file is at
+   `src/commonTest/resources/a-folder/a-file.txt`, use `Resource("a-folder/a-file.txt")`.
 
 With these in mind, you're ready to go.
+
+### Collision handling
+
+When running platform-specific tests, the platform-specific resource takes precedence if it exists.
+
+If a resource with the same path also exists in `commonTest`, Gradle will fail the build with the following error:
+`Entry 'your_file' is a duplicate but no duplicate handling strategy has been set.`
+
+This behavior forces explicit resolution of duplicates between platform-specific and common resources.
+
+For example:
+
+- JVM tests will load resources from `jvmTest/resources`.
+- iOS Simulator tests will load resources from `iosSimulatorArm64Test/resources`
+
+
+> [!NOTE]
+> It is recommended to keep common resources shared across platforms in `commonTest/resources` to avoid conflicts.
 
 ## Example
 

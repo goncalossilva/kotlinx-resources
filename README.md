@@ -75,11 +75,6 @@ With these in mind, you're ready to go.
 
 When running platform-specific tests, the platform-specific resource takes precedence if it exists.
 
-If a resource with the same path also exists in `commonTest`, Gradle will fail the build with the following error:
-`Entry 'your_file' is a duplicate but no duplicate handling strategy has been set.`
-
-This behavior forces explicit resolution of duplicates between platform-specific and common resources.
-
 For example:
 
 - JVM tests will load resources from `jvmTest/resources`.

@@ -8,7 +8,7 @@ public actual class Resource actual constructor(private val path: String) {
     public actual fun exists(): Boolean = file.exists()
 
     public actual fun readText(): String = runCatching {
-        file.readText()
+        file.readText().replace(System.lineSeparator(), "\n")
     }.getOrElse { cause ->
         throw FileReadException("$path: No such file or directory", cause)
     }

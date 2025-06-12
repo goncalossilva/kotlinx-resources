@@ -73,16 +73,11 @@ With these in mind, you're ready to go.
 
 ### Collision handling
 
-When running platform-specific tests, the platform-specific resource takes precedence if it exists.
+Platform-specific resources take precedence when running those platform's tests.
 
-For example:
+This means that resources under `jvmTest/resources/` take precedence over `commonTest/resources/` for JVM tests, resources under `iosSimulatorArm64Test/resources/` take precedence over `commonTest/resources/` for iOS Simulator tests, and so on. You can leverage this to override resource files in specific platforms, should you need that functionality.
 
-- JVM tests will load resources from `jvmTest/resources`.
-- iOS Simulator tests will load resources from `iosSimulatorArm64Test/resources`
-
-
-> [!NOTE]
-> It is recommended to keep common resources shared across platforms in `commonTest/resources` to avoid conflicts.
+As a rule of thumb, `src/commonTest/resources/` should be prefered for shared resources to avoid conflicts.
 
 ## Example
 

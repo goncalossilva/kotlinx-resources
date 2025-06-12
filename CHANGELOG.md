@@ -4,31 +4,13 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
-- Trim the `src/commonTest/resources/` prefix from test resources
+### Changed
 
-⚠️ Breaking changes
-
-Resource paths are now specified relative to the resources folder. For example, a file located at
-`src/commonTest/resources/a-folder/a-file.txt` can be accessed as `Resource("a-folder/a-file.txt")` without the
-`commonTest/resources` prefix.
-
-**Collision handling:**
-
-When running platform-specific tests, the platform-specific resource takes precedence if it exists.
-
-If a resource with the same path also exists in `commonTest`, Gradle will fail the build with the following error:
-`Entry 'your_file' is a duplicate but no duplicate handling strategy has been set.`
-
-This behavior forces explicit resolution of duplicates between platform-specific and common resources.
-
-For example:
-
-- JVM tests will load resources from `jvmTest/resources`.
-- iOS Simulator tests will load resources from `iosSimulatorArm64Test/resources`
-
-
-> [!NOTE]
-> It is recommended to keep common resources shared across platforms in `commonTest/resources` to avoid conflicts.
+- **BREAKING:** Resource paths are now specified relative to the resources folder.
+  
+  For example, a file located at `src/commonTest/resources/a-folder/a-file.txt` is now accessed using `Resource("a-folder/a-file.txt")` without the `src/commonTest/resources/` prefix.
+  
+  A note on collision handling: When running platform-specific tests, platform-specific resources take precedence. This means that if a resource with the same name is present in both the platform-specific resources folder as well as the common resources folder, the former takes precedence when running tests for that specific platform.
 
 ## [0.10.1] - 2025-07-26
 

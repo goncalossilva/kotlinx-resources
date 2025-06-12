@@ -6,7 +6,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Changed
 
-- **BREAKING:** Resource paths are now specified relative to the resources folder.
+- **BREAKING:** Resource paths are now specified relative to the resources folder. (#162 - thanks @egorikftp!)
   
   For example, a file located at `src/commonTest/resources/a-folder/a-file.txt` is now accessed using `Resource("a-folder/a-file.txt")` without the `src/commonTest/resources/` prefix.
   

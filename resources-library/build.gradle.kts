@@ -1,10 +1,9 @@
-import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
-import org.gradle.plugins.signing.Sign
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -83,18 +82,19 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
-rootProject.configure<NodeJsRootExtension> {
-    version = libs.versions.nodejs.get()
+plugins.withType<NodeJsPlugin> {
+    the<NodeJsEnvSpec>().apply {
+        version = libs.versions.nodejs.get()
+    }
 }
 
-rootProject.plugins.withType<YarnPlugin> {
-    rootProject.configure<YarnRootExtension> {
+plugins.withType<YarnPlugin> {
+    the<YarnRootEnvSpec>().apply {
         version = libs.versions.yarn.get()
         yarnLockMismatchReport = YarnLockMismatchReport.WARNING
         yarnLockAutoReplace = true
     }
 }
-
 
 // TODO: Remove when https://youtrack.jetbrains.com/issue/KT-46466 is fixed.
 val signingTasks = tasks.withType<Sign>()

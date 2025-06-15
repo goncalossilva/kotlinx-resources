@@ -3,10 +3,12 @@ package com.goncalossilva.resources
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.language.jvm.tasks.ProcessResources
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
@@ -86,6 +88,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             )
         }
 
+        // Do not copy resource duplicates, due to we rely on our copyResources task
+        if (isJsBrowserCompilation(kotlinCompilation)) {
+            project.tasks.named("jsTestProcessResources", ProcessResources::class.java) { task ->
+                task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+        }
+
         return project.provider { emptyList() }
     }
 
@@ -141,6 +150,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             task.from(getResourceDirs(kotlinCompilation))
             task.include("*/**")
             task.into(outputDir)
+            task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             for (mustRunAfterTask in mustRunAfterTasks) {
                 task.mustRunAfter(mustRunAfterTask)
             }

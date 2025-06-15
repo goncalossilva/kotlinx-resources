@@ -3,16 +3,17 @@ package com.goncalossilva.resources
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.language.jvm.tasks.ProcessResources
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
-import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetContainerDsl
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import java.io.File
@@ -87,6 +88,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             )
         }
 
+        // Do not copy resource duplicates, due to we rely on our copyResources task
+        if (isJsBrowserCompilation(kotlinCompilation)) {
+            project.tasks.named("jsTestProcessResources", ProcessResources::class.java) { task ->
+                task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+        }
+
         return project.provider { emptyList() }
     }
 
@@ -105,18 +113,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         contract {
             returns(true) implies (kotlinCompilation is KotlinJsIrCompilation)
         }
-        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.let {
-            it is KotlinJsSubTargetContainerDsl && it.isNodejsConfigured
-        }
+        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.isNodejsConfigured
     }
 
     private fun isJsBrowserCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         contract {
             returns(true) implies (kotlinCompilation is KotlinJsIrCompilation)
         }
-        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.let {
-            it is KotlinJsSubTargetContainerDsl && it.isBrowserConfigured
-        }
+        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.isBrowserConfigured
     }
 
     private fun getResourceDirs(kotlinCompilation: KotlinCompilation<*>): List<String> {
@@ -143,9 +147,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val tasks = project.tasks
 
         val copyResourcesTask = tasks.register(taskName, Copy::class.java) { task ->
-            task.from(project.projectDir)
-            task.include(getResourceDirs(kotlinCompilation).map { "$it/**" })
+            task.from(getResourceDirs(kotlinCompilation))
+            task.include("*/**")
             task.into(outputDir)
+            task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             for (mustRunAfterTask in mustRunAfterTasks) {
                 task.mustRunAfter(mustRunAfterTask)
             }
@@ -178,19 +183,17 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 override fun execute(task: Task) {
                     // Create karma configuration file in the expected location, deleting when done.
                     confFile.printWriter().use { confWriter ->
-                        getResourceDirs(kotlinCompilation).forEach { resourceDir ->
-                            confWriter.println(
-                                """
+                        confWriter.println(
+                            """
                                 |config.files.push({
-                                |   pattern: __dirname + "/$resourceDir/**",
+                                |   pattern: __dirname + "/**",
                                 |   watched: false,
                                 |   included: false,
                                 |   served: true,
                                 |   nocache: false
                                 |});
                                 """.trimMargin()
-                            )
-                        }
+                        )
                         confWriter.println(
                             """
                             |config.set({

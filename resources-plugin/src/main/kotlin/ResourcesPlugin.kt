@@ -31,7 +31,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>) =
         isCompiledForTesting(kotlinCompilation) && (
-            isAppleCompilation(kotlinCompilation) || isJsNodeCompilation(kotlinCompilation) ||
+            isNativeCompilation(kotlinCompilation) || isJsNodeCompilation(kotlinCompilation) ||
                 isJsBrowserCompilation(kotlinCompilation)
             )
 
@@ -41,10 +41,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.target.project
 
         /*
-         * For Apple platforms, move resources into the binary's output directory so that they
-         * can be loaded using `NSBundle.mainBundle` and related APIs.
+         * For native platforms, copy resources into the binary's output directory so that they
+         * can be loaded using `NSBundle.mainBundle` (on Apple) / `fopen` (on POSIX).
          */
-        if (isAppleCompilation(kotlinCompilation)) {
+        if (isNativeCompilation(kotlinCompilation)) {
             val target = kotlinCompilation.target
             target.binaries.forEach { binary ->
                 setupCopyResourcesTask(
@@ -58,7 +58,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
 
         /*
-         * For Node and the browser, move resources into the script's output directory.
+         * For Node and the browser, copy resources into the script's output directory.
          */
         if (isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) {
             setupCopyResourcesTask(
@@ -75,8 +75,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
 
         /*
-         * For the browser, move resources into the script's output directory and leverage
-         * Karma's proxies to load them from the filesystem.
+         * For the browser, copy resources into the script's output directory and leverage Karma's
+         * proxy functionality to load them from the filesystem.
          */
         if (isJsBrowserCompilation(kotlinCompilation)) {
             setupProxyResourcesTask(
@@ -101,12 +101,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     private fun isCompiledForTesting(kotlinCompilation: KotlinCompilation<*>) =
         kotlinCompilation.compilationName == KotlinCompilation.TEST_COMPILATION_NAME
 
-    private fun isAppleCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
+    private fun isNativeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         contract {
             returns(true) implies (kotlinCompilation is KotlinNativeCompilation)
         }
-        return kotlinCompilation is KotlinNativeCompilation &&
-            kotlinCompilation.konanTarget.family.isAppleFamily
+        return kotlinCompilation is KotlinNativeCompilation
     }
 
     private fun isJsNodeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {

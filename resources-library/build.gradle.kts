@@ -163,19 +163,10 @@ signing {
 // covering the last part of the release process to Maven Central.
 nexusPublishing {
     repositories {
+        // See https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#configuration
         sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-
-            // Read `ossrhUsername` and `ossrhPassword` properties.
-            // DO NOT ADD THESE TO SOURCE CONTROL. Store them in your system properties,
-            // or pass them in using ORG_GRADLE_PROJECT_* environment variables.
-            val ossrhUsername: String? by project
-            val ossrhPassword: String? by project
-            val ossrhStagingProfileId: String? by project
-            username.set(ossrhUsername)
-            password.set(ossrhPassword)
-            stagingProfileId.set(ossrhStagingProfileId)
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
         }
     }
 }

@@ -8,7 +8,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Changed
 
-- Updated dependencies
+- Update dependencies
 - Migrate to `NodeJsEnvSpec` and `YarnRootEnvSpec`, which might fix Kotlin 2.2.0 compatibility
 
 ## [0.10.0] - 2024-12-19

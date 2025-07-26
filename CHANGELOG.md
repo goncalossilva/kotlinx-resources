@@ -4,6 +4,13 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.10.1] - 2025-07-26
+
+### Changed
+
+- Updated several dependencies
+- Migrate to `NodeJsEnvSpec` and `YarnRootEnvSpec`, which might fix Kotlin 2.2.0 compatibility
+
 ## [0.10.0] - 2024-12-19
 
 > [!IMPORTANT]

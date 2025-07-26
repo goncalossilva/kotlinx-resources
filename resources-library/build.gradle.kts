@@ -54,11 +54,6 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     sourceSets {
-        all {
-            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
-            languageSettings.optIn("kotlinx.cinterop.BetaInteropApi")
-        }
-
         val commonMain by getting
         val mingwX64Main by getting
         val linuxX64Main by getting

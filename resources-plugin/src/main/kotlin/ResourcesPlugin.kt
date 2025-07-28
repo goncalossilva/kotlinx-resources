@@ -4,20 +4,28 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.internal.provider.ValueSupplier.ValueProducer.task
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.language.jvm.tasks.ProcessResources
+import org.jetbrains.kotlin.gradle.internal.builtins.StandardNames.FqNames.target
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind
+import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.jetbrains.kotlin.konan.target.Family
 import java.io.File
 import kotlin.contracts.contract
+import kotlin.jvm.java
 
 @Suppress("TooManyFunctions")
 class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
@@ -29,11 +37,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         version = BuildConfig.VERSION
     )
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>) =
-        isCompiledForTesting(kotlinCompilation) && (
-            isNativeCompilation(kotlinCompilation) || isJsNodeCompilation(kotlinCompilation) ||
-                isJsBrowserCompilation(kotlinCompilation)
-            )
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
+        val isTesting = isCompiledForTesting(kotlinCompilation)
+        val isNative = isNativeCompilation(kotlinCompilation)
+        val isJsNode = isJsNodeCompilation(kotlinCompilation)
+        val isJsBrowser = isJsBrowserCompilation(kotlinCompilation)
+        return isTesting && (isNative || isJsNode || isJsBrowser)
+    }
 
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
@@ -41,19 +51,29 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.target.project
 
         /*
-         * For native platforms, copy resources into the binary's output directory so that they
-         * can be loaded using `NSBundle.mainBundle` (on Apple) / `fopen` (on POSIX).
+         * For native platforms, copy resources into the binary's output directory.
+         *
+         * Apple platforms support resources via `NSBundle.mainBundle` and related APIs.
+         *
+         * Other native platforms don't use native support for resources. Instead,
+         * ensure the test task's working directory is the binary's output directory.
          */
         if (isNativeCompilation(kotlinCompilation)) {
             val target = kotlinCompilation.target
-            target.binaries.forEach { binary ->
-                setupCopyResourcesTask(
-                    kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName("copyResources", binary.name, target.targetName),
-                    outputDir = project.provider { binary.outputDirectory },
-                    mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
-                    dependantTasks = listOf(binary.linkTaskName)
-                )
+            val binary = target.binaries.first { it.outputKind == NativeOutputKind.TEST }
+            val copyResourcesTask = setupCopyResourcesTask(
+                kotlinCompilation = kotlinCompilation,
+                taskName = getTaskName("copyResources", binary.name, target.targetName),
+                outputDir = project.provider { binary.outputDirectory },
+                mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
+                dependantTasks = listOf(binary.linkTaskName)
+            )
+
+            if (!isAppleCompilation(kotlinCompilation)) {
+                project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
+                    testTask.workingDir = binary.outputDirectory.absolutePath
+                    testTask.dependsOn(copyResourcesTask)
+                }
             }
         }
 
@@ -106,6 +126,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             returns(true) implies (kotlinCompilation is KotlinNativeCompilation)
         }
         return kotlinCompilation is KotlinNativeCompilation
+    }
+
+    private fun isAppleCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
+        return kotlinCompilation.konanTarget.family.isAppleFamily
     }
 
     private fun isJsNodeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {

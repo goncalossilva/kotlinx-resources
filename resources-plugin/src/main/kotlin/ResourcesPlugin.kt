@@ -108,13 +108,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             )
         }
 
-        // Do not copy resource duplicates, due to we rely on our copyResources task
-        if (isJsBrowserCompilation(kotlinCompilation)) {
-            project.tasks.named("jsTestProcessResources", ProcessResources::class.java) { task ->
-                task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-            }
-        }
-
         return project.provider { emptyList() }
     }
 

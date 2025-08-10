@@ -75,6 +75,13 @@ kotlin {
     }
 }
 
+// Exclude duplicate resources. This way, platform-specific take precedence.
+tasks.withType<Copy>().configureEach {
+    if (name.contains("copyResources") || name.contains("TestProcessResources")) {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+}
+
 plugins.withType<NodeJsPlugin> {
     the<NodeJsEnvSpec>().apply {
         version = libs.versions.nodejs.get()

@@ -10,7 +10,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
   
   For example, a file located at `src/commonTest/resources/a-folder/a-file.txt` is now accessed using `Resource("a-folder/a-file.txt")` without the `src/commonTest/resources/` prefix.
   
-  A note on collision handling: When running platform-specific tests, platform-specific resources take precedence. This means that if a resource with the same name is present in both the platform-specific resources folder as well as the common resources folder, the former takes precedence when running tests for that specific platform.
+  See README for more details.
 
 ## [0.10.1] - 2025-07-26
 

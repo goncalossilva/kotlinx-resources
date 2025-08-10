@@ -79,6 +79,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
         /*
          * For Node and the browser, copy resources into the script's output directory.
+         *
+         * In the browser, leverage Karma's proxy functionality to load them from the filesystem.
          */
         if (isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) {
             setupCopyResourcesTask(
@@ -92,26 +94,15 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 },
                 dependantTasks = listOf(kotlinCompilation.compileKotlinTaskName)
             )
-        }
 
-        /*
-         * For the browser, copy resources into the script's output directory and leverage Karma's
-         * proxy functionality to load them from the filesystem.
-         */
-        if (isJsBrowserCompilation(kotlinCompilation)) {
-            setupProxyResourcesTask(
-                kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
-                // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
-                mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                dependantTask = kotlinCompilation.compileKotlinTaskName
-            )
-        }
-
-        // Do not copy resource duplicates, due to we rely on our copyResources task
-        if (isJsBrowserCompilation(kotlinCompilation)) {
-            project.tasks.named("jsTestProcessResources", ProcessResources::class.java) { task ->
-                task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            if (isJsBrowserCompilation(kotlinCompilation)) {
+                setupProxyResourcesTask(
+                    kotlinCompilation = kotlinCompilation,
+                    taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
+                    // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
+                    mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
+                    dependantTask = kotlinCompilation.compileKotlinTaskName
+                )
             }
         }
 
@@ -173,7 +164,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             task.from(getResourceDirs(kotlinCompilation))
             task.include("*/**")
             task.into(outputDir)
-            task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             for (mustRunAfterTask in mustRunAfterTasks) {
                 task.mustRunAfter(mustRunAfterTask)
             }

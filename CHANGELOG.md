@@ -12,6 +12,12 @@ Notable changes are documented in this file, whose format follows [Keep a Change
   
   See README for more details.
 
+- **BREAKING:** Task names were changed to be more consistent.
+
+  `copyResources<Target>` was renamed to `<target>CopyResources` for consistency with how `<target>ProcessResources` is named. Also, we ensure `<target>` ends with "Test" for test targets (JS was inconsistent in this regard).
+
+  This is an internal implementation detail, but projects relying on the task names may have to adjust their build scripts.
+
 ## [0.10.1] - 2025-07-26
 
 ### Changed

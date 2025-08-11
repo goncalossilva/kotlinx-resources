@@ -107,7 +107,7 @@ To have platform-specific resources override common ones, set the strategy to `E
 
 ```kotlin
 tasks.withType<Copy>().configureEach {
-    if (name.contains("copyResources") || name.contains("TestProcessResources")) {
+    if (name.contains("Test(?:Copy|Process)Resources$".toRegex())) {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }

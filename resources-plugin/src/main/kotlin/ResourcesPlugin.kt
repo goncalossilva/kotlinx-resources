@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.konan.target.Family
+import org.jetbrains.kotlin.util.suffixIfNot
 import java.io.File
 import kotlin.contracts.contract
 import kotlin.jvm.java
@@ -63,7 +64,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             val binary = target.binaries.first { it.outputKind == NativeOutputKind.TEST }
             val copyResourcesTask = setupCopyResourcesTask(
                 kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName("copyResources", binary.name, target.targetName),
+                taskName = getTaskName(target.targetName, binary.name, "copyResources"),
                 outputDir = project.provider { binary.outputDirectory },
                 mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
                 dependantTasks = listOf(binary.linkTaskName)
@@ -83,9 +84,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
          * In the browser, leverage Karma's proxy functionality to load them from the filesystem.
          */
         if (isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) {
+            // Unlike others, JS targets don't end with "Test". Add it so matching names is easier.
+            val targetName = kotlinCompilation.target.targetName.suffixIfNot("Test")
             setupCopyResourcesTask(
                 kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName("copyResources", kotlinCompilation.target.targetName),
+                taskName = getTaskName(targetName, "copyResources"),
                 outputDir = kotlinCompilation.npmProject.dir.map(Directory::getAsFile),
                 mustRunAfterTasks = mutableListOf(kotlinCompilation.processResourcesTaskName).apply {
                     kotlinCompilation.npmProject.nodeJsRoot.npmInstallTaskProvider.let {
@@ -98,7 +101,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             if (isJsBrowserCompilation(kotlinCompilation)) {
                 setupProxyResourcesTask(
                     kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
+                    taskName = getTaskName(targetName, "proxyResources"),
                     // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
                     mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
                     dependantTask = kotlinCompilation.compileKotlinTaskName

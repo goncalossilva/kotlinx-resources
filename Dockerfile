@@ -1,6 +1,6 @@
 # Use an official OpenJDK runtime as a parent image.
 # 'jammy' is based on Ubuntu 22.04 LTS.
-FROM --platform=linux/amd64 eclipse-temurin:17-jdk-jammy
+FROM --platform=linux/amd64 eclipse-temurin:21.0.8_9-jdk-jammy
 
 # Set the working directory inside the container.
 WORKDIR /app

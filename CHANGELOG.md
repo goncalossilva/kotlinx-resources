@@ -4,6 +4,14 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING:** Resource paths are now specified relative to the resources folder. (#162 - thanks @egorikftp!)
+  
+  For example, a file located at `src/commonTest/resources/a-folder/a-file.txt` is now accessed using `Resource("a-folder/a-file.txt")` without the `src/commonTest/resources/` prefix.
+  
+  See README for more details.
+
 ## [0.10.1] - 2025-07-26
 
 ### Changed

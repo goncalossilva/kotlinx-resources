@@ -53,7 +53,7 @@ Different Kotlin versions require different versions of the plugin/library:
 
 ## Usage
 
-Once setup is done done, a `Resource` class becomes available in all test sources, with a simple API:
+Once setup is done, a `Resource` class becomes available in all test sources, with a simple API:
 
 ```kotlin
 class Resource(path: String) {
@@ -63,13 +63,42 @@ class Resource(path: String) {
 }
 ```
 
-To setup resources correctly and avoid `FilNotFoundException` & co:
+To set up resources:
 
-1. **Put them in the [resources folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources) of a source set.** For example, `src/commonTest/resources/` or `src/jsTest/resources/`.
-2. **Specify the path relative to the project's directory.** For example, `src/commonTest/resources/a-folder/a-file.txt`.
+1. **Put them in the [resources folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources) of a source set.** For example, `src/commonTest/resources/` (accessible to all) or `src/jsTest/resources/` (accessible to JS).
+2. **Specify the path relative to the resources folder.** For example, if your file is at
+   `src/commonTest/resources/a-folder/a-file.txt`, use `Resource("a-folder/a-file.txt")`.
 
+### Collisions
 
-With these in mind, you're ready to go.
+As a rule of thumb, `src/commonTest/resources/` is the ideal place for shared resources. It avoids conflicts entirely.
+
+But in cases where the same resource is present in different resources folders, you will see the following error if you don't set a `duplicateStrategy`:
+
+```
+> Entry test-file.txt is a duplicate but no duplicate handling strategy has been set.
+```
+
+In these cases, specify a `duplicateStrategy` to disambiguate. Platform-specific resources take precedence when `DuplicatesStrategy.EXCLUDE` is used.
+
+So if you have:
+
+- `src/commonTest/resources/test-file.txt`
+- `src/jvmTest/resources/test-file.txt`
+
+And if you configure your project's `duplicateStrategy` like so:
+
+```gradle
+tasks.withType<Copy>().configureEach {
+    if (name.contains("copyResources") || name.contains("TestProcessResources")) {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+}
+```
+
+The file on JVM's resources folder will take precedence over the one in the common resources folder when running JVM tests.
+
+Other `DuplicatesStrategy` options are available, but they are untested.
 
 ## Example
 

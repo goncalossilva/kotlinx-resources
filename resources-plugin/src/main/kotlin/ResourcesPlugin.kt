@@ -3,20 +3,29 @@ package com.goncalossilva.resources
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.internal.provider.ValueSupplier.ValueProducer.task
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.language.jvm.tasks.ProcessResources
+import org.jetbrains.kotlin.gradle.internal.builtins.StandardNames.FqNames.target
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
-import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsSubTargetContainerDsl
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind
+import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.jetbrains.kotlin.konan.target.Family
 import java.io.File
 import kotlin.contracts.contract
+import kotlin.jvm.java
 
 @Suppress("TooManyFunctions")
 class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
@@ -28,11 +37,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         version = BuildConfig.VERSION
     )
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>) =
-        isCompiledForTesting(kotlinCompilation) && (
-            isAppleCompilation(kotlinCompilation) || isJsNodeCompilation(kotlinCompilation) ||
-                isJsBrowserCompilation(kotlinCompilation)
-            )
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
+        val isTesting = isCompiledForTesting(kotlinCompilation)
+        val isNative = isNativeCompilation(kotlinCompilation)
+        val isJsNode = isJsNodeCompilation(kotlinCompilation)
+        val isJsBrowser = isJsBrowserCompilation(kotlinCompilation)
+        return isTesting && (isNative || isJsNode || isJsBrowser)
+    }
 
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
@@ -40,24 +51,36 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.target.project
 
         /*
-         * For Apple platforms, move resources into the binary's output directory so that they
-         * can be loaded using `NSBundle.mainBundle` and related APIs.
+         * For native platforms, copy resources into the binary's output directory.
+         *
+         * Apple platforms support resources via `NSBundle.mainBundle` and related APIs.
+         *
+         * Other native platforms don't use native support for resources. Instead,
+         * ensure the test task's working directory is the binary's output directory.
          */
-        if (isAppleCompilation(kotlinCompilation)) {
+        if (isNativeCompilation(kotlinCompilation)) {
             val target = kotlinCompilation.target
-            target.binaries.forEach { binary ->
-                setupCopyResourcesTask(
-                    kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName("copyResources", binary.name, target.targetName),
-                    outputDir = project.provider { binary.outputDirectory },
-                    mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
-                    dependantTasks = listOf(binary.linkTaskName)
-                )
+            val binary = target.binaries.first { it.outputKind == NativeOutputKind.TEST }
+            val copyResourcesTask = setupCopyResourcesTask(
+                kotlinCompilation = kotlinCompilation,
+                taskName = getTaskName("copyResources", binary.name, target.targetName),
+                outputDir = project.provider { binary.outputDirectory },
+                mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
+                dependantTasks = listOf(binary.linkTaskName)
+            )
+
+            if (!isAppleCompilation(kotlinCompilation)) {
+                project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
+                    testTask.workingDir = binary.outputDirectory.absolutePath
+                    testTask.dependsOn(copyResourcesTask)
+                }
             }
         }
 
         /*
-         * For Node and the browser, move resources into the script's output directory.
+         * For Node and the browser, copy resources into the script's output directory.
+         *
+         * In the browser, leverage Karma's proxy functionality to load them from the filesystem.
          */
         if (isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) {
             setupCopyResourcesTask(
@@ -71,20 +94,16 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 },
                 dependantTasks = listOf(kotlinCompilation.compileKotlinTaskName)
             )
-        }
 
-        /*
-         * For the browser, move resources into the script's output directory and leverage
-         * Karma's proxies to load them from the filesystem.
-         */
-        if (isJsBrowserCompilation(kotlinCompilation)) {
-            setupProxyResourcesTask(
-                kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
-                // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
-                mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                dependantTask = kotlinCompilation.compileKotlinTaskName
-            )
+            if (isJsBrowserCompilation(kotlinCompilation)) {
+                setupProxyResourcesTask(
+                    kotlinCompilation = kotlinCompilation,
+                    taskName = getTaskName("proxyResources", kotlinCompilation.target.targetName),
+                    // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
+                    mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
+                    dependantTask = kotlinCompilation.compileKotlinTaskName
+                )
+            }
         }
 
         return project.provider { emptyList() }
@@ -93,30 +112,29 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     private fun isCompiledForTesting(kotlinCompilation: KotlinCompilation<*>) =
         kotlinCompilation.compilationName == KotlinCompilation.TEST_COMPILATION_NAME
 
-    private fun isAppleCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
+    private fun isNativeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         contract {
             returns(true) implies (kotlinCompilation is KotlinNativeCompilation)
         }
-        return kotlinCompilation is KotlinNativeCompilation &&
-            kotlinCompilation.konanTarget.family.isAppleFamily
+        return kotlinCompilation is KotlinNativeCompilation
+    }
+
+    private fun isAppleCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
+        return kotlinCompilation.konanTarget.family.isAppleFamily
     }
 
     private fun isJsNodeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         contract {
             returns(true) implies (kotlinCompilation is KotlinJsIrCompilation)
         }
-        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.let {
-            it is KotlinJsSubTargetContainerDsl && it.isNodejsConfigured
-        }
+        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.isNodejsConfigured
     }
 
     private fun isJsBrowserCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         contract {
             returns(true) implies (kotlinCompilation is KotlinJsIrCompilation)
         }
-        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.let {
-            it is KotlinJsSubTargetContainerDsl && it.isBrowserConfigured
-        }
+        return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.isBrowserConfigured
     }
 
     private fun getResourceDirs(kotlinCompilation: KotlinCompilation<*>): List<String> {
@@ -143,8 +161,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val tasks = project.tasks
 
         val copyResourcesTask = tasks.register(taskName, Copy::class.java) { task ->
-            task.from(project.projectDir)
-            task.include(getResourceDirs(kotlinCompilation).map { "$it/**" })
+            task.from(getResourceDirs(kotlinCompilation))
+            task.include("*/**")
             task.into(outputDir)
             for (mustRunAfterTask in mustRunAfterTasks) {
                 task.mustRunAfter(mustRunAfterTask)
@@ -178,19 +196,17 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 override fun execute(task: Task) {
                     // Create karma configuration file in the expected location, deleting when done.
                     confFile.printWriter().use { confWriter ->
-                        getResourceDirs(kotlinCompilation).forEach { resourceDir ->
-                            confWriter.println(
-                                """
+                        confWriter.println(
+                            """
                                 |config.files.push({
-                                |   pattern: __dirname + "/$resourceDir/**",
+                                |   pattern: __dirname + "/**",
                                 |   watched: false,
                                 |   included: false,
                                 |   served: true,
                                 |   nocache: false
                                 |});
                                 """.trimMargin()
-                            )
-                        }
+                        )
                         confWriter.println(
                             """
                             |config.set({

@@ -13,23 +13,21 @@
 ![badge-windows][badge-windows]
 ![badge-linux][badge-linux]
 
-Kotlin Multiplatform (KMP) plugin and library that add support for reading resources in tests.
+Kotlin Multiplatform (KMP) plugin and library for reading resources in tests.
 
-The plugin and a library work in tandem to provide a unified API across platforms for reading resources from each source set's `resources` folder.
+It bridges the gap between different Kotlin Multiplatform targets, allowing you to access files from your `resources` folders in a single, consistent way.
 
 ## Setup
 
-List the plugin in your `build.gradle.kts`:
+Apply the plugin and add the library as a dependency in your `build.gradle.kts`:
 
 ```kotlin
 plugins {
     id("com.goncalossilva.resources") version "<version>"
 }
-```
 
-And add the dependency to your `commonTest` source set:
+// ...
 
-```kotlin
 kotlin {
     sourceSets {
         val commonTest by getting {
@@ -41,54 +39,73 @@ kotlin {
 }
 ```
 
+Replace `<version>` with the latest version shown in the badge above.
+
 ### Compatibility
 
 Different Kotlin versions require different versions of the plugin/library:
 
 | Kotlin        | kotlinx-resources                |
-|---------------|----------------------------------|
+| ------------- | -------------------------------- |
 | 2.1 and above | 0.10 and above                   |
 | 2.0           | 0.9                              |
 | 1.9 and below | 0.8 and below (plus `k1` branch) |
 
 ## Usage
 
-Once setup is done, a `Resource` class becomes available in all test sources, with a simple API:
+To access a file in your tests:
+
+1. Place it in a [`resources` folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources). For example, in `src/commonTest/resources/` to have it available in all targets, or `src/jsTest/resources/` to limit access to JS.
+2. Instantiate a `Resource` class with the path relative to that folder.
+
+### Basic Example
+
+For a file located at `src/commonTest/resources/data/example.json`:
+
+```kotlin
+import com.goncalossilva.resources.Resource
+
+class MyTest {
+    @Test
+    fun `example data exists`() {
+        val resource = Resource("data/example.json")
+        assertTrue(resource.exists())
+    }
+
+    @Test
+    fun `example data ends in a newline`() {
+        val content = Resource("data/example.json").readText()
+        assertTrue(content.endsWith("\n"))
+    }
+}
+```
+
+### API Overview
+
+The `Resource` class provides a clean and simple API:
 
 ```kotlin
 class Resource(path: String) {
+    // Checks if the resource exists at the given path.
     fun exists(): Boolean
+
+    // Reads the entire resource content as a UTF-8 string.
     fun readText(): String
+
+    // Reads the entire resource content as a byte array.
     fun readBytes(): ByteArray
 }
 ```
 
-To set up resources:
-
-1. **Put them in the [resources folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources) of a source set.** For example, `src/commonTest/resources/` (accessible to all) or `src/jsTest/resources/` (accessible to JS).
-2. **Specify the path relative to the resources folder.** For example, if your file is at
-   `src/commonTest/resources/a-folder/a-file.txt`, use `Resource("a-folder/a-file.txt")`.
-
 ### Collisions
 
-As a rule of thumb, `src/commonTest/resources/` is the ideal place for shared resources. It avoids conflicts entirely.
+As a rule of thumb, place test files in `src/commonTest/resources/`. This avoids collisions entirely.
 
-But in cases where the same resource is present in different resources folders, you will see the following error if you don't set a `duplicateStrategy`:
+But if you want to override a common file, you can have a platform-specific version of it in the platform-specific source set (e.g., `src/jvmTest/resources/`). By default, Gradle will throw a "Entry (...) is a duplicate" error during the build process, prompting you to set a `duplicateStrategy` in your `build.gradle.kts`.
 
-```
-> Entry test-file.txt is a duplicate but no duplicate handling strategy has been set.
-```
+To have platform-specific resources override common ones, set the strategy to `EXCLUDE`:
 
-In these cases, specify a `duplicateStrategy` to disambiguate. Platform-specific resources take precedence when `DuplicatesStrategy.EXCLUDE` is used.
-
-So if you have:
-
-- `src/commonTest/resources/test-file.txt`
-- `src/jvmTest/resources/test-file.txt`
-
-And if you configure your project's `duplicateStrategy` like so:
-
-```gradle
+```kotlin
 tasks.withType<Copy>().configureEach {
     if (name.contains("copyResources") || name.contains("TestProcessResources")) {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -96,15 +113,13 @@ tasks.withType<Copy>().configureEach {
 }
 ```
 
-The file on JVM's resources folder will take precedence over the one in the common resources folder when running JVM tests.
+[Other `DuplicatesStrategy` options are available](https://docs.gradle.org/current/javadoc/org/gradle/api/file/DuplicatesStrategy.html), but avoid `INCLUDE`, as the override behavior becomes inconsistent across platforms.
 
-Other `DuplicatesStrategy` options are available, but they are untested.
-
-## Example
+## Example Project
 
 Library tests use the library itself, so they serve as a practical example.
 
-See [`ResourceTest`](resources-test/src/commonTest/kotlin/ResourceTest.kt) for example usage, and [`resources-test/src/commonTest/resources`](resources-library/src/commonTest/resources) for the associated folder structure for resources.
+See [`ResourceTest`](https://github.com/goncalossilva/kotlinx-resources/blob/main/resources-test/src/commonTest/kotlin/ResourceTest.kt) for example usage, and [`resources-test/src/commonTest/resources`](https://github.com/goncalossilva/kotlinx-resources/tree/main/resources-test/src/commonTest/resources) for the associated folder structure for resources.
 
 ## Acknowledgements
 

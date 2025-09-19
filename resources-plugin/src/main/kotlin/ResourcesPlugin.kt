@@ -159,7 +159,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         outputDir: Provider<File>,
         mustRunAfterTasks: List<String>,
         dependantTasks: List<String>
-    ): TaskProvider<Copy>? {
+    ): TaskProvider<Copy> {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
 

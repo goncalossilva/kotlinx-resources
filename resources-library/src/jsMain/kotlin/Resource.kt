@@ -53,21 +53,25 @@ public actual class Resource actual constructor(path: String) {
         }
 
         @Suppress("MagicNumber")
-        fun exists(): Boolean = request().status in 200..299
+        private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
-        fun readText(): String = request().let { request ->
-            if (exists()) {
+        fun exists(): Boolean = request().isSuccessful()
+
+        fun readText(): String {
+            val request = request()
+            return if (request.isSuccessful()) {
                 request.responseText
             } else {
                 throw FileReadException("$path: Read failed: ${request.statusText}")
             }
         }
 
-        fun readBytes(): ByteArray = request {
-            // https://web.archive.org/web/20071103070418/http://mgran.blogspot.com/2006/08/downloading-binary-streams-with.html
-            overrideMimeType("text/plain; charset=x-user-defined")
-        }.let { request ->
-            if (exists()) {
+        fun readBytes(): ByteArray {
+            val request = request {
+                // https://web.archive.org/web/20071103070418/http://mgran.blogspot.com/2006/08/downloading-binary-streams-with.html
+                overrideMimeType("text/plain; charset=x-user-defined")
+            }
+            return if (request.isSuccessful()) {
                 val response = request.responseText
                 ByteArray(response.length) { response[it].code.toUByte().toByte() }
             } else {

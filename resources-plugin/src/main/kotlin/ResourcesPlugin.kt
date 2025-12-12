@@ -214,9 +214,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                             """
                             |config.set({
                             |    "proxies": {
-                            |       "/": __dirname + "/"
+                            |       "/": "/base/"
                             |    },
-                            |    "urlRoot": "/__karma__/"
+                            |    "urlRoot": "/__karma__/",
+                            |    "hostname": "127.0.0.1",
+                            |    "listenAddress": "127.0.0.1"
                             |});
                             """.trimMargin()
                         )

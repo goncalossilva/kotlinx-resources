@@ -34,15 +34,16 @@ kotlin {
         nodejs()
     }
 
-    iosArm64()
     iosX64()
+    iosArm64()
     iosSimulatorArm64()
+    watchosX64()
     watchosArm32()
     watchosArm64()
-    watchosX64()
+    watchosDeviceArm64()
     watchosSimulatorArm64()
-    tvosArm64()
     tvosX64()
+    tvosArm64()
     tvosSimulatorArm64()
 
     mingwX64()

@@ -4,6 +4,16 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.11.0] - 2025-12-13
+
+### Added
+
+- Add watchosDeviceArm64 target
+
+### Fixed
+
+- JS resource loading on Windows hosts
+
 ### Changed
 
 - **BREAKING:** Resource paths are now specified relative to the resources folder. (#162 - thanks @egorikftp!)

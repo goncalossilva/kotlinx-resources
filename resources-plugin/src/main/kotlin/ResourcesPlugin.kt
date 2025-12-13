@@ -191,7 +191,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val confFile = project.projectDir
             .resolve("karma.config.d")
             .apply { mkdirs() }
-            .resolve("proxy-resources.js")
+            // Avoid cleanup races between multiple browser targets (e.g., js/wasmJs).
+            .resolve("$taskName.js")
 
         val proxyResourcesTask = tasks.register(taskName) { task ->
             @Suppress("ObjectLiteralToLambda")

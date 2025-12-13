@@ -4,6 +4,15 @@ import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 import org.w3c.xhr.XMLHttpRequest
 
+@Suppress("MaxLineLength")
+private val IS_BROWSER: Boolean = js(
+    "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'"
+)
+
+private val IS_NODE: Boolean = js(
+    "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
+)
+
 /*
  * It's impossible to separate browser/node JS runtimes, as they can't be published separately.
  * See: https://youtrack.jetbrains.com/issue/KT-47038
@@ -30,16 +39,6 @@ public actual class Resource actual constructor(path: String) {
         IS_BROWSER -> resourceBrowser.readBytes()
         IS_NODE -> resourceNode.readBytes()
         else -> throw UnsupportedOperationException("Unsupported JS runtime")
-    }
-
-    private companion object {
-        @Suppress("MaxLineLength")
-        private val IS_BROWSER: Boolean = js(
-            "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'"
-        ) as Boolean
-        private val IS_NODE: Boolean = js(
-            "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
-        ) as Boolean
     }
 
     /*

@@ -37,9 +37,6 @@ tasks.withType<KotlinCompile>().configureEach {
 val artifactId: String by project
 val pluginId = "$group.$artifactId"
 
-ext["gradle.publish.key"] = property("gradlePublishKey") as String
-ext["gradle.publish.secret"] = property("gradlePublishSecret") as String
-
 buildConfig {
     packageName.set(pluginId)
     buildConfigField("String", "GROUP_ID", "\"$group\"")

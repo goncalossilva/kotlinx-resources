@@ -1,4 +1,3 @@
-import com.goncalossilva.useanybrowser.useAnyBrowser
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
@@ -8,8 +7,6 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-
-    alias(libs.plugins.useanybrowser)
 
     alias(libs.plugins.detekt)
 }
@@ -41,7 +38,16 @@ kotlin {
         browser {
             testTask {
                 useKarma {
-                    useAnyBrowser()
+                    useChromeHeadless()
+                    useChromeCanaryHeadless()
+                    useChromiumHeadless()
+                    useFirefoxHeadless()
+                    useFirefoxAuroraHeadless()
+                    useFirefoxDeveloperHeadless()
+                    useFirefoxNightlyHeadless()
+                    useOpera()
+                    useSafari()
+                    useIe()
                 }
             }
         }
@@ -52,7 +58,16 @@ kotlin {
         browser {
             testTask {
                 useKarma {
-                    useAnyBrowser()
+                    useChromeHeadless()
+                    useChromeCanaryHeadless()
+                    useChromiumHeadless()
+                    useFirefoxHeadless()
+                    useFirefoxAuroraHeadless()
+                    useFirefoxDeveloperHeadless()
+                    useFirefoxNightlyHeadless()
+                    useOpera()
+                    useSafari()
+                    useIe()
                 }
             }
         }
@@ -82,6 +97,18 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation("com.goncalossilva:resources-library")
+        }
+
+        val jsTest by getting {
+            dependencies {
+                implementation(npm("karma-detect-browsers", "^2.3"))
+            }
+        }
+
+        val wasmJsTest by getting {
+            dependencies {
+                implementation(npm("karma-detect-browsers", "^2.3"))
+            }
         }
     }
 }

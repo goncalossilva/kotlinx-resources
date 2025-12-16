@@ -104,7 +104,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     taskName = getTaskName(targetName, "proxyResources"),
                     // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
                     mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                    dependantTask = kotlinCompilation.compileKotlinTaskName
                 )
             }
         }
@@ -184,14 +183,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         kotlinCompilation: KotlinCompilation<*>,
         taskName: String,
         mustRunAfterTask: String,
-        dependantTask: String
     ): TaskProvider<Task> {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
         val confFile = project.projectDir
             .resolve("karma.config.d")
             .apply { mkdirs() }
-            .resolve("proxy-resources.js")
+            // Avoid cleanup races between multiple browser targets (e.g., js/wasmJs).
+            .resolve("resources-$taskName.js")
 
         val proxyResourcesTask = tasks.register(taskName) { task ->
             @Suppress("ObjectLiteralToLambda")
@@ -227,15 +226,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             })
             task.mustRunAfter(mustRunAfterTask)
         }
-        tasks.named(dependantTask).configure {
-            it.dependsOn(proxyResourcesTask)
-        }
 
         val cleanupConfFileTask = tasks.register("${taskName}Cleanup", Delete::class.java) {
             it.delete = setOf(confFile)
         }
-        tasks.named(getTaskName(kotlinCompilation.target.name, "browser", kotlinCompilation.name)) {
-            it.finalizedBy(cleanupConfFileTask)
+        tasks.named(getTaskName(kotlinCompilation.target.name, "browser", kotlinCompilation.name)) { browserTestTask ->
+            browserTestTask.dependsOn(proxyResourcesTask)
+            browserTestTask.finalizedBy(cleanupConfFileTask)
         }
 
         return proxyResourcesTask

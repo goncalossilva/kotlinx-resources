@@ -72,7 +72,15 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     dependantTasks = listOf(binary.linkTaskName)
                 )
 
-                if (!isAppleCompilation(kotlinCompilation)) {
+                if (isAppleCompilation(kotlinCompilation)) {
+                    // HACK: Avoid task dependency conflicts with Compose Multiplatform on Apple platforms.
+                    val composeResourceTasks = project.tasks.matching { task ->
+                        task.name.startsWith("assemble") &&
+                            task.name.contains(target.targetName) &&
+                            task.name.endsWith("TestResources")
+                    }
+                    copyResourcesTask.configure { it.mustRunAfter(composeResourceTasks) }
+                } else {
                     project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
                         testTask.workingDir = binary.outputDirectory.absolutePath
                         testTask.dependsOn(copyResourcesTask)

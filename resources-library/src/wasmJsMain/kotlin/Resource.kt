@@ -46,19 +46,19 @@ public actual class Resource actual constructor(private val path: String) {
     public actual fun exists(): Boolean = when {
         IS_BROWSER -> resourceBrowser.exists()
         IS_NODE -> resourceNode.exists()
-        else -> throw UnsupportedOperationException("Unsupported Wasm/JS runtime")
+        else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
     public actual fun readText(): String = when {
         IS_BROWSER -> resourceBrowser.readText()
         IS_NODE -> resourceNode.readText()
-        else -> throw UnsupportedOperationException("Unsupported Wasm/JS runtime")
+        else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
     public actual fun readBytes(): ByteArray = when {
         IS_BROWSER -> resourceBrowser.readBytes()
         IS_NODE -> resourceNode.readBytes()
-        else -> throw UnsupportedOperationException("Unsupported Wasm/JS runtime")
+        else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
     private class ResourceBrowser(path: String) {
@@ -72,7 +72,7 @@ public actual class Resource actual constructor(private val path: String) {
             return if (request.isSuccessful()) {
                 request.responseText.toString()
             } else {
-                throw FileReadException("$errorPrefix: Read failed: ${request.statusText}")
+                throw FileReadException("$errorPrefix: Read failed: ${request.statusText.toString()}")
             }
         }
 
@@ -84,7 +84,7 @@ public actual class Resource actual constructor(private val path: String) {
                 val response = request.responseText.toString()
                 ByteArray(response.length) { response[it].code.toUByte().toByte() }
             } else {
-                throw FileReadException("$errorPrefix: Read failed: ${request.statusText}")
+                throw FileReadException("$errorPrefix: Read failed: ${request.statusText.toString()}")
             }
         }
 

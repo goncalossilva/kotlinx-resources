@@ -93,7 +93,26 @@ class Resource(path: String) {
     fun readText(charset: Charset = Charsets.UTF_8): String
 
     // Reads the entire resource content as a byte array.
-    fun readBytes(): ByteArray
+fun readBytes(): ByteArray
+}
+```
+
+### Android Instrumented Tests
+
+For Android instrumented tests (`androidInstrumentedTest`), resources are packaged as Android assets.
+
+Place files under `src/androidInstrumentedTest/resources/` and access them using the same relative paths:
+
+```kotlin
+import com.goncalossilva.resources.Resource
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class AndroidResourceTest {
+    @Test
+    fun readsFromAssets() {
+        assertEquals("hello", Resource("data/hello.txt").readText().trim())
+    }
 }
 ```
 

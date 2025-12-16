@@ -12,9 +12,9 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 - Wasm support via `wasmJs` target
 - Support for resources outside the project directory via `srcDir`
+- Support Android instrumented tests (`androidInstrumentedTest`)
 
 ### Fixed
-
 - Handle all native test binaries instead of just the first
 - Compose Multiplatform compatibility on iOS ([#141](https://github.com/goncalossilva/kotlinx-resources/issues/141))
 - Wrap XHR errors in `ResourceReadException` for JS/Wasm browser environments

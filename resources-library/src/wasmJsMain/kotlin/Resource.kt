@@ -35,6 +35,26 @@ private external class XMLHttpRequest : JsAny {
 
 private fun createXMLHttpRequest(): XMLHttpRequest = js("new XMLHttpRequest()")
 
+private external class TextDecoder : JsAny {
+    fun decode(input: Uint8Array): JsString
+}
+
+private fun createTextDecoder(encoding: JsString): TextDecoder = js("new TextDecoder(encoding)")
+
+private external class Uint8Array : JsAny {
+    operator fun set(index: Int, value: Int)
+}
+
+private fun createUint8Array(length: Int): Uint8Array = js("new Uint8Array(length)")
+
+private fun ByteArray.toUint8Array(): Uint8Array {
+    val array = createUint8Array(size)
+    for (i in indices) {
+        array[i] = this[i].toInt() and 0xFF
+    }
+    return array
+}
+
 /*
  * It's impossible to separate browser/node JS runtimes, as they can't be published separately.
  * See: https://youtrack.jetbrains.com/issue/KT-47038
@@ -49,9 +69,9 @@ public actual class Resource actual constructor(private val path: String) {
         else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
-    public actual fun readText(): String = when {
-        IS_BROWSER -> resourceBrowser.readText()
-        IS_NODE -> resourceNode.readText()
+    public actual fun readText(charset: Charset): String = when {
+        IS_BROWSER -> resourceBrowser.readText(charset)
+        IS_NODE -> resourceNode.readText(charset)
         else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
@@ -67,13 +87,9 @@ public actual class Resource actual constructor(private val path: String) {
 
         fun exists(): Boolean = request().isSuccessful()
 
-        fun readText(): String {
-            val request = request()
-            return if (request.isSuccessful()) {
-                request.responseText.toString()
-            } else {
-                throw FileReadException("$errorPrefix: Read failed: ${request.statusText.toString()}")
-            }
+        fun readText(charset: Charset): String {
+            val bytes = readBytes()
+            return bytes.decodeWith(charset)
         }
 
         fun readBytes(): ByteArray {
@@ -96,6 +112,22 @@ public actual class Resource actual constructor(private val path: String) {
 
         @Suppress("MagicNumber")
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
+
+        private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
+            Charset.UTF_8 -> decodeWithTextDecoder("utf-8")
+            Charset.UTF_16 -> decodeUtf16()
+            Charset.UTF_16BE -> decodeWithTextDecoder("utf-16be")
+            Charset.UTF_16LE -> decodeWithTextDecoder("utf-16le")
+            // TextDecoder doesn't support iso-8859-1 directly, but windows-1252 is a superset
+            // that maps 0x00-0xFF identically for printable characters.
+            Charset.ISO_8859_1 -> decodeWithTextDecoder("windows-1252")
+            Charset.US_ASCII -> decodeAscii()
+        }
+
+        private fun ByteArray.decodeWithTextDecoder(encoding: String): String {
+            val decoder = createTextDecoder(encoding.toJsString())
+            return decoder.decode(toUint8Array()).toString()
+        }
     }
 
     private class ResourceNode(path: String) {
@@ -104,10 +136,27 @@ public actual class Resource actual constructor(private val path: String) {
 
         fun exists(): Boolean = nodeExistsSync(jsPath)
 
-        fun readText(): String = runCatching {
-            nodeReadFileSync(jsPath, "utf8".toJsString()).toString()
-        }.getOrElse { cause ->
-            throw FileReadException("$errorPrefix: Read failed", cause)
+        fun readText(charset: Charset): String {
+            val nodeEncoding = charset.toNodeEncoding()
+            return if (nodeEncoding != null) {
+                runCatching {
+                    nodeReadFileSync(jsPath, nodeEncoding.toJsString()).toString()
+                }.getOrElse { cause ->
+                    throw FileReadException("$errorPrefix: Read failed", cause)
+                }
+            } else {
+                // Node doesn't support this encoding natively, decode manually.
+                val bytes = runCatching {
+                    nodeReadFileSyncBytes(jsPath).toByteArray()
+                }.getOrElse { cause ->
+                    throw FileReadException("$errorPrefix: Read failed", cause)
+                }
+                when (charset) {
+                    Charset.UTF_16 -> bytes.decodeUtf16()
+                    Charset.UTF_16BE -> bytes.decodeUtf16Be()
+                    else -> throw IllegalArgumentException("Unsupported charset: $charset")
+                }
+            }
         }
 
         fun readBytes(): ByteArray = runCatching {
@@ -118,4 +167,14 @@ public actual class Resource actual constructor(private val path: String) {
 
         private fun NodeBuffer.toByteArray(): ByteArray = ByteArray(length) { this[it] }
     }
+}
+
+private fun Charset.toNodeEncoding(): String? = when (this) {
+    Charset.UTF_8 -> "utf8"
+    Charset.UTF_16LE -> "utf16le"
+    Charset.ISO_8859_1 -> "latin1"
+    Charset.US_ASCII -> "ascii"
+    // Node doesn't support UTF-16 with BOM or UTF-16BE natively
+    Charset.UTF_16 -> null
+    Charset.UTF_16BE -> null
 }

@@ -12,10 +12,17 @@ public actual class Resource actual constructor(private val path: String) {
 
     public actual fun exists(): Boolean = resourcePath != null
 
-    public actual fun readText(): String = runCatching {
-        resourceFile.readText()
+    public actual fun readText(charset: Charset): String = runCatching {
+        resourceFile.readText(charset.toJavaCharset())
     }.getOrElse { cause ->
         throw FileReadException("$path: No such file or directory", cause)
+    }
+
+    private fun Charset.toJavaCharset(): java.nio.charset.Charset = when (this) {
+        Charset.UTF_8 -> kotlin.text.Charsets.UTF_8
+        Charset.UTF_16LE -> kotlin.text.Charsets.UTF_16LE
+        Charset.ISO_8859_1 -> kotlin.text.Charsets.ISO_8859_1
+        Charset.US_ASCII -> kotlin.text.Charsets.US_ASCII
     }
 
     public actual fun readBytes(): ByteArray = runCatching {

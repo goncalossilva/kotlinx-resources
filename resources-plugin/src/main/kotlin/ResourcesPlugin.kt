@@ -72,7 +72,19 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     dependantTasks = listOf(binary.linkTaskName)
                 )
 
-                if (!isAppleCompilation(kotlinCompilation)) {
+                if (isAppleCompilation(kotlinCompilation)) {
+                    // Add mustRunAfter for Compose Multiplatform resource tasks if they exist.
+                    // This avoids task dependency conflicts when both plugins handle iOS resources.
+                    project.afterEvaluate {
+                        project.tasks.matching { task ->
+                            task.name.startsWith("assemble") &&
+                                task.name.contains(target.targetName, ignoreCase = true) &&
+                                task.name.endsWith("TestResources", ignoreCase = true)
+                        }.forEach { composeTask ->
+                            copyResourcesTask.configure { it.mustRunAfter(composeTask) }
+                        }
+                    }
+                } else {
                     project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
                         testTask.workingDir = binary.outputDirectory.absolutePath
                         testTask.dependsOn(copyResourcesTask)

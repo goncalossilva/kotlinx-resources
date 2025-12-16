@@ -165,6 +165,30 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             for (mustRunAfterTask in mustRunAfterTasks) {
                 task.mustRunAfter(mustRunAfterTask)
             }
+
+            // Generate __resources__.json manifest after copying
+            @Suppress("ObjectLiteralToLambda")
+            task.doLast(object : Action<Task> {
+                override fun execute(task: Task) {
+                    val outDir = outputDir.get()
+                    if (!outDir.exists()) return
+
+                    val files = outDir.walkTopDown()
+                        .filter { it.isFile && it.name != MANIFEST_FILENAME }
+                        .map { it.relativeTo(outDir).invariantSeparatorsPath }
+                        .sorted()
+                        .toList()
+
+                    val manifestFile = outDir.resolve(MANIFEST_FILENAME)
+                    manifestFile.writeText(
+                        files.joinToString(
+                            separator = "\",\n  \"",
+                            prefix = "[\n  \"",
+                            postfix = "\"\n]"
+                        ).let { if (files.isEmpty()) "[]" else it }
+                    )
+                }
+            })
         }
         for (dependantTask in dependantTasks) {
             tasks.named(dependantTask).configure {
@@ -173,6 +197,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
 
         return copyResourcesTask
+    }
+
+    private companion object {
+        private const val MANIFEST_FILENAME = "__resources__.json"
     }
 
     private fun setupProxyResourcesTask(

@@ -97,6 +97,89 @@ class Resource(path: String) {
 }
 ```
 
+### Directory Traversal
+
+For more advanced use cases, the `Resources` object provides directory listing and traversal:
+
+```kotlin
+import com.goncalossilva.resources.Resources
+import com.goncalossilva.resources.ResourceFile
+import com.goncalossilva.resources.ResourceDirectory
+
+class MyTest {
+    @Test
+    fun `list all resources`() {
+        val allPaths = Resources.list()
+        println(allPaths) // ["data/example.json", "images/logo.png", ...]
+    }
+
+    @Test
+    fun `traverse directories`() {
+        val root = Resources.root()
+        root.list().forEach { entry ->
+            when (entry) {
+                is ResourceFile -> println("File: ${entry.path}")
+                is ResourceDirectory -> println("Dir: ${entry.path}")
+            }
+        }
+    }
+
+    @Test
+    fun `find all JSON files`() {
+        val jsonFiles = Resources.findByExtension("json")
+        jsonFiles.forEach { file ->
+            val content = file.readText()
+            // process JSON...
+        }
+    }
+
+    @Test
+    fun `navigate to specific directory`() {
+        val dir = Resources.get("data/config") as? ResourceDirectory
+        dir?.listFiles()?.forEach { file ->
+            println("${file.name}: ${file.readText()}")
+        }
+    }
+}
+```
+
+#### Resources API Overview
+
+```kotlin
+object Resources {
+    // Get the root directory
+    fun root(): ResourceDirectory
+
+    // Get entry at path (file or directory), null if not found
+    fun get(path: String): ResourceEntry?
+
+    // List all resource file paths
+    fun list(): List<String>
+
+    // Find entries matching a predicate
+    fun find(predicate: (ResourceEntry) -> Boolean): List<ResourceEntry>
+
+    // Find files by extension (without dot)
+    fun findByExtension(extension: String): List<ResourceFile>
+}
+
+sealed interface ResourceEntry {
+    val path: String  // Path relative to resources root
+    val name: String  // Last component of path
+}
+
+class ResourceFile : ResourceEntry {
+    fun readText(): String
+    fun readBytes(): ByteArray
+}
+
+class ResourceDirectory : ResourceEntry {
+    fun list(): List<ResourceEntry>      // All immediate children
+    fun listFiles(): List<ResourceFile>  // File children only
+    fun listDirectories(): List<ResourceDirectory>  // Directory children only
+}
+```
+
 ### Collisions
 
 As a rule of thumb, place test files in `src/commonTest/resources/`. This avoids collisions entirely.
@@ -119,7 +202,7 @@ tasks.withType<Copy>().configureEach {
 
 Library tests use the library itself, so they serve as a practical example.
 
-See [`ResourceTest`](https://github.com/goncalossilva/kotlinx-resources/blob/main/resources-test/src/commonTest/kotlin/ResourceTest.kt) for example usage, and [`resources-test/src/commonTest/resources`](https://github.com/goncalossilva/kotlinx-resources/tree/main/resources-test/src/commonTest/resources) for the associated folder structure for resources.
+See [`ResourceTest`](https://github.com/goncalossilva/kotlinx-resources/blob/main/resources-test/src/commonTest/kotlin/ResourceTest.kt) for basic file access, [`ResourcesTest`](https://github.com/goncalossilva/kotlinx-resources/blob/main/resources-test/src/commonTest/kotlin/ResourcesTest.kt) for directory traversal examples, and [`resources-test/src/commonTest/resources`](https://github.com/goncalossilva/kotlinx-resources/tree/main/resources-test/src/commonTest/resources) for the associated folder structure.
 
 ## Acknowledgements
 

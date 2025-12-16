@@ -7,6 +7,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 ### Fixed
 
 - Support for resources outside the project directory via `srcDir`
+- Handle all native test binaries instead of just the first
 
 ## [0.11.0] - 2025-12-13
 

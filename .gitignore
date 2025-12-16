@@ -371,3 +371,7 @@ gradle-app.setting
 # End of https://www.toptal.com/developers/gitignore/api/kotlin,gradle,intellij+all,node,java,macos,windows,linux
 
 .kotlin
+
+# Generated Karma config fragments (resources-test)
+resources-test/karma.config.d/*TestProxyResources.js
+resources-test/karma.config.d/useanybrowser-*.js

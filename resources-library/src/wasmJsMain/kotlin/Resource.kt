@@ -7,14 +7,9 @@ import kotlin.js.JsAny
 import kotlin.js.JsString
 import kotlin.js.toJsString
 
-@Suppress("MaxLineLength")
-private val IS_BROWSER: Boolean = js(
-    "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'"
-)
+private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
 
-private val IS_NODE: Boolean = js(
-    "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
-)
+private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
 
 private fun nodeExistsSync(path: JsString): Boolean = js("require('fs').existsSync(path)")
 private fun nodeReadFileSync(path: JsString, encoding: JsString): JsString =

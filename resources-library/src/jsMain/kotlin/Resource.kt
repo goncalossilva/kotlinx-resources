@@ -4,14 +4,9 @@ import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 import org.w3c.xhr.XMLHttpRequest
 
-@Suppress("MaxLineLength")
-private val IS_BROWSER: Boolean = js(
-    "typeof window !== 'undefined' && typeof window.document !== 'undefined' || typeof self !== 'undefined' && typeof self.location !== 'undefined'"
-)
+private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
 
-private val IS_NODE: Boolean = js(
-    "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
-)
+private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
 
 /*
  * It's impossible to separate browser/node JS runtimes, as they can't be published separately.

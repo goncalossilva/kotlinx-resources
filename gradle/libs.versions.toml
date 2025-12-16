@@ -7,6 +7,13 @@ nexus-publish = "2.0.0"
 detekt = "1.23.8"
 nodejs = "22.12.0"
 yarn = "1.22.22"
+agp = "8.7.3"
+androidx-test-runner = "1.6.2"
+androidx-test-core = "1.6.1"
+
+[libraries]
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -16,3 +23,4 @@ buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig
 gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-publish" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+android-library = { id = "com.android.library", version.ref = "agp" }

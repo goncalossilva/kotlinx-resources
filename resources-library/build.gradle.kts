@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
 
     id("maven-publish")
     id("signing")
@@ -19,12 +20,32 @@ plugins {
 
 repositories {
     mavenCentral()
+    google()
+}
+
+android {
+    namespace = "com.goncalossilva.resources"
+    compileSdk = 35
+    defaultConfig {
+        minSdk = 21
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
 }
 
 kotlin {
     explicitApi()
 
     jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_1_8
+        }
+    }
+
+    androidTarget {
+        publishLibraryVariants("release")
         compilerOptions {
             jvmTarget = JvmTarget.JVM_1_8
         }
@@ -78,6 +99,12 @@ kotlin {
             mingwX64Main.dependsOn(this)
             linuxX64Main.dependsOn(this)
             linuxArm64Main.dependsOn(this)
+        }
+
+        val androidMain by getting {
+            dependencies {
+                compileOnly(libs.androidx.test.core)
+            }
         }
     }
 

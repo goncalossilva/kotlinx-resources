@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- Support for resources outside the project directory via `srcDir`
+
 ## [0.11.0] - 2025-12-13
 
 ### Added

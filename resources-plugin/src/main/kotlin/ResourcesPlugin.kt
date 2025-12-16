@@ -139,13 +139,9 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.isBrowserConfigured
     }
 
-    private fun getResourceDirs(kotlinCompilation: KotlinCompilation<*>): List<String> {
-        val projectDirPath = kotlinCompilation.target.project.projectDir.invariantSeparatorsPath
+    private fun getResourceDirs(kotlinCompilation: KotlinCompilation<*>): List<File> {
         return kotlinCompilation.allKotlinSourceSets.flatMap { sourceSet ->
-            // Paths should be relative to the project's directory.
-            sourceSet.resources.srcDirs.filter { it.exists() }.map {
-                it.invariantSeparatorsPath.removePrefix(projectDirPath).trimStart('/')
-            }
+            sourceSet.resources.srcDirs.filter { it.exists() }
         }
     }
 

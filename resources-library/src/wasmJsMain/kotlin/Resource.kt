@@ -65,14 +65,18 @@ public actual class Resource actual constructor(private val path: String) {
         private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path
 
-        fun exists(): Boolean = request().isSuccessful()
+        fun exists(): Boolean = try {
+            request().isSuccessful()
+        } catch (_: FileReadException) {
+            false
+        }
 
         fun readText(): String {
             val request = request()
             return if (request.isSuccessful()) {
                 request.responseText.toString()
             } else {
-                throw FileReadException("$errorPrefix: Read failed: ${request.statusText.toString()}")
+                throw FileReadException("$errorPrefix: Read failed (status=${request.status})")
             }
         }
 
@@ -84,14 +88,18 @@ public actual class Resource actual constructor(private val path: String) {
                 val response = request.responseText.toString()
                 ByteArray(response.length) { response[it].code.toUByte().toByte() }
             } else {
-                throw FileReadException("$errorPrefix: Read failed: ${request.statusText.toString()}")
+                throw FileReadException("$errorPrefix: Read failed (status=${request.status})")
             }
         }
 
-        private fun request(config: (XMLHttpRequest.() -> Unit)? = null): XMLHttpRequest = createXMLHttpRequest().apply {
-            open("GET".toJsString(), jsPath, false)
-            config?.invoke(this)
-            send()
+        private fun request(config: (XMLHttpRequest.() -> Unit)? = null): XMLHttpRequest = runCatching {
+            createXMLHttpRequest().apply {
+                open("GET".toJsString(), jsPath, false)
+                config?.invoke(this)
+                send()
+            }
+        }.getOrElse { cause ->
+            throw FileReadException("$errorPrefix: Read failed", cause)
         }
 
         @Suppress("MagicNumber")

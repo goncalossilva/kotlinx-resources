@@ -103,11 +103,13 @@ class ResourceTest {
 
     @Test
     fun readTextWithUtf16CharsetLeBom() {
+        if (!canReadUtf16BomBytes()) return
         assertEquals("H\u00E9llo", Resource("charset-utf16-bom-le.txt").readText(Charsets.UTF_16))
     }
 
     @Test
     fun readTextWithUtf16CharsetBeBom() {
+        if (!canReadUtf16BomBytes()) return
         assertEquals("H\u00E9llo", Resource("charset-utf16-bom-be.txt").readText(Charsets.UTF_16))
     }
 

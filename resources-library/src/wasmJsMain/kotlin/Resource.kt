@@ -7,54 +7,6 @@ import kotlin.js.JsAny
 import kotlin.js.JsString
 import kotlin.js.toJsString
 
-private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
-
-private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
-
-private fun nodeExistsSync(path: JsString): Boolean = js("require('fs').existsSync(path)")
-
-private fun nodeReadFileSync(path: JsString, encoding: JsString): JsString =
-    js("require('fs').readFileSync(path, encoding)")
-
-private fun nodeReadFileSyncBytes(path: JsString): NodeBuffer =
-    js("require('fs').readFileSync(path)")
-
-private external class NodeBuffer : JsAny {
-    val length: Int
-    operator fun get(index: Int): Byte
-}
-
-private external class XMLHttpRequest : JsAny {
-    fun open(method: JsString, url: JsString, async: Boolean)
-    fun send()
-    fun overrideMimeType(mimeType: JsString)
-    val status: Int
-    val statusText: JsString
-    val responseText: JsString
-}
-
-private fun createXMLHttpRequest(): XMLHttpRequest = js("new XMLHttpRequest()")
-
-private external class TextDecoder : JsAny {
-    fun decode(input: Uint8Array): JsString
-}
-
-private fun createTextDecoder(encoding: JsString): TextDecoder = js("new TextDecoder(encoding)")
-
-private external class Uint8Array : JsAny {
-    operator fun set(index: Int, value: Int)
-}
-
-private fun createUint8Array(length: Int): Uint8Array = js("new Uint8Array(length)")
-
-private fun ByteArray.toUint8Array(): Uint8Array {
-    val array = createUint8Array(size)
-    for (i in indices) {
-        array[i] = this[i].toInt() and 0xFF
-    }
-    return array
-}
-
 /*
  * It's impossible to separate browser/node JS runtimes, as they can't be published separately.
  * See: https://youtrack.jetbrains.com/issue/KT-47038
@@ -169,12 +121,60 @@ public actual class Resource actual constructor(private val path: String) {
     }
 }
 
+private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
+
+private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
+
+private fun nodeExistsSync(path: JsString): Boolean = js("require('fs').existsSync(path)")
+
+private fun nodeReadFileSync(path: JsString, encoding: JsString): JsString =
+    js("require('fs').readFileSync(path, encoding)")
+
+private fun nodeReadFileSyncBytes(path: JsString): NodeBuffer =
+    js("require('fs').readFileSync(path)")
+
+private external class NodeBuffer : JsAny {
+    val length: Int
+    operator fun get(index: Int): Byte
+}
+
+private external class XMLHttpRequest : JsAny {
+    fun open(method: JsString, url: JsString, async: Boolean)
+    fun send()
+    fun overrideMimeType(mimeType: JsString)
+    val status: Int
+    val statusText: JsString
+    val responseText: JsString
+}
+
+private fun createXMLHttpRequest(): XMLHttpRequest = js("new XMLHttpRequest()")
+
+private external class TextDecoder : JsAny {
+    fun decode(input: Uint8Array): JsString
+}
+
+private fun createTextDecoder(encoding: JsString): TextDecoder = js("new TextDecoder(encoding)")
+
+private external class Uint8Array : JsAny {
+    operator fun set(index: Int, value: Int)
+}
+
+private fun createUint8Array(length: Int): Uint8Array = js("new Uint8Array(length)")
+
+private fun ByteArray.toUint8Array(): Uint8Array {
+    val array = createUint8Array(size)
+    for (i in indices) {
+        array[i] = this[i].toInt() and 0xFF
+    }
+    return array
+}
+
 private fun Charset.toNodeEncoding(): String? = when (this) {
     Charset.UTF_8 -> "utf8"
     Charset.UTF_16LE -> "utf16le"
     Charset.ISO_8859_1 -> "latin1"
     Charset.US_ASCII -> "ascii"
-    // Node doesn't support UTF-16 with BOM or UTF-16BE natively
+    // Node doesn't support UTF-16 with BOM or UTF-16BE natively.
     Charset.UTF_16 -> null
     Charset.UTF_16BE -> null
 }

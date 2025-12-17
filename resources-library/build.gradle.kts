@@ -25,9 +25,9 @@ repositories {
 
 android {
     namespace = "com.goncalossilva.resources"
-    compileSdk = 36
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.androidMinSdk.get().toInt()
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

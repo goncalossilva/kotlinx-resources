@@ -14,7 +14,6 @@ import platform.Foundation.NSDataReadingUncached
 import platform.Foundation.NSError
 import platform.Foundation.NSISOLatin1StringEncoding
 import platform.Foundation.NSString
-import platform.Foundation.NSStringEncoding
 import platform.Foundation.NSUTF16BigEndianStringEncoding
 import platform.Foundation.NSUTF16LittleEndianStringEncoding
 import platform.Foundation.NSUTF16StringEncoding
@@ -36,7 +35,16 @@ public actual class Resource actual constructor(private val path: String) {
             throw FileReadException("$path: No such file or directory")
         }
         val error = alloc<ObjCObjectVar<NSError?>>()
-        NSString.stringWithContentsOfFile(absolutePath, charset.toNSStringEncoding(), error.ptr)
+        // Inlined because NSStringEncoding has different bit widths across Apple platforms.
+        val encoding = when (charset) {
+            Charset.UTF_8 -> NSUTF8StringEncoding
+            Charset.UTF_16 -> NSUTF16StringEncoding
+            Charset.UTF_16BE -> NSUTF16BigEndianStringEncoding
+            Charset.UTF_16LE -> NSUTF16LittleEndianStringEncoding
+            Charset.ISO_8859_1 -> NSISOLatin1StringEncoding
+            Charset.US_ASCII -> NSASCIIStringEncoding
+        }
+        NSString.stringWithContentsOfFile(absolutePath, encoding, error.ptr)
             ?: throw FileReadException("$path: Read failed: ${error.value}")
     }
 
@@ -49,13 +57,4 @@ public actual class Resource actual constructor(private val path: String) {
         val bytes = data?.bytes ?: throw FileReadException("$path: Read failed: ${error.value}")
         bytes.readBytes(data.length.toInt())
     }
-}
-
-private fun Charset.toNSStringEncoding(): NSStringEncoding = when (this) {
-    Charset.UTF_8 -> NSUTF8StringEncoding
-    Charset.UTF_16 -> NSUTF16StringEncoding
-    Charset.UTF_16BE -> NSUTF16BigEndianStringEncoding
-    Charset.UTF_16LE -> NSUTF16LittleEndianStringEncoding
-    Charset.ISO_8859_1 -> NSISOLatin1StringEncoding
-    Charset.US_ASCII -> NSASCIIStringEncoding
 }

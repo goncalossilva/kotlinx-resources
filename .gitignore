@@ -371,3 +371,6 @@ gradle-app.setting
 # End of https://www.toptal.com/developers/gitignore/api/kotlin,gradle,intellij+all,node,java,macos,windows,linux
 
 .kotlin
+
+# Android SDK local configuration
+local.properties

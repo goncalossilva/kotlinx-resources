@@ -61,6 +61,12 @@ private external fun wasiPathFilestatGet(
     resultBuf: Int
 ): Errno
 
+@WasmImport("wasi_snapshot_preview1", "fd_filestat_get")
+private external fun wasiFdFilestatGet(
+    fd: Fd,
+    resultBuf: Int
+): Errno
+
 // Buffer size balances memory usage with I/O efficiency for typical resource files.
 private const val BUFFER_SIZE = 8 * 1024
 
@@ -138,12 +144,45 @@ public actual class Resource actual constructor(private val path: String) {
     }
 
     private fun readFileContent(allocator: MemoryAllocator, fd: Fd): ByteArray {
-        val chunks = mutableListOf<ByteArray>()
-        val buffer = allocator.allocate(BUFFER_SIZE)
+        val fileSize = getFileSize(allocator, fd)
         val iovec = allocator.allocate(8) // iovec struct: buf pointer (4) + buf_len (4)
         val nreadPtr = allocator.allocate(4)
 
-        // Set up iovec.
+        // If file size is known, allocate exact buffer and read directly.
+        if (fileSize > 0) {
+            val buffer = allocator.allocate(fileSize)
+            iovec.storeInt(buffer.address.toInt())
+            (iovec + 4).storeInt(fileSize)
+
+            var totalRead = 0
+            while (totalRead < fileSize) {
+                val errno = wasiFdRead(
+                    fd,
+                    iovec.address.toInt(),
+                    1,
+                    nreadPtr.address.toInt()
+                )
+                if (errno != ERRNO_SUCCESS) {
+                    throw ResourceReadException("$path: Read failed (errno=$errno)")
+                }
+                val nread = nreadPtr.loadInt()
+                if (nread == 0) break
+                totalRead += nread
+                // Update iovec for next read.
+                iovec.storeInt((buffer + totalRead).address.toInt())
+                (iovec + 4).storeInt(fileSize - totalRead)
+            }
+
+            val result = ByteArray(totalRead)
+            for (i in 0 until totalRead) {
+                result[i] = (buffer + i).loadByte()
+            }
+            return result
+        }
+
+        // Fall back to chunked reading if size is unknown.
+        val chunks = mutableListOf<ByteArray>()
+        val buffer = allocator.allocate(BUFFER_SIZE)
         iovec.storeInt(buffer.address.toInt())
         (iovec + 4).storeInt(BUFFER_SIZE)
 
@@ -151,18 +190,15 @@ public actual class Resource actual constructor(private val path: String) {
             val errno = wasiFdRead(
                 fd,
                 iovec.address.toInt(),
-                1, // one iovec entry
+                1,
                 nreadPtr.address.toInt()
             )
-
             if (errno != ERRNO_SUCCESS) {
                 throw ResourceReadException("$path: Read failed (errno=$errno)")
             }
-
             val nread = nreadPtr.loadInt()
             if (nread == 0) break
 
-            // Bulk copy from WASM memory to ByteArray.
             val chunk = ByteArray(nread)
             for (i in 0 until nread) {
                 chunk[i] = (buffer + i).loadByte()
@@ -170,7 +206,6 @@ public actual class Resource actual constructor(private val path: String) {
             chunks.add(chunk)
         }
 
-        // Combine all chunks into final result.
         val totalSize = chunks.sumOf { it.size }
         val result = ByteArray(totalSize)
         var offset = 0
@@ -179,6 +214,16 @@ public actual class Resource actual constructor(private val path: String) {
             offset += chunk.size
         }
         return result
+    }
+
+    private fun getFileSize(allocator: MemoryAllocator, fd: Fd): Int {
+        val filestatBuf = allocator.allocate(64)
+        val errno = wasiFdFilestatGet(fd, filestatBuf.address.toInt())
+        if (errno != ERRNO_SUCCESS) return -1
+        // Size is at offset 32 in filestat struct (after dev:u64, ino:u64, filetype:u8+padding, nlink:u64).
+        val size = (filestatBuf + 32).loadLong()
+        // Return as Int if it fits, otherwise -1 to trigger chunked reading.
+        return if (size in 0..Int.MAX_VALUE) size.toInt() else -1
     }
 
     private fun MemoryAllocator.writeBytes(bytes: ByteArray): Pointer {

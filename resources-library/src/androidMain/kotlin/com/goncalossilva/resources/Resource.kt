@@ -39,14 +39,14 @@ public actual class Resource actual constructor(private val path: String) {
         resourceAssets?.readTextOrNull(kotlinCharset)?.let { return it }
         resourceClassLoader.readTextOrNull(kotlinCharset)?.let { return it }
 
-        throw FileReadException("$path: No such file or directory")
+        throw ResourceReadException("$path: No such file or directory")
     }
 
     public actual fun readBytes(): ByteArray {
         resourceAssets?.readBytesOrNull()?.let { return it }
         resourceClassLoader.readBytesOrNull()?.let { return it }
 
-        throw FileReadException("$path: No such file or directory")
+        throw ResourceReadException("$path: No such file or directory")
     }
 
     private fun instrumentedContextOrNull(): Context? {

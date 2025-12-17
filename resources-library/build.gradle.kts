@@ -7,8 +7,6 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
 
@@ -83,12 +81,6 @@ kotlin {
         }
     }
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-}
-
-tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }

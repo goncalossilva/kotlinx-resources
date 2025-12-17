@@ -8,10 +8,13 @@ import kotlin.wasm.unsafe.withScopedMemoryAllocator
 // WASI Preview 1 types
 private typealias Fd = Int
 private typealias Size = Int
-private typealias Errno = Short
+private typealias Errno = Int
 
 // WASI Preview 1 constants
 private const val ERRNO_SUCCESS: Errno = 0
+
+// Filetype constants from WASI filestat
+private const val FILETYPE_REGULAR_FILE: Byte = 4
 
 // File descriptor flags for path_open
 private const val OFLAGS_NONE: Short = 0
@@ -73,7 +76,11 @@ public actual class Resource actual constructor(private val path: String) {
             pathBytes.size,
             filestatBuf.address.toInt()
         )
-        errno == ERRNO_SUCCESS
+        if (errno != ERRNO_SUCCESS) return@withScopedMemoryAllocator false
+
+        // Check filetype at offset 16 (filestat struct: dev:u64, ino:u64, filetype:u8)
+        val filetype = (filestatBuf + 16).loadByte()
+        filetype == FILETYPE_REGULAR_FILE
     }
 
     public actual fun readText(): String = readBytes().decodeToString()
@@ -112,7 +119,7 @@ public actual class Resource actual constructor(private val path: String) {
     }
 
     private fun readFileContent(allocator: MemoryAllocator, fd: Fd): ByteArray {
-        val result = mutableListOf<Byte>()
+        val chunks = mutableListOf<ByteArray>()
         val buffer = allocator.allocate(BUFFER_SIZE)
         val iovec = allocator.allocate(8) // iovec struct: buf pointer (4) + buf_len (4)
         val nreadPtr = allocator.allocate(4)
@@ -136,12 +143,23 @@ public actual class Resource actual constructor(private val path: String) {
             val nread = nreadPtr.loadInt()
             if (nread == 0) break
 
+            // Bulk copy from wasm memory to ByteArray
+            val chunk = ByteArray(nread)
             for (i in 0 until nread) {
-                result.add((buffer + i).loadByte())
+                chunk[i] = (buffer + i).loadByte()
             }
+            chunks.add(chunk)
         }
 
-        return result.toByteArray()
+        // Combine all chunks into final result
+        val totalSize = chunks.sumOf { it.size }
+        val result = ByteArray(totalSize)
+        var offset = 0
+        for (chunk in chunks) {
+            chunk.copyInto(result, offset)
+            offset += chunk.size
+        }
+        return result
     }
 
     private fun MemoryAllocator.writeBytes(bytes: ByteArray): Pointer {

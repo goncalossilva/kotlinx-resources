@@ -4,10 +4,14 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
 - Support for resources outside the project directory via `srcDir`
+
+### Fixed
+
 - Handle all native test binaries instead of just the first
+- Compose Multiplatform compatibility on iOS (#141)
 
 ## [0.11.0] - 2025-12-13
 

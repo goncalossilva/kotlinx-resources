@@ -72,7 +72,15 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     dependantTasks = listOf(binary.linkTaskName)
                 )
 
-                if (!isAppleCompilation(kotlinCompilation)) {
+                if (isIosCompilation(kotlinCompilation)) {
+                    // HACK: Avoid task dependency conflicts with Compose Multiplatform on iOS.
+                    val composeResourceTasks = project.tasks.matching { task ->
+                        task.name.startsWith("assemble") &&
+                            task.name.contains(target.targetName) &&
+                            task.name.endsWith("TestResources")
+                    }
+                    copyResourcesTask.configure { it.mustRunAfter(composeResourceTasks) }
+                } else if (!isAppleCompilation(kotlinCompilation)) {
                     project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
                         testTask.workingDir = binary.outputDirectory.absolutePath
                         testTask.dependsOn(copyResourcesTask)
@@ -126,6 +134,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun isAppleCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
         return kotlinCompilation.konanTarget.family.isAppleFamily
+    }
+
+    private fun isIosCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
+        return kotlinCompilation.konanTarget.family == Family.IOS
     }
 
     private fun isJsNodeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {

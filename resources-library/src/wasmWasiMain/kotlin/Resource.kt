@@ -24,7 +24,7 @@ private const val RIGHTS_FD_READ: Long = 1L shl 1
 private const val RIGHTS_FD_SEEK: Long = 1L shl 2
 private const val RIGHTS_FD_FILESTAT_GET: Long = 1L shl 21
 
-// Pre-opened directory file descriptor (typically starts at 3)
+// Pre-opened directory file descriptor (typically starts at 3).
 private const val PREOPENED_FD: Fd = 3
 
 // WASI Preview 1 imports
@@ -78,7 +78,7 @@ public actual class Resource actual constructor(private val path: String) {
         )
         if (errno != ERRNO_SUCCESS) return@withScopedMemoryAllocator false
 
-        // Check filetype at offset 16 (filestat struct: dev:u64, ino:u64, filetype:u8)
+        // Check filetype at offset 16 (filestat struct: dev:u64, ino:u64, filetype:u8).
         val filetype = (filestatBuf + 16).loadByte()
         filetype == FILETYPE_REGULAR_FILE
     }
@@ -142,7 +142,7 @@ public actual class Resource actual constructor(private val path: String) {
         val iovec = allocator.allocate(8) // iovec struct: buf pointer (4) + buf_len (4)
         val nreadPtr = allocator.allocate(4)
 
-        // Set up iovec
+        // Set up iovec.
         iovec.storeInt(buffer.address.toInt())
         (iovec + 4).storeInt(BUFFER_SIZE)
 
@@ -161,7 +161,7 @@ public actual class Resource actual constructor(private val path: String) {
             val nread = nreadPtr.loadInt()
             if (nread == 0) break
 
-            // Bulk copy from wasm memory to ByteArray
+            // Bulk copy from WASM memory to ByteArray.
             val chunk = ByteArray(nread)
             for (i in 0 until nread) {
                 chunk[i] = (buffer + i).loadByte()
@@ -169,7 +169,7 @@ public actual class Resource actual constructor(private val path: String) {
             chunks.add(chunk)
         }
 
-        // Combine all chunks into final result
+        // Combine all chunks into final result.
         val totalSize = chunks.sumOf { it.size }
         val result = ByteArray(totalSize)
         var offset = 0

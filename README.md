@@ -58,7 +58,9 @@ To access a file in your tests:
 1. Place it in a [`resources` folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources). For example, in `src/commonTest/resources/` to have it available in all targets, or `src/jsTest/resources/` to limit access to JS.
 2. Instantiate a `Resource` class with the path relative to that folder.
 
-### Basic Example
+### Examples
+
+#### Basic Example
 
 For a file located at `src/commonTest/resources/data/example.json`:
 
@@ -80,6 +82,23 @@ class MyTest {
 }
 ```
 
+#### Android Example
+
+For Android instrumented tests, resources are packaged as assets. Place them under `src/androidInstrumentedTest/resources/` and access using the same relative paths:
+
+```kotlin
+import com.goncalossilva.resources.Resource
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class AndroidResourceTest {
+    @Test
+    fun readsFromAssets() {
+        assertEquals("hello", Resource("data/hello.txt").readText().trim())
+    }
+}
+```
+
 ### API Overview
 
 The `Resource` class provides a clean and simple API:
@@ -93,26 +112,7 @@ class Resource(path: String) {
     fun readText(charset: Charset = Charsets.UTF_8): String
 
     // Reads the entire resource content as a byte array.
-	    fun readBytes(): ByteArray
-	}
-	```
-
-### Android Instrumented Tests
-
-For Android instrumented tests (`androidInstrumentedTest`), resources are packaged as Android assets.
-
-Place files under `src/androidInstrumentedTest/resources/` and access them using the same relative paths:
-
-```kotlin
-import com.goncalossilva.resources.Resource
-import kotlin.test.Test
-import kotlin.test.assertEquals
-
-class AndroidResourceTest {
-    @Test
-    fun readsFromAssets() {
-        assertEquals("hello", Resource("data/hello.txt").readText().trim())
-    }
+    fun readBytes(): ByteArray
 }
 ```
 

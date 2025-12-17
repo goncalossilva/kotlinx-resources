@@ -45,9 +45,12 @@ public actual class Resource actual constructor(path: String) {
      * Browser-based resource implementation.
      */
     private class ResourceBrowser(private val path: String) {
-        private fun request(config: (XMLHttpRequest.() -> Unit)? = null): XMLHttpRequest = runCatching {
+        private fun request(
+            method: String = "GET",
+            config: (XMLHttpRequest.() -> Unit)? = null,
+        ): XMLHttpRequest = runCatching {
             XMLHttpRequest().apply {
-                open("GET", path, false)
+                open(method, path, false)
                 config?.invoke(this)
                 send()
             }
@@ -58,11 +61,9 @@ public actual class Resource actual constructor(path: String) {
         @Suppress("MagicNumber")
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
-        fun exists(): Boolean = try {
-            request().isSuccessful()
-        } catch (_: FileReadException) {
-            false
-        }
+        fun exists(): Boolean = runCatching {
+            request(method = "HEAD").isSuccessful()
+        }.getOrDefault(false)
 
         fun readText(charset: Charset): String {
             val bytes = readBytes()

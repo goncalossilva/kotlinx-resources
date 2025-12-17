@@ -88,17 +88,31 @@ class ResourceTest {
 
     @Test
     fun readTextWithUtf8Charset() {
-        assertEquals("Hello", Resource("charset-utf8.txt").readText(Charsets.UTF_8))
+        assertEquals("H\u00E9llo", Resource("charset-utf8.txt").readText(Charsets.UTF_8))
     }
 
     @Test
     fun readTextWithUtf16LeCharset() {
-        assertEquals("Hello", Resource("charset-utf16le.txt").readText(Charsets.UTF_16LE))
+        assertEquals("H\u00E9llo", Resource("charset-utf16le.txt").readText(Charsets.UTF_16LE))
+    }
+
+    @Test
+    fun readTextWithUtf16BeCharset() {
+        assertEquals("H\u00E9llo", Resource("charset-utf16be.txt").readText(Charsets.UTF_16BE))
+    }
+
+    @Test
+    fun readTextWithUtf16CharsetLeBom() {
+        assertEquals("H\u00E9llo", Resource("charset-utf16-bom-le.txt").readText(Charsets.UTF_16))
+    }
+
+    @Test
+    fun readTextWithUtf16CharsetBeBom() {
+        assertEquals("H\u00E9llo", Resource("charset-utf16-bom-be.txt").readText(Charsets.UTF_16))
     }
 
     @Test
     fun readTextWithIso8859Charset() {
-        // é is 0xE9 in ISO-8859-1
         assertEquals("H\u00E9llo", Resource("charset-iso8859.txt").readText(Charsets.ISO_8859_1))
     }
 
@@ -109,8 +123,7 @@ class ResourceTest {
 
     @Test
     fun readTextDefaultsToUtf8() {
-        // readText() without charset should default to UTF-8
-        assertEquals("Hello", Resource("charset-utf8.txt").readText())
+        assertEquals("H\u00E9llo", Resource("charset-utf8.txt").readText())
     }
 
     companion object {

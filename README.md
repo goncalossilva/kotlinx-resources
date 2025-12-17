@@ -60,7 +60,7 @@ To access a file in your tests:
 
 ### Examples
 
-#### Basic Example
+#### Basic Multiplatform Example
 
 For a file located at `src/commonTest/resources/data/example.json`:
 

@@ -131,7 +131,7 @@ public actual class Resource actual constructor(private val path: String) {
         )
 
         if (errno != ERRNO_SUCCESS) {
-            throw FileReadException("$filePath: Open failed (errno=$errno)")
+            throw ResourceReadException("$filePath: Open failed (errno=$errno)")
         }
 
         return resultFdPtr.loadInt()
@@ -156,7 +156,7 @@ public actual class Resource actual constructor(private val path: String) {
             )
 
             if (errno != ERRNO_SUCCESS) {
-                throw FileReadException("$path: Read failed (errno=$errno)")
+                throw ResourceReadException("$path: Read failed (errno=$errno)")
             }
 
             val nread = nreadPtr.loadInt()

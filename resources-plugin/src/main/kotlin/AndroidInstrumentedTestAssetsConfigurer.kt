@@ -16,6 +16,7 @@ internal class AndroidInstrumentedTestAssetsConfigurer {
     fun configure(project: Project) {
         val androidComponents = project.extensions.getByType(AndroidComponentsExtension::class.java)
         val kotlinExt = project.extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return
+        val androidInstrumentedTestPrefix = "androidInstrumentedTest"
 
         androidComponents.onVariants { variant ->
             val androidTest = (variant as? HasAndroidTest)?.androidTest ?: return@onVariants
@@ -23,7 +24,9 @@ internal class AndroidInstrumentedTestAssetsConfigurer {
 
             kotlinExt.sourceSets
                 .asSequence()
-                .filter { it.name.contains("androidInstrumentedTest", ignoreCase = true) }
+                // Source sets are only identified by name (no typed API), but we can be strict and support
+                // variant-specific source sets like androidInstrumentedTestDebug.
+                .filter { it.name.startsWith(androidInstrumentedTestPrefix) }
                 .flatMap { it.resources.srcDirs.asSequence() }
                 .filter { it.exists() }
                 .map { it.absolutePath }

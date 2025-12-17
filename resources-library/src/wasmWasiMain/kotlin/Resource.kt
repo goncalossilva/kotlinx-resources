@@ -85,7 +85,7 @@ public actual class Resource actual constructor(private val path: String) {
         )
         if (errno != ERRNO_SUCCESS) return@withScopedMemoryAllocator false
 
-        // Check filetype at offset 16 (filestat struct: dev:u64, ino:u64, filetype:u8).
+        // WASI filestat struct layout: dev(u64):0, ino(u64):8, filetype(u8):16, nlink(u64):24, size(u64):32.
         val filetype = (filestatBuf + 16).loadByte()
         filetype == FILETYPE_REGULAR_FILE
     }
@@ -220,7 +220,7 @@ public actual class Resource actual constructor(private val path: String) {
         val filestatBuf = allocator.allocate(64)
         val errno = wasiFdFilestatGet(fd, filestatBuf.address.toInt())
         if (errno != ERRNO_SUCCESS) return -1
-        // Size is at offset 32 in filestat struct (after dev:u64, ino:u64, filetype:u8+padding, nlink:u64).
+        // Size is at offset 32 (see filestat layout comment in exists()).
         val size = (filestatBuf + 32).loadLong()
         // Return as Int if it fits, otherwise -1 to trigger chunked reading.
         return if (size in 0..Int.MAX_VALUE) size.toInt() else -1

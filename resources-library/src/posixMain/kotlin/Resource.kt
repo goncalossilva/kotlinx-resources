@@ -51,6 +51,7 @@ private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
 }
 
 private fun ByteArray.decodeUtf16Be(): String {
+    require(size % 2 == 0) { "UTF-16 data must have even number of bytes, got $size" }
     val chars = CharArray(size / 2)
     for (i in chars.indices) {
         val hi = this[i * 2].toInt() and 0xFF
@@ -61,6 +62,7 @@ private fun ByteArray.decodeUtf16Be(): String {
 }
 
 private fun ByteArray.decodeUtf16Le(): String {
+    require(size % 2 == 0) { "UTF-16 data must have even number of bytes, got $size" }
     val chars = CharArray(size / 2)
     for (i in chars.indices) {
         val lo = this[i * 2].toInt() and 0xFF

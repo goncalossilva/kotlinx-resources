@@ -16,6 +16,7 @@ internal fun ByteArray.decodeAscii(): String {
  * Decodes this byte array as UTF-16 big-endian.
  */
 internal fun ByteArray.decodeUtf16Be(): String {
+    require(size % 2 == 0) { "UTF-16 data must have even number of bytes, got $size" }
     val chars = CharArray(size / 2)
     for (i in chars.indices) {
         val hi = this[i * 2].toInt() and 0xFF
@@ -29,6 +30,7 @@ internal fun ByteArray.decodeUtf16Be(): String {
  * Decodes this byte array as UTF-16 little-endian.
  */
 internal fun ByteArray.decodeUtf16Le(): String {
+    require(size % 2 == 0) { "UTF-16 data must have even number of bytes, got $size" }
     val chars = CharArray(size / 2)
     for (i in chars.indices) {
         val lo = this[i * 2].toInt() and 0xFF

@@ -192,8 +192,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.isBrowserConfigured
     }
 
-    // Note: Uses string-based detection since Kotlin Gradle Plugin doesn't expose a public type for Wasm targets.
-    // Unlike KotlinNativeCompilation/KotlinJsIrCompilation, there's no KotlinWasmTarget type available.
+    // Use string-based detection. Unlike for other targets, there's no KotlinWasmTarget type available.
     private fun isWasmWasiCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
         return kotlinCompilation.target.targetName == "wasmWasi"
     }
@@ -381,11 +380,19 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         val resourcesDir = dir.absolutePath
                             .replace("\\", "\\\\")
                             .replace("'", "\\'")
-                        // Use regex to match WASI constructor and add preopens more robustly
-                        val wasiPattern = Regex("""new WASI\(\s*\{([^}]*)\}\s*\)""")
+                        // Use regex to match WASI constructor and add preopens.
+                        val wasiPattern = Regex(
+                            pattern = """new\s+WASI\s*\(\s*\{(.*?)}\s*\)""",
+                            option = RegexOption.DOT_MATCHES_ALL
+                        )
                         val patched = wasiPattern.replace(content) { match ->
-                            val existingOptions = match.groupValues[1].trimEnd().trimEnd(',')
-                            "new WASI({ $existingOptions, preopens: { '.': '$resourcesDir' } })"
+                            val existingOptions = match.groupValues[1].trim().trimEnd(',').trim()
+                            val optionsWithPreopens = if (existingOptions.isEmpty()) {
+                                "preopens: { '.': '$resourcesDir' }"
+                            } else {
+                                "$existingOptions, preopens: { '.': '$resourcesDir' }"
+                            }
+                            "new WASI({ $optionsWithPreopens })"
                         }
                         if (patched == content) {
                             project.logger.warn("WASI constructor pattern not found in ${mjsFile.name}")
@@ -393,11 +400,15 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         mjsFile.writeText(patched)
                     }
 
-                    // Copy resources to output directory (common source sets first, then platform-specific)
+                    // Copy resources to output directory (common source sets first, then platform-specific).
                     val resourceDirs = getResourceDirs(kotlinCompilation)
-                    // Sort by source set name: commonTest before wasmWasiTest (alphabetically)
-                    // Resource dir path is like: src/commonTest/resources, so parentFile.name gives source set name
-                    val sortedDirs = resourceDirs.sortedBy { it.parentFile?.name ?: "" }
+                    // Sort so common* source sets come before platform-specific ones.
+                    val sortedDirs = resourceDirs.sortedWith(
+                        compareBy<File> { dir ->
+                            val sourceSetName = dir.parentFile?.name ?: ""
+                            if (sourceSetName.startsWith("common")) 0 else 1
+                        }.thenBy { it.parentFile?.name ?: "" }
+                    )
                     for (resourceDir in sortedDirs) {
                         resourceDir.copyRecursively(dir, overwrite = true)
                     }

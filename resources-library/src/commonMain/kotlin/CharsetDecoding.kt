@@ -46,6 +46,7 @@ internal fun ByteArray.decodeUtf16Le(): String {
  * If no BOM, defaults to big-endian per the Unicode standard.
  */
 internal fun ByteArray.decodeUtf16(): String {
+    require(size % 2 == 0) { "UTF-16 data must have even number of bytes, got $size" }
     if (size < 2) return ""
 
     // Check for BOM.

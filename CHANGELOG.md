@@ -11,7 +11,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 ### Fixed
 
 - Handle all native test binaries instead of just the first
-- Compose Multiplatform compatibility on iOS (#141)
+- Compose Multiplatform compatibility on iOS ([#141](https://github.com/goncalossilva/kotlinx-resources/issues/141))
 
 ## [0.11.0] - 2025-12-13
 
@@ -25,7 +25,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Changed
 
-- **BREAKING:** Resource paths are now specified relative to the resources folder. (#162 - thanks @egorikftp!)
+- **BREAKING:** Resource paths are now specified relative to the resources folder. ([#162](https://github.com/goncalossilva/kotlinx-resources/pull/162) - thanks @egorikftp!)
   
   For example, a file located at `src/commonTest/resources/a-folder/a-file.txt` is now accessed using `Resource("a-folder/a-file.txt")` without the `src/commonTest/resources/` prefix.
   
@@ -52,7 +52,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Added
 
-- Support for Kotlin 2.1.0 (#115 - thanks @chadselph!)
+- Support for Kotlin 2.1.0 ([#115](https://github.com/goncalossilva/kotlinx-resources/pull/115) - thanks @chadselph!)
 
 ## [0.9.0] - 2024-07-08
 
@@ -62,7 +62,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Added
 
-- Support for Kotlin 2.0.0 (#115 - thanks @DRSchlaubi!)
+- Support for Kotlin 2.0.0 ([#115](https://github.com/goncalossilva/kotlinx-resources/pull/115) - thanks @DRSchlaubi!)
 
 ## [0.4.2] - 2024-07-03
 
@@ -74,7 +74,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Fixed
 
-- Reading resource bytes on POSIX platforms (#106 - thanks @CharlieTap!)
+- Reading resource bytes on POSIX platforms ([#106](https://github.com/goncalossilva/kotlinx-resources/pull/106) - thanks @CharlieTap!)
 
 ## [0.4.0] - 2023-08-01
 

@@ -267,12 +267,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     private fun configureAndroidAssetsForInstrumentedTests(project: Project) {
-        val configurer = runCatching {
-            Class.forName("com.goncalossilva.resources.AndroidInstrumentedTestAssetsConfigurer")
-                .getDeclaredConstructor()
-                .newInstance() as AndroidAssetsConfigurer
-        }.getOrNull() ?: return
-
-        configurer.configure(project)
+        AndroidInstrumentedTestAssetsConfigurer().configure(project)
     }
 }

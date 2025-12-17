@@ -5,8 +5,15 @@ import com.android.build.api.variant.HasAndroidTest
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
-internal class AndroidInstrumentedTestAssetsConfigurer : AndroidAssetsConfigurer {
-    override fun configure(project: Project) {
+/**
+ * Wires KMP `androidInstrumentedTest` resources into AGP's androidTest assets.
+ *
+ * KMP puts instrumented test resources under `src/androidInstrumentedTest/resources/`, but AGP expects files to be
+ * packaged as assets for instrumented tests. This configurer hooks into AGP's variant API and adds those resource
+ * directories as static asset sources for the `androidTest` component.
+ */
+internal class AndroidInstrumentedTestAssetsConfigurer {
+    fun configure(project: Project) {
         val androidComponents = project.extensions.getByType(AndroidComponentsExtension::class.java)
         val kotlinExt = project.extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return
 

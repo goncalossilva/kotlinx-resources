@@ -39,7 +39,7 @@ public actual class Resource actual constructor(private val path: String) {
 
         fun exists(): Boolean = try {
             request().isSuccessful()
-        } catch (_: FileReadException) {
+        } catch (_: Throwable) {
             false
         }
 

@@ -15,7 +15,9 @@ import platform.Foundation.NSError
 import platform.Foundation.NSISOLatin1StringEncoding
 import platform.Foundation.NSString
 import platform.Foundation.NSStringEncoding
+import platform.Foundation.NSUTF16BigEndianStringEncoding
 import platform.Foundation.NSUTF16LittleEndianStringEncoding
+import platform.Foundation.NSUTF16StringEncoding
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.dataWithContentsOfFile
 import platform.Foundation.stringWithContentsOfFile
@@ -38,13 +40,6 @@ public actual class Resource actual constructor(private val path: String) {
             ?: throw FileReadException("$path: Read failed: ${error.value}")
     }
 
-    private fun Charset.toNSStringEncoding(): NSStringEncoding = when (this) {
-        Charset.UTF_8 -> NSUTF8StringEncoding
-        Charset.UTF_16LE -> NSUTF16LittleEndianStringEncoding
-        Charset.ISO_8859_1 -> NSISOLatin1StringEncoding
-        Charset.US_ASCII -> NSASCIIStringEncoding
-    }
-
     public actual fun readBytes(): ByteArray = memScoped {
         if (absolutePath == null) {
             throw FileReadException("$path: No such file or directory")
@@ -54,4 +49,13 @@ public actual class Resource actual constructor(private val path: String) {
         val bytes = data?.bytes ?: throw FileReadException("$path: Read failed: ${error.value}")
         bytes.readBytes(data.length.toInt())
     }
+}
+
+private fun Charset.toNSStringEncoding(): NSStringEncoding = when (this) {
+    Charset.UTF_8 -> NSUTF8StringEncoding
+    Charset.UTF_16 -> NSUTF16StringEncoding
+    Charset.UTF_16BE -> NSUTF16BigEndianStringEncoding
+    Charset.UTF_16LE -> NSUTF16LittleEndianStringEncoding
+    Charset.ISO_8859_1 -> NSISOLatin1StringEncoding
+    Charset.US_ASCII -> NSASCIIStringEncoding
 }

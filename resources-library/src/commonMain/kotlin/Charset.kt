@@ -5,6 +5,8 @@ package com.goncalossilva.resources
  */
 public enum class Charset {
     UTF_8,
+    UTF_16,
+    UTF_16BE,
     UTF_16LE,
     ISO_8859_1,
     US_ASCII
@@ -18,6 +20,12 @@ public enum class Charset {
 public object Charsets {
     /** Eight-bit UCS Transformation Format. */
     public val UTF_8: Charset = Charset.UTF_8
+
+    /** Sixteen-bit UCS Transformation Format, byte order identified by optional BOM. */
+    public val UTF_16: Charset = Charset.UTF_16
+
+    /** Sixteen-bit UCS Transformation Format, big-endian byte order. */
+    public val UTF_16BE: Charset = Charset.UTF_16BE
 
     /** Sixteen-bit UCS Transformation Format, little-endian byte order. */
     public val UTF_16LE: Charset = Charset.UTF_16LE

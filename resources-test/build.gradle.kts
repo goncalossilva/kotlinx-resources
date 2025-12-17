@@ -10,11 +10,9 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-
-    alias(libs.plugins.useanybrowser)
-
-    alias(libs.plugins.detekt)
+    id("org.jetbrains.kotlin.multiplatform")
+    id("com.goncalossilva.useanybrowser")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 buildscript {

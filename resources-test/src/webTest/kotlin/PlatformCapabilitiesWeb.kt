@@ -10,4 +10,3 @@ private val canReadUtf16BomBytesValue: Boolean by lazy {
 }
 
 internal actual fun canReadUtf16BomBytes(): Boolean = canReadUtf16BomBytesValue
-

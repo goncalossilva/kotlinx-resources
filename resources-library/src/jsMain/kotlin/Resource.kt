@@ -87,8 +87,8 @@ public actual class Resource actual constructor(path: String) {
             Charset.UTF_16 -> decodeUtf16()
             Charset.UTF_16BE -> decodeWithTextDecoder("utf-16be")
             Charset.UTF_16LE -> decodeWithTextDecoder("utf-16le")
-            // TextDecoder doesn't support iso-8859-1 directly, but windows-1252 is a superset
-            // that maps 0x00-0xFF identically for printable characters.
+            // TextDecoder doesn't support iso-8859-1 directly. We use windows-1252, which is a
+            // superset: it matches iso-8859-1 for 0x00-0x7F and 0xA0-0xFF, differing only in 0x80-0x9F.
             Charset.ISO_8859_1 -> decodeWithTextDecoder("windows-1252")
             Charset.US_ASCII -> decodeAscii()
         }
@@ -166,7 +166,7 @@ private fun Charset.toNodeEncoding(): String? = when (this) {
     Charset.UTF_16LE -> "utf16le"
     Charset.ISO_8859_1 -> "latin1"
     Charset.US_ASCII -> "ascii"
-    // Node doesn't support UTF-16 with BOM or UTF-16BE natively
+    // Node doesn't support UTF-16 with BOM or UTF-16BE natively.
     Charset.UTF_16 -> null
     Charset.UTF_16BE -> null
 }

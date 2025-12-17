@@ -79,8 +79,8 @@ public actual class Resource actual constructor(private val path: String) {
             Charset.UTF_16 -> decodeUtf16()
             Charset.UTF_16BE -> decodeWithTextDecoder("utf-16be")
             Charset.UTF_16LE -> decodeWithTextDecoder("utf-16le")
-            // TextDecoder doesn't support iso-8859-1 directly, but windows-1252 is a superset
-            // that maps 0x00-0xFF identically for printable characters.
+            // TextDecoder doesn't support iso-8859-1 directly. windows-1252 is a superset:
+            // 0x00-0x7F and 0xA0-0xFF map identically, and only 0x80-0x9F differ (control vs printable).
             Charset.ISO_8859_1 -> decodeWithTextDecoder("windows-1252")
             Charset.US_ASCII -> decodeAscii()
         }

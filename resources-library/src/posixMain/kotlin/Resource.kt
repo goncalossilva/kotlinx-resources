@@ -46,51 +46,12 @@ private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
     Charset.UTF_16 -> decodeUtf16()
     Charset.UTF_16BE -> decodeUtf16Be()
     Charset.UTF_16LE -> decodeUtf16Le()
-    Charset.ISO_8859_1 -> map { (it.toInt() and 0xFF).toChar() }.toCharArray().concatToString()
-    Charset.US_ASCII -> map { (it.toInt() and 0x7F).toChar() }.toCharArray().concatToString()
-}
-
-private fun ByteArray.decodeUtf16Be(): String {
-    require(size % 2 == 0) { "UTF-16 data must have even number of bytes, got $size" }
-    val chars = CharArray(size / 2)
-    for (i in chars.indices) {
-        val hi = this[i * 2].toInt() and 0xFF
-        val lo = this[i * 2 + 1].toInt() and 0xFF
-        chars[i] = ((hi shl 8) or lo).toChar()
-    }
-    return chars.concatToString()
-}
-
-private fun ByteArray.decodeUtf16Le(): String {
-    require(size % 2 == 0) { "UTF-16 data must have even number of bytes, got $size" }
-    val chars = CharArray(size / 2)
-    for (i in chars.indices) {
-        val lo = this[i * 2].toInt() and 0xFF
-        val hi = this[i * 2 + 1].toInt() and 0xFF
-        chars[i] = ((hi shl 8) or lo).toChar()
-    }
-    return chars.concatToString()
-}
-
-private fun ByteArray.decodeUtf16(): String {
-    if (size < 2) return ""
-
-    // Check for BOM.
-    val first = this[0].toInt() and 0xFF
-    val second = this[1].toInt() and 0xFF
-
-    return when {
-        first == 0xFE && second == 0xFF -> {
-            // Big-endian BOM, skip it.
-            sliceArray(2 until size).decodeUtf16Be()
+    Charset.ISO_8859_1 -> {
+        val chars = CharArray(size)
+        for (i in indices) {
+            chars[i] = (this[i].toInt() and 0xFF).toChar()
         }
-        first == 0xFF && second == 0xFE -> {
-            // Little-endian BOM, skip it.
-            sliceArray(2 until size).decodeUtf16Le()
-        }
-        else -> {
-            // No BOM, default to big-endian.
-            decodeUtf16Be()
-        }
+        chars.concatToString()
     }
+    Charset.US_ASCII -> decodeAscii()
 }

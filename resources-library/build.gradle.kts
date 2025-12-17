@@ -25,13 +25,13 @@ repositories {
 
 android {
     namespace = "com.goncalossilva.resources"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 21
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
@@ -40,14 +40,14 @@ kotlin {
 
     jvm {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_1_8
+            jvmTarget = JvmTarget.JVM_11
         }
     }
 
     androidTarget {
         publishLibraryVariants("release")
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_1_8
+            jvmTarget = JvmTarget.JVM_11
         }
     }
 

@@ -93,9 +93,9 @@ class Resource(path: String) {
     fun readText(charset: Charset = Charsets.UTF_8): String
 
     // Reads the entire resource content as a byte array.
-fun readBytes(): ByteArray
-}
-```
+	    fun readBytes(): ByteArray
+	}
+	```
 
 ### Android Instrumented Tests
 

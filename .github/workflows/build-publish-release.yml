@@ -46,7 +46,7 @@ jobs:
         with:
           api-level: 30
           arch: x86_64
-          script: ./gradlew :resources-test-android:connectedAndroidTest
+          script: ./gradlew :resources-test-android:connectedAndroidDeviceTest
 
   publish-library:
     needs: [build, build-android]

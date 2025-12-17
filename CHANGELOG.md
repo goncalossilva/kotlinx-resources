@@ -6,12 +6,14 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Added
 
+- Wasm support via `wasmJs` target
 - Support for resources outside the project directory via `srcDir`
 
 ### Fixed
 
 - Handle all native test binaries instead of just the first
 - Compose Multiplatform compatibility on iOS ([#141](https://github.com/goncalossilva/kotlinx-resources/issues/141))
+- Wrap XHR errors in `FileReadException` for JS/Wasm browser environments
 
 ## [0.11.0] - 2025-12-13
 

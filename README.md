@@ -84,7 +84,7 @@ class MyTest {
 
 #### Android Example
 
-For Android instrumented tests, resources are packaged as assets. Place them under `src/androidInstrumentedTest/resources/` and access using the same relative paths:
+For Android device tests, resources are packaged as assets. Place them under `src/androidDeviceTest/resources/` and access using the same relative paths:
 
 ```kotlin
 import com.goncalossilva.resources.Resource

@@ -12,7 +12,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 - Wasm support via `wasmJs` target
 - Support for resources outside the project directory via `srcDir`
-- Support Android instrumented tests (`androidInstrumentedTest`)
+- Support Android device tests (`androidDeviceTest`)
 
 ### Fixed
 - Handle all native test binaries instead of just the first

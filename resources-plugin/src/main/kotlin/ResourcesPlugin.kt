@@ -254,10 +254,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Configure Android instrumented test assets.
+     * Configure Android device test assets.
      * Must be called early in the build lifecycle, before AGP finalizes its variants.
      */
     private fun configureAndroidInstrumentedTestAssets(project: Project) {
+        project.plugins.withId("com.android.kotlin.multiplatform.library") {
+            configureAndroidAssetsForInstrumentedTests(project)
+        }
         project.plugins.withId("com.android.library") {
             configureAndroidAssetsForInstrumentedTests(project)
         }

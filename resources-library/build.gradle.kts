@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
 
     id("maven-publish")
     id("signing")
@@ -23,18 +23,6 @@ repositories {
     google()
 }
 
-android {
-    namespace = "com.goncalossilva.resources"
-    compileSdk = libs.versions.androidCompileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
 kotlin {
     explicitApi()
 
@@ -44,8 +32,11 @@ kotlin {
         }
     }
 
-    androidTarget {
-        publishLibraryVariants("release")
+    androidLibrary {
+        namespace = "com.goncalossilva.resources"
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+
         compilerOptions {
             jvmTarget = JvmTarget.JVM_11
         }

@@ -144,15 +144,23 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
      */
     private fun setupWasmWasiResources(kotlinCompilation: KotlinCompilation<*>) {
         val project = kotlinCompilation.target.project
-        // Note: Path is hardcoded since Kotlin Gradle Plugin doesn't expose a public API for this.
-        // Unlike JS targets (which have npmProject.dir), wasmWasi has no equivalent API.
-        val kotlinDir = project.layout.buildDirectory
-            .dir("compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin")
+        val tasks = project.tasks
+
+        // Derive output directory from the compile task's outputs.
+        val compileTaskName = "compileTestDevelopmentExecutableKotlinWasmWasi"
+        val outputDir = tasks.named(compileTaskName).map { task ->
+            // Find the directory containing .mjs files from task outputs.
+            task.outputs.files.files
+                .firstOrNull { it.extension == "mjs" }?.parentFile
+                ?: task.outputs.files.files.first().let { file ->
+                    if (file.isDirectory) file else file.parentFile
+                }
+        }
 
         setupWasmWasiTestTask(
             kotlinCompilation = kotlinCompilation,
             taskName = "wasmWasiTestSetupResources",
-            outputDir = kotlinDir.map { it.asFile }
+            outputDir = outputDir
         )
     }
 

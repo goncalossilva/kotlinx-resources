@@ -43,17 +43,17 @@ class ResourceTest {
 
     @Test
     fun readTextRootThrowsWhenNotFound() {
-        assertFailsWith<FileReadException> {
+        assertFailsWith<ResourceReadException> {
             Resource("404.json").readText()
         }
     }
 
     @Test
     fun readTextNestedThrowsWhenNotFound() {
-        assertFailsWith<FileReadException> {
+        assertFailsWith<ResourceReadException> {
             Resource("a/404.json").readText()
         }
-        assertFailsWith<FileReadException> {
+        assertFailsWith<ResourceReadException> {
             Resource("a/folder/404.json").readText()
         }
     }
@@ -71,17 +71,17 @@ class ResourceTest {
 
     @Test
     fun readBytesRootThrowsWhenNotFound() {
-        assertFailsWith<FileReadException> {
+        assertFailsWith<ResourceReadException> {
             Resource("404.gz").readBytes()
         }
     }
 
     @Test
     fun readBytesNestedThrowsWhenNotFound() {
-        assertFailsWith<FileReadException> {
+        assertFailsWith<ResourceReadException> {
             Resource("a/404.gz").readBytes()
         }
-        assertFailsWith<FileReadException> {
+        assertFailsWith<ResourceReadException> {
             Resource("a/folder/404.gz").readBytes()
         }
     }

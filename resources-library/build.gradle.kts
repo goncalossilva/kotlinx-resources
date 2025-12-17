@@ -52,6 +52,10 @@ kotlin {
         nodejs()
     }
 
+    wasmWasi {
+        nodejs()
+    }
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -81,6 +85,10 @@ kotlin {
         val commonMain by getting
         val jsMain by getting
         val wasmJsMain by getting
+        val wasmWasiMain by getting {
+            languageSettings.optIn("kotlin.wasm.unsafe.UnsafeWasmMemoryApi")
+            languageSettings.optIn("kotlin.wasm.ExperimentalWasmInterop")
+        }
         val mingwX64Main by getting
         val linuxX64Main by getting
         val linuxArm64Main by getting

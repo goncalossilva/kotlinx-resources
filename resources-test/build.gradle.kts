@@ -60,6 +60,10 @@ kotlin {
         nodejs()
     }
 
+    wasmWasi {
+        nodejs()
+    }
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()

@@ -34,10 +34,10 @@ public actual class Resource actual constructor(private val path: String) {
     }
 
     public actual fun readText(charset: Charset): String {
-        val kotlinCharset = charset.toKotlinCharset()
+        val javaCharset = charset.toJavaCharset()
 
-        resourceAssets?.readTextOrNull(kotlinCharset)?.let { return it }
-        resourceClassLoader.readTextOrNull(kotlinCharset)?.let { return it }
+        resourceAssets?.readTextOrNull(javaCharset)?.let { return it }
+        resourceClassLoader.readTextOrNull(javaCharset)?.let { return it }
 
         throw ResourceReadException("$path: No such file or directory")
     }
@@ -126,7 +126,7 @@ public actual class Resource actual constructor(private val path: String) {
     }
 }
 
-private fun Charset.toKotlinCharset(): java.nio.charset.Charset = when (this) {
+private fun Charset.toJavaCharset(): java.nio.charset.Charset = when (this) {
     Charset.UTF_8 -> kotlin.text.Charsets.UTF_8
     Charset.UTF_16 -> kotlin.text.Charsets.UTF_16
     Charset.UTF_16BE -> kotlin.text.Charsets.UTF_16BE

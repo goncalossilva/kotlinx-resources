@@ -1,52 +1,67 @@
 package com.goncalossilva.resources
 
 import androidx.test.platform.app.InstrumentationRegistry
-import java.io.File
 import java.io.IOException
 
 public actual class Resource actual constructor(private val path: String) {
 
     public actual fun exists(): Boolean {
-        return tryInstrumentedTest { context ->
+        val existsInAssets = tryInstrumentedTest { context ->
             try {
                 context.assets.open(path).close()
                 true
             } catch (_: IOException) {
                 false
             }
-        } ?: (classloaderResourcePath != null)
+        }
+
+        val existsInClassLoader = Resource::class.java.classLoader?.getResource(path) != null
+
+        return when (existsInAssets) {
+            null -> existsInClassLoader
+            else -> existsInAssets || existsInClassLoader
+        }
     }
 
     public actual fun readText(): String {
-        return tryInstrumentedTest { context ->
-            runCatching {
+        var assetFailure: IOException? = null
+        val fromAssets = tryInstrumentedTest { context ->
+            try {
                 context.assets.open(path).bufferedReader().use { it.readText() }
-            }.getOrElse { cause ->
-                throw FileReadException("$path: No such file or directory", cause)
+            } catch (cause: IOException) {
+                assetFailure = cause
+                null
             }
-        } ?: runCatching {
-            File(classloaderResourcePath!!).readText()
-        }.getOrElse { cause ->
-            throw FileReadException("$path: No such file or directory", cause)
         }
+        if (fromAssets != null) return fromAssets
+
+        val stream = Resource::class.java.classLoader?.getResourceAsStream(path)
+        if (stream != null) {
+            return stream.bufferedReader().use { it.readText() }
+        }
+
+        throw FileReadException("$path: No such file or directory", assetFailure)
     }
 
     public actual fun readBytes(): ByteArray {
-        return tryInstrumentedTest { context ->
-            runCatching {
+        var assetFailure: IOException? = null
+        val fromAssets = tryInstrumentedTest { context ->
+            try {
                 context.assets.open(path).use { it.readBytes() }
-            }.getOrElse { cause ->
-                throw FileReadException("$path: No such file or directory", cause)
+            } catch (cause: IOException) {
+                assetFailure = cause
+                null
             }
-        } ?: runCatching {
-            File(classloaderResourcePath!!).readBytes()
-        }.getOrElse { cause ->
-            throw FileReadException("$path: No such file or directory", cause)
         }
-    }
+        if (fromAssets != null) return fromAssets
 
-    private val classloaderResourcePath: String?
-        get() = Resource::class.java.classLoader?.getResource(path)?.path
+        val stream = Resource::class.java.classLoader?.getResourceAsStream(path)
+        if (stream != null) {
+            return stream.use { it.readBytes() }
+        }
+
+        throw FileReadException("$path: No such file or directory", assetFailure)
+    }
 
     private inline fun <T> tryInstrumentedTest(block: (android.content.Context) -> T): T? {
         return try {

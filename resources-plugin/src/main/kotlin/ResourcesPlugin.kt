@@ -374,9 +374,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         project.logger.warn("No .mjs files found in $dir for WASI preopens patching")
                         return
                     }
+                    val preopensPattern = Regex("""\bpreopens\s*:""")
                     for (mjsFile in mjsFiles) {
                         val content = mjsFile.readText()
-                        if (content.contains("preopens:")) continue // Already patched
+                        if (preopensPattern.containsMatchIn(content)) continue // Already patched
                         val resourcesDir = dir.absolutePath
                             .replace("\\", "\\\\")
                             .replace("'", "\\'")

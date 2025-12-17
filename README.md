@@ -150,4 +150,4 @@ Released under the [MIT License](https://opensource.org/licenses/MIT).
 [badge-macos]: https://img.shields.io/badge/platform-macos-111111.svg?style=flat
 [badge-watchos]: https://img.shields.io/badge/platform-watchos-C0C0C0.svg?style=flat
 [badge-tvos]: https://img.shields.io/badge/platform-tvos-808080.svg?style=flat
-[badge-wasm]: httpss://img.shields.io/badge/platform-wasm-624FE8.svg?style=flat
+[badge-wasm]: https://img.shields.io/badge/platform-wasm-624FE8.svg?style=flat

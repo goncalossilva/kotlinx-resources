@@ -22,8 +22,8 @@ repositories {
 kotlin {
     androidLibrary {
         namespace = "com.goncalossilva.resources.test"
-        compileSdk = libs.versions.androidCompileSdk.get().toInt()
-        minSdk = libs.versions.androidMinSdk.get().toInt()
+        compileSdk = libs.versions.android.sdk.compile.get().toInt()
+        minSdk = libs.versions.android.sdk.min.get().toInt()
 
         compilerOptions {
             jvmTarget = JvmTarget.JVM_11
@@ -37,6 +37,7 @@ kotlin {
     sourceSets {
         getByName("androidDeviceTest").dependencies {
             implementation(kotlin("test"))
+            implementation(kotlin("test-junit"))
             implementation("com.goncalossilva:resources-library")
             implementation(libs.androidx.test.runner)
         }

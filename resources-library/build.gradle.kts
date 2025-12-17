@@ -76,6 +76,7 @@ kotlin {
         val jsMain by getting
         val wasmJsMain by getting
         val wasmWasiMain by getting {
+            dependsOn(commonMain)
             languageSettings.optIn("kotlin.wasm.unsafe.UnsafeWasmMemoryApi")
             languageSettings.optIn("kotlin.wasm.ExperimentalWasmInterop")
         }

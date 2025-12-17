@@ -83,7 +83,25 @@ public actual class Resource actual constructor(private val path: String) {
         filetype == FILETYPE_REGULAR_FILE
     }
 
-    public actual fun readText(): String = readBytes().decodeToString()
+    public actual fun readText(charset: Charset): String {
+        val bytes = readBytes()
+        return when (charset) {
+            Charset.UTF_8 -> bytes.decodeToString()
+            Charset.UTF_16 -> bytes.decodeUtf16()
+            Charset.UTF_16BE -> bytes.decodeUtf16Be()
+            Charset.UTF_16LE -> bytes.decodeUtf16Le()
+            Charset.ISO_8859_1 -> bytes.decodeIso8859()
+            Charset.US_ASCII -> bytes.decodeAscii()
+        }
+    }
+
+    private fun ByteArray.decodeIso8859(): String {
+        val chars = CharArray(size)
+        for (i in indices) {
+            chars[i] = (this[i].toInt() and 0xFF).toChar()
+        }
+        return chars.concatToString()
+    }
 
     public actual fun readBytes(): ByteArray = withScopedMemoryAllocator { allocator ->
         val fd = openFile(allocator, path)

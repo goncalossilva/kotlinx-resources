@@ -13,11 +13,12 @@ public expect class Resource(path: String) {
     public fun exists(): Boolean
 
     /**
-     * Returns the resource's content as a UTF-8 string.
+     * Returns the resource's content as a string decoded using the specified [charset].
      *
+     * @param charset The character encoding to use. Defaults to [Charsets.UTF_8].
      * @throws FileReadException when the resource doesn't exist or can't be read.
      */
-    public fun readText(): String
+    public fun readText(charset: Charset = Charsets.UTF_8): String
 
     /**
      * Returns the resource's content as a byte array.

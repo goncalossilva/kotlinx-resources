@@ -89,13 +89,21 @@ class Resource(path: String) {
     // Checks if the resource exists at the given path.
     fun exists(): Boolean
 
-    // Reads the entire resource content as a UTF-8 string.
-    fun readText(): String
+    // Reads the entire resource content as a string decoded using the specified charset.
+    fun readText(charset: Charset = Charsets.UTF_8): String
 
     // Reads the entire resource content as a byte array.
     fun readBytes(): ByteArray
 }
 ```
+
+## Example Project
+
+Library tests use the library itself, so they serve as a practical example.
+
+See [`ResourceTest`](https://github.com/goncalossilva/kotlinx-resources/blob/main/resources-test/src/commonTest/kotlin/ResourceTest.kt) for example usage, and [`resources-test/src/commonTest/resources`](https://github.com/goncalossilva/kotlinx-resources/tree/main/resources-test/src/commonTest/resources) for the associated folder structure for resources.
+
+## Caveats
 
 ### Collisions
 
@@ -115,11 +123,12 @@ tasks.withType<Copy>().configureEach {
 
 [Other `DuplicatesStrategy` options are available](https://docs.gradle.org/current/javadoc/org/gradle/api/file/DuplicatesStrategy.html), but avoid `INCLUDE`, as the override behavior becomes inconsistent across platforms.
 
-## Example Project
+### Browser limitations
 
-Library tests use the library itself, so they serve as a practical example.
-
-See [`ResourceTest`](https://github.com/goncalossilva/kotlinx-resources/blob/main/resources-test/src/commonTest/kotlin/ResourceTest.kt) for example usage, and [`resources-test/src/commonTest/resources`](https://github.com/goncalossilva/kotlinx-resources/tree/main/resources-test/src/commonTest/resources) for the associated folder structure for resources.
+In browser runtimes, `readBytes()` uses a synchronous XHR-based implementation to keep the API synchronous.
+Some browser+tooling stacks can corrupt leading UTF-16 BOM bytes (`0xFF 0xFE` / `0xFE 0xFF`), which makes
+`readText(Charsets.UTF_16)` unreliable for UTF-16 files that include a BOM. Prefer `Charsets.UTF_16LE` /
+`Charsets.UTF_16BE` (or files without a BOM) for browser tests.
 
 ## Acknowledgements
 

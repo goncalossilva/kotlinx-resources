@@ -86,6 +86,48 @@ class ResourceTest {
         }
     }
 
+    @Test
+    fun readTextWithUtf8Charset() {
+        assertEquals("H\u00E9llo", Resource("charset-utf8.txt").readText(Charsets.UTF_8))
+    }
+
+    @Test
+    fun readTextWithUtf16LeCharset() {
+        assertEquals("H\u00E9llo", Resource("charset-utf16le.txt").readText(Charsets.UTF_16LE))
+    }
+
+    @Test
+    fun readTextWithUtf16BeCharset() {
+        assertEquals("H\u00E9llo", Resource("charset-utf16be.txt").readText(Charsets.UTF_16BE))
+    }
+
+    @Test
+    fun readTextWithUtf16CharsetLeBom() {
+        if (!canReadUtf16BomBytes()) return
+        assertEquals("H\u00E9llo", Resource("charset-utf16-bom-le.txt").readText(Charsets.UTF_16))
+    }
+
+    @Test
+    fun readTextWithUtf16CharsetBeBom() {
+        if (!canReadUtf16BomBytes()) return
+        assertEquals("H\u00E9llo", Resource("charset-utf16-bom-be.txt").readText(Charsets.UTF_16))
+    }
+
+    @Test
+    fun readTextWithIso8859Charset() {
+        assertEquals("H\u00E9llo", Resource("charset-iso8859.txt").readText(Charsets.ISO_8859_1))
+    }
+
+    @Test
+    fun readTextWithAsciiCharset() {
+        assertEquals("Hello", Resource("charset-ascii.txt").readText(Charsets.US_ASCII))
+    }
+
+    @Test
+    fun readTextDefaultsToUtf8() {
+        assertEquals("H\u00E9llo", Resource("charset-utf8.txt").readText())
+    }
+
     companion object {
         const val JSON: String = "{}\n"
         val GZIP: ByteArray = byteArrayOf(

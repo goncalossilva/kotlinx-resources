@@ -14,13 +14,14 @@ public actual class Resource actual constructor(private val path: String) {
         return existsInAssets || existsInClassLoader
     }
 
-    public actual fun readText(): String {
+    public actual fun readText(charset: Charset): String {
         var assetFailure: IOException? = null
+        val javaCharset = charset.toJavaCharset()
         val fromAssets = instrumentedContextOrNull()
-            ?.let { readTextFromAssetsOrNull(it, path) { assetFailure = it } }
+            ?.let { readTextFromAssetsOrNull(it, path, javaCharset) { assetFailure = it } }
         if (fromAssets != null) return fromAssets
 
-        readTextFromClassLoaderOrNull(path)?.let { return it }
+        readTextFromClassLoaderOrNull(path, javaCharset)?.let { return it }
 
         throw FileReadException("$path: No such file or directory", assetFailure)
     }
@@ -66,19 +67,20 @@ public actual class Resource actual constructor(private val path: String) {
     private fun readTextFromAssetsOrNull(
         context: Context,
         path: String,
+        charset: java.nio.charset.Charset,
         onFailure: (IOException) -> Unit
     ): String? {
         return try {
-            context.assets.open(path).bufferedReader().use { it.readText() }
+            context.assets.open(path).bufferedReader(charset).use { it.readText() }
         } catch (cause: IOException) {
             onFailure(cause)
             null
         }
     }
 
-    private fun readTextFromClassLoaderOrNull(path: String): String? {
+    private fun readTextFromClassLoaderOrNull(path: String, charset: java.nio.charset.Charset): String? {
         val stream = Resource::class.java.classLoader?.getResourceAsStream(path) ?: return null
-        return stream.bufferedReader().use { it.readText() }
+        return stream.bufferedReader(charset).use { it.readText() }
     }
 
     private fun readBytesFromAssetsOrNull(
@@ -98,4 +100,13 @@ public actual class Resource actual constructor(private val path: String) {
         val stream = Resource::class.java.classLoader?.getResourceAsStream(path) ?: return null
         return stream.use { it.readBytes() }
     }
+}
+
+private fun Charset.toJavaCharset(): java.nio.charset.Charset = when (this) {
+    Charset.UTF_8 -> kotlin.text.Charsets.UTF_8
+    Charset.UTF_16 -> kotlin.text.Charsets.UTF_16
+    Charset.UTF_16BE -> kotlin.text.Charsets.UTF_16BE
+    Charset.UTF_16LE -> kotlin.text.Charsets.UTF_16LE
+    Charset.ISO_8859_1 -> kotlin.text.Charsets.ISO_8859_1
+    Charset.US_ASCII -> kotlin.text.Charsets.US_ASCII
 }

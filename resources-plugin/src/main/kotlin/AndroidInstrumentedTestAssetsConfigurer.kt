@@ -24,7 +24,7 @@ internal class AndroidInstrumentedTestAssetsConfigurer {
             val androidTest = (variant as? HasAndroidTest)?.androidTest ?: return@onVariants
             val assets = androidTest.sources.assets ?: return@onVariants
 
-            // Collect resources from both new (androidDeviceTest) and legacy (androidInstrumentedTest) source sets.
+            // Collect resources from both androidDeviceTest (new) and androidInstrumentedTest (legacy) source sets.
             val resources = collectDeviceTestResources(kotlinExt, variant.name)
             resources.forEach(assets::addStaticSourceDirectory)
         }
@@ -36,9 +36,9 @@ internal class AndroidInstrumentedTestAssetsConfigurer {
     ): Sequence<String> {
         val variantSuffix = variantName.replaceFirstChar { it.uppercaseChar() }
         val targetSourceSetNames = setOf(
-            // New KMP plugin source set names
             "androidDeviceTest",
-            // Legacy KMP source set names
+            "androidDeviceTest$variantSuffix",
+            // Legacy source set names, to remove when AGP 9.0 is widely adopted.
             "androidInstrumentedTest",
             "androidInstrumentedTest$variantSuffix",
         )

@@ -261,9 +261,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         project.plugins.withId("com.android.kotlin.multiplatform.library") {
             configureAndroidAssetsForInstrumentedTests(project)
         }
+        // Legacy plugin, to remove when AGP 9.0 is widely adopted.
         project.plugins.withId("com.android.library") {
             configureAndroidAssetsForInstrumentedTests(project)
         }
+        // Legacy plugin, to remove when AGP 9.0 is widely adopted.
         project.plugins.withId("com.android.application") {
             configureAndroidAssetsForInstrumentedTests(project)
         }

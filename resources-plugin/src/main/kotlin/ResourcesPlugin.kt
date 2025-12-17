@@ -295,21 +295,23 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         val resourcesDir = dir.absolutePath
                             .replace("\\", "\\\\")
                             .replace("'", "\\'")
-                        val patched = content.replace(
-                            "const wasi = new WASI({ version: 'preview1', args: argv, env, });",
-                            "const wasi = new WASI({ version: 'preview1', args: argv, env, " +
-                                "preopens: { '.': '$resourcesDir' } });"
-                        )
+                        // Use regex to match WASI constructor and add preopens more robustly
+                        val wasiPattern = Regex("""new WASI\(\s*\{([^}]*)\}\s*\)""")
+                        val patched = wasiPattern.replace(content) { match ->
+                            val existingOptions = match.groupValues[1].trimEnd().trimEnd(',')
+                            "new WASI({ $existingOptions, preopens: { '.': '$resourcesDir' } })"
+                        }
                         if (patched == content) {
-                            project.logger.warn("WASI preopens pattern not found in ${mjsFile.name}")
+                            project.logger.warn("WASI constructor pattern not found in ${mjsFile.name}")
                         }
                         mjsFile.writeText(patched)
                     }
 
-                    // Copy resources to the output directory (common first, then platform-specific)
+                    // Copy resources to output directory (common source sets first, then platform-specific)
                     val resourceDirs = getResourceDirs(kotlinCompilation)
-                    // Sort so common resources come before platform-specific (shorter paths first)
-                    val sortedDirs = resourceDirs.sortedBy { it.absolutePath.length }
+                    // Sort by source set name: commonTest before wasmWasiTest (alphabetically)
+                    // Resource dir path is like: src/commonTest/resources, so parentFile.name gives source set name
+                    val sortedDirs = resourceDirs.sortedBy { it.parentFile?.name ?: "" }
                     for (resourceDir in sortedDirs) {
                         resourceDir.copyRecursively(dir, overwrite = true)
                     }

@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING:** Rename `FileReadException` to `ResourceReadException` for naming consistency
+
 ### Added
 
 - Wasm support via `wasmJs` target
@@ -13,7 +17,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 - Handle all native test binaries instead of just the first
 - Compose Multiplatform compatibility on iOS ([#141](https://github.com/goncalossilva/kotlinx-resources/issues/141))
-- Wrap XHR errors in `FileReadException` for JS/Wasm browser environments
+- Wrap XHR errors in `ResourceReadException` for JS/Wasm browser environments
 
 ## [0.11.0] - 2025-12-13
 
@@ -108,7 +112,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Changed
 
-- Throw `FileReadException` when failing to read resources, instead of `RuntimeException`.
+- Throw `ResourceReadException` when failing to read resources, instead of `RuntimeException`.
 - Throw `UnsupportedOperationException` when using unsupported JS runtimes, instead of `RuntimeException`.
 
 ## [0.2.5] - 2023-02-19

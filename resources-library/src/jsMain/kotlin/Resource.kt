@@ -55,7 +55,7 @@ public actual class Resource actual constructor(path: String) {
                 send()
             }
         }.getOrElse { cause ->
-            throw FileReadException("$path: Request failed", cause)
+            throw ResourceReadException("$path: Request failed", cause)
         }
 
         @Suppress("MagicNumber")
@@ -79,7 +79,7 @@ public actual class Resource actual constructor(path: String) {
                 val response = request.responseText
                 ByteArray(response.length) { response[it].code.toUByte().toByte() }
             } else {
-                throw FileReadException("$path: Read failed (status=${request.status})")
+                throw ResourceReadException("$path: Read failed (status=${request.status})")
             }
         }
 
@@ -135,7 +135,7 @@ public actual class Resource actual constructor(path: String) {
                 runCatching {
                     fs.readFileSync(path, nodeEncoding) as String
                 }.getOrElse { cause ->
-                    throw FileReadException("$path: Read failed", cause)
+                    throw ResourceReadException("$path: Read failed", cause)
                 }
             } else {
                 // Node doesn't support this encoding natively, decode manually.
@@ -143,7 +143,7 @@ public actual class Resource actual constructor(path: String) {
                     val buffer = fs.readFileSync(path).unsafeCast<Uint8Array>()
                     Int8Array(buffer.buffer, buffer.byteOffset, buffer.length).unsafeCast<ByteArray>()
                 }.getOrElse { cause ->
-                    throw FileReadException("$path: Read failed", cause)
+                    throw ResourceReadException("$path: Read failed", cause)
                 }
                 when (charset) {
                     Charset.UTF_16 -> bytes.decodeUtf16()
@@ -157,7 +157,7 @@ public actual class Resource actual constructor(path: String) {
             val buffer = fs.readFileSync(path).unsafeCast<Uint8Array>()
             Int8Array(buffer.buffer, buffer.byteOffset, buffer.length).unsafeCast<ByteArray>()
         }.getOrElse { cause ->
-            throw FileReadException("$path: Read failed", cause)
+            throw ResourceReadException("$path: Read failed", cause)
         }
     }
 }

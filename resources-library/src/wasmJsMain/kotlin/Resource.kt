@@ -55,7 +55,7 @@ public actual class Resource actual constructor(private val path: String) {
                 val length = jsStringLength(response)
                 ByteArray(length) { (jsCharCodeAt(response, it) and 0xFF).toByte() }
             } else {
-                throw FileReadException("$errorPrefix: Read failed (status=${request.status})")
+                throw ResourceReadException("$errorPrefix: Read failed (status=${request.status})")
             }
         }
 
@@ -69,7 +69,7 @@ public actual class Resource actual constructor(private val path: String) {
                 send()
             }
         }.getOrElse { cause ->
-            throw FileReadException("$errorPrefix: Request failed", cause)
+            throw ResourceReadException("$errorPrefix: Request failed", cause)
         }
 
         @Suppress("MagicNumber")
@@ -104,14 +104,14 @@ public actual class Resource actual constructor(private val path: String) {
                 runCatching {
                     nodeReadFileSync(jsPath, nodeEncoding.toJsString()).toString()
                 }.getOrElse { cause ->
-                    throw FileReadException("$errorPrefix: Read failed", cause)
+                    throw ResourceReadException("$errorPrefix: Read failed", cause)
                 }
             } else {
                 // Node doesn't support this encoding natively, decode manually.
                 val bytes = runCatching {
                     nodeReadFileSyncBytes(jsPath).toByteArray()
                 }.getOrElse { cause ->
-                    throw FileReadException("$errorPrefix: Read failed", cause)
+                    throw ResourceReadException("$errorPrefix: Read failed", cause)
                 }
                 when (charset) {
                     Charset.UTF_16 -> bytes.decodeUtf16()
@@ -124,7 +124,7 @@ public actual class Resource actual constructor(private val path: String) {
         fun readBytes(): ByteArray = runCatching {
             nodeReadFileSyncBytes(jsPath).toByteArray()
         }.getOrElse { cause ->
-            throw FileReadException("$errorPrefix: Read failed", cause)
+            throw ResourceReadException("$errorPrefix: Read failed", cause)
         }
 
         private fun NodeBuffer.toByteArray(): ByteArray = ByteArray(length) { this[it] }

@@ -32,7 +32,7 @@ public actual class Resource actual constructor(private val path: String) {
 
     public actual fun readText(charset: Charset): String = memScoped {
         if (absolutePath == null) {
-            throw FileReadException("$path: No such file or directory")
+            throw ResourceReadException("$path: No such file or directory")
         }
         val error = alloc<ObjCObjectVar<NSError?>>()
         // Inlined because NSStringEncoding has different bit widths across Apple platforms.
@@ -45,16 +45,16 @@ public actual class Resource actual constructor(private val path: String) {
             Charset.US_ASCII -> NSASCIIStringEncoding
         }
         NSString.stringWithContentsOfFile(absolutePath, encoding, error.ptr)
-            ?: throw FileReadException("$path: Read failed: ${error.value}")
+            ?: throw ResourceReadException("$path: Read failed: ${error.value}")
     }
 
     public actual fun readBytes(): ByteArray = memScoped {
         if (absolutePath == null) {
-            throw FileReadException("$path: No such file or directory")
+            throw ResourceReadException("$path: No such file or directory")
         }
         val error = alloc<ObjCObjectVar<NSError?>>()
         val data = NSData.dataWithContentsOfFile(absolutePath, NSDataReadingUncached, error.ptr)
-        val bytes = data?.bytes ?: throw FileReadException("$path: Read failed: ${error.value}")
+        val bytes = data?.bytes ?: throw ResourceReadException("$path: Read failed: ${error.value}")
         bytes.readBytes(data.length.toInt())
     }
 }

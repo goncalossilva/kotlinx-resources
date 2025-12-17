@@ -22,7 +22,7 @@ public actual class Resource actual constructor(private val path: String) {
 
     public actual fun readBytes(): ByteArray = mutableListOf<Byte>().apply {
         val file = fopen(path, "rb")
-            ?: throw FileReadException("$path: Open failed: ${strerror(posix_errno())}")
+            ?: throw ResourceReadException("$path: Open failed: ${strerror(posix_errno())}")
         try {
             memScoped {
                 val buffer = allocArray<ByteVar>(BUFFER_SIZE)

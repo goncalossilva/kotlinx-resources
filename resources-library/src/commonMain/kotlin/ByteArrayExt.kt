@@ -53,12 +53,12 @@ internal fun ByteArray.decodeUtf16(): String {
     val first = this[0].toInt() and 0xFF
     val second = this[1].toInt() and 0xFF
 
-    return when {
-        first == 0xFE && second == 0xFF -> {
+    return when (first to second) {
+        0xFE to 0xFF -> {
             // Big-endian BOM, skip it.
             sliceArray(2 until size).decodeUtf16Be()
         }
-        first == 0xFF && second == 0xFE -> {
+        0xFF to 0xFE -> {
             // Little-endian BOM, skip it.
             sliceArray(2 until size).decodeUtf16Le()
         }

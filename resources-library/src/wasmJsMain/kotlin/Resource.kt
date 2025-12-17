@@ -37,11 +37,9 @@ public actual class Resource actual constructor(private val path: String) {
         private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path
 
-        fun exists(): Boolean = try {
-            request().isSuccessful()
-        } catch (_: FileReadException) {
-            false
-        }
+        fun exists(): Boolean = runCatching {
+            request(method = "HEAD").isSuccessful()
+        }.getOrDefault(false)
 
         fun readText(charset: Charset): String {
             val bytes = readBytes()
@@ -61,9 +59,12 @@ public actual class Resource actual constructor(private val path: String) {
             }
         }
 
-        private fun request(config: (XMLHttpRequest.() -> Unit)? = null): XMLHttpRequest = runCatching {
+        private fun request(
+            method: String = "GET",
+            config: (XMLHttpRequest.() -> Unit)? = null,
+        ): XMLHttpRequest = runCatching {
             createXMLHttpRequest().apply {
-                open("GET".toJsString(), jsPath, false)
+                open(method.toJsString(), jsPath, false)
                 config?.invoke(this)
                 send()
             }

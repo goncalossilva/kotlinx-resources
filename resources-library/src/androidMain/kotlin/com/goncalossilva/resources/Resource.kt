@@ -30,7 +30,7 @@ public actual class Resource actual constructor(private val path: String) {
     }
 
     public actual fun exists(): Boolean {
-        return resourceAssets?.exists() ?: false || resourceClassLoader.exists()
+        return resourceAssets?.exists() == true || resourceClassLoader.exists()
     }
 
     public actual fun readText(charset: Charset): String {

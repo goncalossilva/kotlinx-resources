@@ -64,6 +64,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         return kotlinCompilation.target.project.provider { emptyList() }
     }
 
+    /**
+     * Sets up resources for native platforms by copying them into the binary's output directory.
+     *
+     * Apple platforms support resources via `NSBundle.mainBundle` and related APIs.
+     *
+     * Other native platforms don't use native support for resources. Instead,
+     * the test task's working directory is set to the binary's output directory.
+     */
     private fun setupNativeResources(kotlinCompilation: KotlinCompilation<*>) {
         val compilation = kotlinCompilation as KotlinNativeCompilation
         val project = compilation.target.project
@@ -96,6 +104,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
+    /**
+     * Sets up resources for JS platforms by copying them into the script's output directory.
+     *
+     * In the browser, Karma's proxy functionality is leveraged to load resources from the filesystem.
+     */
     private fun setupJsResources(kotlinCompilation: KotlinCompilation<*>) {
         val compilation = kotlinCompilation as KotlinJsIrCompilation
         // Unlike others, JS targets don't end with "Test". Add it so matching names is easier.
@@ -122,6 +135,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
+    /**
+     * Sets up resources for WASI by patching the generated `.mjs` file to configure WASI preopens
+     * and copying resources into the output directory.
+     *
+     * WASI requires explicit filesystem access via preopens, mapping the current directory (`.`)
+     * to the resources location so that file operations work correctly.
+     */
     private fun setupWasmWasiResources(kotlinCompilation: KotlinCompilation<*>) {
         val project = kotlinCompilation.target.project
         // Note: Path is hardcoded since Kotlin Gradle Plugin doesn't expose a public API for this.

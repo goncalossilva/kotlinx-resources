@@ -34,8 +34,15 @@ kotlin {
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
-        getByName("androidDeviceTest").dependencies {
+        val commonTest by getting
+        val androidDeviceTest by getting {
+            dependsOn(commonTest)
+        }
+
+        androidDeviceTest.dependencies {
             implementation(kotlin("test"))
             implementation(kotlin("test-junit"))
             implementation("com.goncalossilva:resources-library")

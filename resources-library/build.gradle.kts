@@ -72,6 +72,7 @@ kotlin {
             languageSettings.optIn("kotlinx.cinterop.BetaInteropApi")
         }
 
+        val commonMain by getting
         val jsMain by getting
         val wasmJsMain by getting
         val wasmWasiMain by getting {
@@ -82,7 +83,6 @@ kotlin {
         val linuxX64Main by getting
         val linuxArm64Main by getting
         val webMain by getting
-        val commonMain by getting
         val posixMain by creating {
             dependsOn(commonMain)
             mingwX64Main.dependsOn(this)

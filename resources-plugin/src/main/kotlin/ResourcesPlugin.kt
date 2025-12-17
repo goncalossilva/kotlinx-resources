@@ -218,7 +218,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
         val copyResourcesTask = tasks.register(taskName, Copy::class.java) { task ->
             task.from(getResourceDirs(kotlinCompilation))
-            task.include("**/*")
+            task.include("*/**")
             task.into(outputDir)
             for (mustRunAfterTask in mustRunAfterTasks) {
                 task.mustRunAfter(mustRunAfterTask)

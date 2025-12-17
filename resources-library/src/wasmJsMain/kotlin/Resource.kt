@@ -99,7 +99,7 @@ public actual class Resource actual constructor(private val path: String) {
                 send()
             }
         }.getOrElse { cause ->
-            throw FileReadException("$errorPrefix: Read failed", cause)
+            throw FileReadException("$errorPrefix: Request failed", cause)
         }
 
         @Suppress("MagicNumber")

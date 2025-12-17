@@ -47,7 +47,7 @@ public actual class Resource actual constructor(path: String) {
                 send()
             }
         }.getOrElse { cause ->
-            throw FileReadException("$path: Read failed", cause)
+            throw FileReadException("$path: Request failed", cause)
         }
 
         @Suppress("MagicNumber")

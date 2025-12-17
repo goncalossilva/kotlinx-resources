@@ -71,6 +71,7 @@ kotlin {
         val mingwX64Main by getting
         val linuxX64Main by getting
         val linuxArm64Main by getting
+        val webMain by getting
         val posixMain by creating {
             dependsOn(commonMain)
             mingwX64Main.dependsOn(this)

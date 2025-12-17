@@ -49,8 +49,9 @@ public actual class Resource actual constructor(private val path: String) {
                 overrideMimeType("text/plain; charset=x-user-defined".toJsString())
             }
             return if (request.isSuccessful()) {
-                val response = request.responseText.toString()
-                ByteArray(response.length) { response[it].code.toUByte().toByte() }
+                val response = request.responseText
+                val length = jsStringLength(response)
+                ByteArray(length) { (jsCharCodeAt(response, it) and 0xFF).toByte() }
             } else {
                 throw FileReadException("$errorPrefix: Read failed: ${request.statusText.toString()}")
             }
@@ -160,6 +161,10 @@ private external class Uint8Array : JsAny {
 }
 
 private fun createUint8Array(length: Int): Uint8Array = js("new Uint8Array(length)")
+
+private fun jsStringLength(str: JsString): Int = js("str.length")
+
+private fun jsCharCodeAt(str: JsString, index: Int): Int = js("str.charCodeAt(index)")
 
 private fun ByteArray.toUint8Array(): Uint8Array {
     val array = createUint8Array(size)

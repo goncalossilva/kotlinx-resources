@@ -377,7 +377,19 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 override fun execute(task: Task) {
                     val dir = outputDir.get()
 
-                    // Patch the generated .mjs file to configure WASI preopens
+                    // Copy resources to output directory (common source sets first, then platform-specific).
+                    val resourceDirs = getResourceDirs(kotlinCompilation)
+                    val sortedDirs = resourceDirs.sortedWith(
+                        compareBy<File> { resourceDir ->
+                            val sourceSetName = resourceDir.parentFile?.name ?: ""
+                            if (sourceSetName.startsWith("common")) 0 else 1
+                        }.thenBy { it.parentFile?.name ?: "" }
+                    )
+                    for (resourceDir in sortedDirs) {
+                        resourceDir.copyRecursively(dir, overwrite = true)
+                    }
+
+                    // Patch the generated .mjs file to configure WASI preopens.
                     val mjsFiles = dir.listFiles { file -> file.extension == "mjs" }
                     if (mjsFiles.isNullOrEmpty()) {
                         project.logger.warn("No .mjs files found in $dir for WASI preopens patching")
@@ -390,7 +402,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         val resourcesDir = dir.absolutePath
                             .replace("\\", "\\\\")
                             .replace("'", "\\'")
-                        // Use regex to match WASI constructor and add preopens.
                         val wasiPattern = Regex(
                             pattern = """new\s+WASI\s*\(\s*\{(.*?)}\s*\)""",
                             option = RegexOption.DOT_MATCHES_ALL
@@ -408,19 +419,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                             project.logger.warn("WASI constructor pattern not found in ${mjsFile.name}")
                         }
                         mjsFile.writeText(patched)
-                    }
-
-                    // Copy resources to output directory (common source sets first, then platform-specific).
-                    val resourceDirs = getResourceDirs(kotlinCompilation)
-                    // Sort so common* source sets come before platform-specific ones.
-                    val sortedDirs = resourceDirs.sortedWith(
-                        compareBy<File> { dir ->
-                            val sourceSetName = dir.parentFile?.name ?: ""
-                            if (sourceSetName.startsWith("common")) 0 else 1
-                        }.thenBy { it.parentFile?.name ?: "" }
-                    )
-                    for (resourceDir in sortedDirs) {
-                        resourceDir.copyRecursively(dir, overwrite = true)
                     }
                 }
             })

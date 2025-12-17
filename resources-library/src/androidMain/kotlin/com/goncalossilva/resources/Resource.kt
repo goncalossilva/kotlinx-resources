@@ -107,13 +107,21 @@ public actual class Resource actual constructor(private val path: String) {
         }
 
         fun readTextOrNull(charset: java.nio.charset.Charset): String? {
-            val stream = classLoader?.getResourceAsStream(path) ?: return null
-            return stream.bufferedReader(charset).use { it.readText() }
+            return try {
+                val stream = classLoader?.getResourceAsStream(path) ?: return null
+                stream.bufferedReader(charset).use { it.readText() }
+            } catch (_: IOException) {
+                null
+            }
         }
 
         fun readBytesOrNull(): ByteArray? {
-            val stream = classLoader?.getResourceAsStream(path) ?: return null
-            return stream.use { it.readBytes() }
+            return try {
+                val stream = classLoader?.getResourceAsStream(path) ?: return null
+                stream.use { it.readBytes() }
+            } catch (_: IOException) {
+                null
+            }
         }
     }
 }

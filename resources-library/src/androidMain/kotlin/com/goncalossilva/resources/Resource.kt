@@ -1,40 +1,52 @@
 package com.goncalossilva.resources
 
-import androidx.test.platform.app.InstrumentationRegistry
 import android.content.Context
+import androidx.test.platform.app.InstrumentationRegistry
 import java.io.IOException
 
+/**
+ * Android resource implementation supporting two execution contexts:
+ * - Device/instrumented tests: Resources are packaged as assets and read via [ResourceAssets]
+ * - Unit tests: Resources are on the classpath and read via [ResourceClassLoader]
+ *
+ * Assets are tried first (when running in an instrumentation context), falling back to ClassLoader.
+ */
 public actual class Resource actual constructor(private val path: String) {
+    /**
+     * Normalized path with leading '/' stripped.
+     *
+     * Required because [android.content.res.AssetManager] does not accept paths with leading
+     * slashes, and [ClassLoader.getResource] on Android behaves inconsistently with them.
+     * This differs from JVM where ClassLoader typically handles leading slashes gracefully.
+     */
+    private val normalizedPath = path.trimStart('/')
+
+    private val resourceAssets: ResourceAssets? by lazy {
+        instrumentedContextOrNull()?.let { ResourceAssets(it, normalizedPath) }
+    }
+
+    private val resourceClassLoader: ResourceClassLoader by lazy {
+        ResourceClassLoader(normalizedPath)
+    }
 
     public actual fun exists(): Boolean {
-        val existsInAssets = instrumentedContextOrNull()
-            ?.let { assetsEntryExists(it, path) }
-            ?: false
-        val existsInClassLoader = classLoaderResourceExists(path)
-        return existsInAssets || existsInClassLoader
+        return resourceAssets?.exists() ?: false || resourceClassLoader.exists()
     }
 
     public actual fun readText(charset: Charset): String {
-        var assetFailure: IOException? = null
-        val javaCharset = charset.toJavaCharset()
-        val fromAssets = instrumentedContextOrNull()
-            ?.let { readTextFromAssetsOrNull(it, path, javaCharset) { assetFailure = it } }
-        if (fromAssets != null) return fromAssets
+        val kotlinCharset = charset.toKotlinCharset()
 
-        readTextFromClassLoaderOrNull(path, javaCharset)?.let { return it }
+        resourceAssets?.readTextOrNull(kotlinCharset)?.let { return it }
+        resourceClassLoader.readTextOrNull(kotlinCharset)?.let { return it }
 
-        throw FileReadException("$path: No such file or directory", assetFailure)
+        throw FileReadException("$path: No such file or directory")
     }
 
     public actual fun readBytes(): ByteArray {
-        var assetFailure: IOException? = null
-        val fromAssets = instrumentedContextOrNull()
-            ?.let { readBytesFromAssetsOrNull(it, path) { assetFailure = it } }
-        if (fromAssets != null) return fromAssets
+        resourceAssets?.readBytesOrNull()?.let { return it }
+        resourceClassLoader.readBytesOrNull()?.let { return it }
 
-        readBytesFromClassLoaderOrNull(path)?.let { return it }
-
-        throw FileReadException("$path: No such file or directory", assetFailure)
+        throw FileReadException("$path: No such file or directory")
     }
 
     private fun instrumentedContextOrNull(): Context? {
@@ -47,62 +59,66 @@ public actual class Resource actual constructor(private val path: String) {
         }
     }
 
-    private fun assetsEntryExists(context: Context, path: String): Boolean {
-        val normalizedPath = path.trimStart('/')
-        val name = normalizedPath.substringAfterLast('/', missingDelimiterValue = normalizedPath)
-        if (name.isBlank()) return false
+    /**
+     * Resource access via Android assets (for device/instrumented tests).
+     */
+    private class ResourceAssets(
+        private val context: Context,
+        private val path: String
+    ) {
+        fun exists(): Boolean {
+            val name = path.substringAfterLast('/', missingDelimiterValue = path)
+            if (name.isBlank()) return false
 
-        val parent = normalizedPath.substringBeforeLast('/', missingDelimiterValue = "")
-        return try {
-            context.assets.list(parent)?.contains(name) == true
-        } catch (_: IOException) {
-            false
+            val parent = path.substringBeforeLast('/', missingDelimiterValue = "")
+            return try {
+                context.assets.list(parent)?.contains(name) == true
+            } catch (_: IOException) {
+                false
+            }
+        }
+
+        fun readTextOrNull(charset: java.nio.charset.Charset): String? {
+            return try {
+                context.assets.open(path).bufferedReader(charset).use { it.readText() }
+            } catch (_: IOException) {
+                null
+            }
+        }
+
+        fun readBytesOrNull(): ByteArray? {
+            return try {
+                context.assets.open(path).use { it.readBytes() }
+            } catch (_: IOException) {
+                null
+            }
         }
     }
 
-    private fun classLoaderResourceExists(path: String): Boolean {
-        return Resource::class.java.classLoader?.getResource(path) != null
-    }
+    /**
+     * Resource access via classloader (for unit tests).
+     */
+    private class ResourceClassLoader(private val path: String) {
+        private val classLoader: ClassLoader?
+            get() = Resource::class.java.classLoader
 
-    private fun readTextFromAssetsOrNull(
-        context: Context,
-        path: String,
-        charset: java.nio.charset.Charset,
-        onFailure: (IOException) -> Unit
-    ): String? {
-        return try {
-            context.assets.open(path).bufferedReader(charset).use { it.readText() }
-        } catch (cause: IOException) {
-            onFailure(cause)
-            null
+        fun exists(): Boolean {
+            return classLoader?.getResource(path) != null
         }
-    }
 
-    private fun readTextFromClassLoaderOrNull(path: String, charset: java.nio.charset.Charset): String? {
-        val stream = Resource::class.java.classLoader?.getResourceAsStream(path) ?: return null
-        return stream.bufferedReader(charset).use { it.readText() }
-    }
-
-    private fun readBytesFromAssetsOrNull(
-        context: Context,
-        path: String,
-        onFailure: (IOException) -> Unit
-    ): ByteArray? {
-        return try {
-            context.assets.open(path).use { it.readBytes() }
-        } catch (cause: IOException) {
-            onFailure(cause)
-            null
+        fun readTextOrNull(charset: java.nio.charset.Charset): String? {
+            val stream = classLoader?.getResourceAsStream(path) ?: return null
+            return stream.bufferedReader(charset).use { it.readText() }
         }
-    }
 
-    private fun readBytesFromClassLoaderOrNull(path: String): ByteArray? {
-        val stream = Resource::class.java.classLoader?.getResourceAsStream(path) ?: return null
-        return stream.use { it.readBytes() }
+        fun readBytesOrNull(): ByteArray? {
+            val stream = classLoader?.getResourceAsStream(path) ?: return null
+            return stream.use { it.readBytes() }
+        }
     }
 }
 
-private fun Charset.toJavaCharset(): java.nio.charset.Charset = when (this) {
+private fun Charset.toKotlinCharset(): java.nio.charset.Charset = when (this) {
     Charset.UTF_8 -> kotlin.text.Charsets.UTF_8
     Charset.UTF_16 -> kotlin.text.Charsets.UTF_16
     Charset.UTF_16BE -> kotlin.text.Charsets.UTF_16BE

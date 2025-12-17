@@ -139,8 +139,9 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
      * Sets up resources for WASI by patching the generated `.mjs` file to configure WASI preopens
      * and copying resources into the output directory.
      *
-     * WASI requires explicit filesystem access via preopens, mapping the current directory (`.`)
-     * to the resources location so that file operations work correctly.
+     * WASI preopens are a security mechanism that maps host directories into the WebAssembly
+     * module's accessible filesystem. Here, the current directory (`.`) is mapped to the resources
+     * location so that file operations work correctly.
      */
     private fun setupWasmWasiResources(kotlinCompilation: KotlinCompilation<*>) {
         val project = kotlinCompilation.target.project

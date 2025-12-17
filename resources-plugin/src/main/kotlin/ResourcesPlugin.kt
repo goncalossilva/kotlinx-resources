@@ -8,7 +8,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
@@ -31,6 +30,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun apply(target: Project) {
         super.apply(target)
+
         configureAndroidInstrumentedTestAssets(target)
     }
 
@@ -254,11 +254,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Configures Android instrumented test assets early in the build lifecycle.
-     * Must be called before AGP finalizes its variants.
+     * Configure Android instrumented test assets.
+     * Must be called early in the build lifecycle, before AGP finalizes its variants.
      */
     private fun configureAndroidInstrumentedTestAssets(project: Project) {
-        // Hook into AGP when it's applied, before variants are finalized.
         project.plugins.withId("com.android.library") {
             configureAndroidAssetsForInstrumentedTests(project)
         }
@@ -268,44 +267,12 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     private fun configureAndroidAssetsForInstrumentedTests(project: Project) {
-        val androidComponents = project.extensions.findByName("androidComponents") ?: return
+        val configurer = runCatching {
+            Class.forName("com.goncalossilva.resources.AndroidInstrumentedTestAssetsConfigurer")
+                .getDeclaredConstructor()
+                .newInstance() as AndroidAssetsConfigurer
+        }.getOrNull() ?: return
 
-        val onVariantsMethod = androidComponents.javaClass.methods.firstOrNull { method ->
-            method.name == "onVariants" && method.parameterCount == 1
-        } ?: return
-
-        onVariantsMethod.invoke(
-            androidComponents,
-            Action<Any> { variant ->
-                val androidTest = variant.getOrNull("androidTest") ?: return@Action
-                val sources = androidTest.getOrNull("sources") ?: return@Action
-                val assets = sources.getOrNull("assets") ?: return@Action
-
-                val addStaticSourceDirectory = assets.javaClass.methods.firstOrNull { method ->
-                    method.name == "addStaticSourceDirectory" && method.parameterCount == 1
-                } ?: return@Action
-
-                val kotlinExt = project.extensions.findByType(KotlinMultiplatformExtension::class.java) ?: return@Action
-                val resourceDirs = kotlinExt.sourceSets
-                    .asSequence()
-                    .filter { it.name.contains("androidInstrumentedTest", ignoreCase = true) }
-                    .flatMap { it.resources.srcDirs.asSequence() }
-                    .filter { it.exists() }
-                    .map { it.absolutePath }
-                    .distinct()
-                    .toList()
-
-                for (dir in resourceDirs) {
-                    addStaticSourceDirectory.invoke(assets, dir)
-                }
-            }
-        )
-    }
-
-    private fun Any.getOrNull(propertyName: String): Any? {
-        val getterName = "get${propertyName.replaceFirstChar(Char::titlecase)}"
-        val method = javaClass.methods.firstOrNull { it.name == getterName && it.parameterCount == 0 }
-            ?: javaClass.methods.firstOrNull { it.name == propertyName && it.parameterCount == 0 }
-        return method?.invoke(this)
+        configurer.configure(project)
     }
 }

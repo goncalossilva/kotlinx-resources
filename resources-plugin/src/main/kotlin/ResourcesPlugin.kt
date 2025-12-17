@@ -61,19 +61,30 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
          */
         if (isNativeCompilation(kotlinCompilation)) {
             val target = kotlinCompilation.target
-            val binary = target.binaries.first { it.outputKind == NativeOutputKind.TEST }
-            val copyResourcesTask = setupCopyResourcesTask(
-                kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName(target.targetName, binary.name, "copyResources"),
-                outputDir = project.provider { binary.outputDirectory },
-                mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
-                dependantTasks = listOf(binary.linkTaskName)
-            )
+            val testBinaries = target.binaries.filter { it.outputKind == NativeOutputKind.TEST }
 
-            if (!isAppleCompilation(kotlinCompilation)) {
-                project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
-                    testTask.workingDir = binary.outputDirectory.absolutePath
-                    testTask.dependsOn(copyResourcesTask)
+            for (binary in testBinaries) {
+                val copyResourcesTask = setupCopyResourcesTask(
+                    kotlinCompilation = kotlinCompilation,
+                    taskName = getTaskName(target.targetName, binary.name, "copyResources"),
+                    outputDir = project.provider { binary.outputDirectory },
+                    mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
+                    dependantTasks = listOf(binary.linkTaskName)
+                )
+
+                if (isIosCompilation(kotlinCompilation)) {
+                    // HACK: Avoid task dependency conflicts with Compose Multiplatform on iOS.
+                    val composeResourceTasks = project.tasks.matching { task ->
+                        task.name.startsWith("assemble") &&
+                            task.name.contains(target.targetName) &&
+                            task.name.endsWith("TestResources")
+                    }
+                    copyResourcesTask.configure { it.mustRunAfter(composeResourceTasks) }
+                } else if (!isAppleCompilation(kotlinCompilation)) {
+                    project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
+                        testTask.workingDir = binary.outputDirectory.absolutePath
+                        testTask.dependsOn(copyResourcesTask)
+                    }
                 }
             }
         }
@@ -123,6 +134,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun isAppleCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
         return kotlinCompilation.konanTarget.family.isAppleFamily
+    }
+
+    private fun isIosCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
+        return kotlinCompilation.konanTarget.family == Family.IOS
     }
 
     private fun isJsNodeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {

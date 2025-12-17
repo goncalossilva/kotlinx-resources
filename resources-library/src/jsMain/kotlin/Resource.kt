@@ -45,16 +45,24 @@ public actual class Resource actual constructor(path: String) {
      * Browser-based resource implementation.
      */
     private class ResourceBrowser(private val path: String) {
-        private fun request(config: (XMLHttpRequest.() -> Unit)? = null) = XMLHttpRequest().apply {
-            open("GET", path, false)
-            config?.invoke(this)
-            send()
+        private fun request(config: (XMLHttpRequest.() -> Unit)? = null): XMLHttpRequest = runCatching {
+            XMLHttpRequest().apply {
+                open("GET", path, false)
+                config?.invoke(this)
+                send()
+            }
+        }.getOrElse { cause ->
+            throw FileReadException("$path: Request failed", cause)
         }
 
         @Suppress("MagicNumber")
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
-        fun exists(): Boolean = request().isSuccessful()
+        fun exists(): Boolean = try {
+            request().isSuccessful()
+        } catch (_: FileReadException) {
+            false
+        }
 
         fun readText(charset: Charset): String {
             val bytes = readBytes()
@@ -70,7 +78,7 @@ public actual class Resource actual constructor(path: String) {
                 val response = request.responseText
                 ByteArray(response.length) { response[it].code.toUByte().toByte() }
             } else {
-                throw FileReadException("$path: Read failed: ${request.statusText}")
+                throw FileReadException("$path: Read failed (status=${request.status})")
             }
         }
 

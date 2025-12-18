@@ -436,6 +436,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             testTask.dependsOn(setupTask)
         }
 
+        // Warn if the expected test task doesn't exist after project evaluation.
+        project.afterEvaluate {
+            if (tasks.findByName(testTaskName) == null) {
+                project.logger.warn("Expected test task '$testTaskName' not found for WASI resource setup")
+            }
+        }
+
         return setupTask
     }
 }

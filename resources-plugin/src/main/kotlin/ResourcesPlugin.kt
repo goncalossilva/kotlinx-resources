@@ -30,6 +30,11 @@ import kotlin.jvm.java
 
 @Suppress("TooManyFunctions")
 class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
+    companion object {
+        // WASM build type used for test compilations
+        private const val WASM_BUILD_TYPE_DEVELOPMENT = "Development"
+    }
+
     override fun getCompilerPluginId() = BuildConfig.PLUGIN_ID
 
     override fun getPluginArtifact() = SubpluginArtifact(
@@ -184,10 +189,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
      * compilation task (e.g., "compileTestKotlinWasmWasi").
      */
     private fun getWasmExecutableTaskName(kotlinCompilation: KotlinCompilation<*>): String {
-        val compilationName = kotlinCompilation.compilationName.replaceFirstChar { it.uppercase() }
-        val targetName = kotlinCompilation.target.targetName.replaceFirstChar { it.uppercase() }
+        val compilationName = kotlinCompilation.compilationName.replaceFirstChar { it.uppercaseChar() }
+        val targetName = kotlinCompilation.target.targetName.replaceFirstChar { it.uppercaseChar() }
         // Use "Development" build type by default for test compilations
-        val buildType = "Development"
+        val buildType = WASM_BUILD_TYPE_DEVELOPMENT
         return "compile${compilationName}${buildType}ExecutableKotlin${targetName}"
     }
 

@@ -4,11 +4,17 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.14.0] - 2025-12-18
+
+### Added
+
+- Support for 
+
 ## [0.13.0] - 2025-12-18
 
 ### Added
 
-- Support for Android instrumented tests
+- WASI support via `wasmWasi` target
 
 ## [0.12.0] - 2025-12-17
 

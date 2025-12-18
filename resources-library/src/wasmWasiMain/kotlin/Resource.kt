@@ -21,7 +21,6 @@ private const val OFLAGS_NONE: Short = 0
 
 // Rights needed for reading files
 private const val RIGHTS_FD_READ: Long = 1L shl 1
-private const val RIGHTS_FD_SEEK: Long = 1L shl 2
 
 // Pre-opened directory file descriptor (typically starts at 3).
 private const val PREOPENED_FD: Fd = 3
@@ -115,7 +114,7 @@ public actual class Resource actual constructor(private val path: String) {
             pathPtr.address.toInt(),
             pathBytes.size,
             OFLAGS_NONE,
-            RIGHTS_FD_READ or RIGHTS_FD_SEEK,
+            RIGHTS_FD_READ,
             0L, // no inheriting rights
             0, // fdflags
             resultFdPtr.address.toInt()

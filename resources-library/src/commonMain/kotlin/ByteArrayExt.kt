@@ -68,3 +68,15 @@ internal fun ByteArray.decodeUtf16(): String {
         }
     }
 }
+
+/**
+ * Decodes this byte array as ISO-8859-1 (Latin-1).
+ * Each byte maps directly to its Unicode code point (0x00-0xFF).
+ */
+internal fun ByteArray.decodeIso8859(): String {
+    val chars = CharArray(size)
+    for (i in indices) {
+        chars[i] = (this[i].toInt() and 0xFF).toChar()
+    }
+    return chars.concatToString()
+}

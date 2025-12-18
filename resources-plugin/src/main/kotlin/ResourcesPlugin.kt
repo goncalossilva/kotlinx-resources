@@ -13,9 +13,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind
-import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
@@ -23,10 +21,11 @@ import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.util.suffixIfNot
 import java.io.File
 import kotlin.contracts.contract
-import kotlin.jvm.java
 
 @Suppress("TooManyFunctions")
 class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
+    // Hardcoded because Kotlin Gradle Plugin doesn't expose a typed API for WASI compilation tasks.
+    private val wasmWasiCompileTaskName = "compileTestDevelopmentExecutableKotlinWasmWasi"
 
     override fun apply(target: Project) {
         super.apply(target)
@@ -47,83 +46,132 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val isNative = isNativeCompilation(kotlinCompilation)
         val isJsNode = isJsNodeCompilation(kotlinCompilation)
         val isJsBrowser = isJsBrowserCompilation(kotlinCompilation)
-        return isTesting && (isNative || isJsNode || isJsBrowser)
+        val isWasmWasi = isWasmWasiCompilation(kotlinCompilation)
+        return isTesting && (isNative || isJsNode || isJsBrowser || isWasmWasi)
     }
 
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>
     ): Provider<List<SubpluginOption>> {
-        val project = kotlinCompilation.target.project
-
-        /*
-         * For native platforms, copy resources into the binary's output directory.
-         *
-         * Apple platforms support resources via `NSBundle.mainBundle` and related APIs.
-         *
-         * Other native platforms don't use native support for resources. Instead,
-         * ensure the test task's working directory is the binary's output directory.
-         */
         if (isNativeCompilation(kotlinCompilation)) {
-            val target = kotlinCompilation.target
-            val testBinaries = target.binaries.filter { it.outputKind == NativeOutputKind.TEST }
+            setupNativeResources(kotlinCompilation)
+        }
+        if ((isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) &&
+            !isWasmWasiCompilation(kotlinCompilation)
+        ) {
+            setupJsResources(kotlinCompilation)
+        }
+        if (isWasmWasiCompilation(kotlinCompilation)) {
+            setupWasmWasiResources(kotlinCompilation)
+        }
+        return kotlinCompilation.target.project.provider { emptyList() }
+    }
 
-            for (binary in testBinaries) {
-                val copyResourcesTask = setupCopyResourcesTask(
-                    kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName(target.targetName, binary.name, "copyResources"),
-                    outputDir = project.provider { binary.outputDirectory },
-                    mustRunAfterTasks = listOf(kotlinCompilation.processResourcesTaskName),
-                    dependantTasks = listOf(binary.linkTaskName)
-                )
+    /**
+     * Sets up resources for native platforms by copying them into the binary's output directory.
+     *
+     * Apple platforms support resources via `NSBundle.mainBundle` and related APIs.
+     *
+     * Other native platforms don't use native support for resources. Instead,
+     * the test task's working directory is set to the binary's output directory.
+     */
+    private fun setupNativeResources(kotlinCompilation: KotlinCompilation<*>) {
+        val compilation = kotlinCompilation as KotlinNativeCompilation
+        val project = compilation.target.project
+        val target = compilation.target
+        val testBinaries = target.binaries.filter { it.outputKind == NativeOutputKind.TEST }
 
-                if (isIosCompilation(kotlinCompilation)) {
-                    // HACK: Avoid task dependency conflicts with Compose Multiplatform on iOS.
-                    val composeResourceTasks = project.tasks.matching { task ->
-                        task.name.startsWith("assemble") &&
-                            task.name.contains(target.targetName) &&
-                            task.name.endsWith("TestResources")
-                    }
-                    copyResourcesTask.configure { it.mustRunAfter(composeResourceTasks) }
-                } else if (!isAppleCompilation(kotlinCompilation)) {
-                    project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
-                        testTask.workingDir = binary.outputDirectory.absolutePath
-                        testTask.dependsOn(copyResourcesTask)
-                    }
+        for (binary in testBinaries) {
+            val copyResourcesTask = setupCopyResourcesTask(
+                kotlinCompilation = compilation,
+                taskName = getTaskName(target.targetName, binary.name, "copyResources"),
+                outputDir = project.provider { binary.outputDirectory },
+                mustRunAfterTasks = listOf(compilation.processResourcesTaskName),
+                dependantTasks = listOf(binary.linkTaskName)
+            )
+
+            if (isIosCompilation(compilation)) {
+                // HACK: Avoid task dependency conflicts with Compose Multiplatform on iOS.
+                val composeResourceTasks = project.tasks.matching { task ->
+                    task.name.startsWith("assemble") &&
+                        task.name.contains(target.targetName) &&
+                        task.name.endsWith("TestResources")
+                }
+                copyResourcesTask.configure { it.mustRunAfter(composeResourceTasks) }
+            } else if (!isAppleCompilation(compilation)) {
+                project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
+                    testTask.workingDir = binary.outputDirectory.absolutePath
+                    testTask.dependsOn(copyResourcesTask)
                 }
             }
         }
+    }
 
-        /*
-         * For Node and the browser, copy resources into the script's output directory.
-         *
-         * In the browser, leverage Karma's proxy functionality to load them from the filesystem.
-         */
-        if (isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) {
-            // Unlike others, JS targets don't end with "Test". Add it so matching names is easier.
-            val targetName = kotlinCompilation.target.targetName.suffixIfNot("Test")
-            setupCopyResourcesTask(
-                kotlinCompilation = kotlinCompilation,
-                taskName = getTaskName(targetName, "copyResources"),
-                outputDir = kotlinCompilation.npmProject.dir.map(Directory::getAsFile),
-                mustRunAfterTasks = mutableListOf(kotlinCompilation.processResourcesTaskName).apply {
-                    kotlinCompilation.npmProject.nodeJsRoot.npmInstallTaskProvider.let {
-                        add(":${it.name}")
-                    }
-                },
-                dependantTasks = listOf(kotlinCompilation.compileKotlinTaskName)
+    /**
+     * Sets up resources for JS platforms by copying them into the script's output directory.
+     *
+     * In the browser, Karma's proxy functionality is leveraged to load resources from the filesystem.
+     */
+    private fun setupJsResources(kotlinCompilation: KotlinCompilation<*>) {
+        val compilation = kotlinCompilation as KotlinJsIrCompilation
+        // Unlike others, JS targets don't end with "Test". Add it so matching names is easier.
+        val targetName = compilation.target.targetName.suffixIfNot("Test")
+        setupCopyResourcesTask(
+            kotlinCompilation = compilation,
+            taskName = getTaskName(targetName, "copyResources"),
+            outputDir = compilation.npmProject.dir.map(Directory::getAsFile),
+            mustRunAfterTasks = mutableListOf(compilation.processResourcesTaskName).apply {
+                compilation.npmProject.nodeJsRoot.npmInstallTaskProvider.let {
+                    add(":${it.name}")
+                }
+            },
+            dependantTasks = listOf(compilation.compileKotlinTaskName)
+        )
+
+        if (isJsBrowserCompilation(compilation)) {
+            setupProxyResourcesTask(
+                kotlinCompilation = compilation,
+                taskName = getTaskName(targetName, "proxyResources"),
+                // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
+                mustRunAfterTask = compilation.processResourcesTaskName,
             )
+        }
+    }
 
-            if (isJsBrowserCompilation(kotlinCompilation)) {
-                setupProxyResourcesTask(
-                    kotlinCompilation = kotlinCompilation,
-                    taskName = getTaskName(targetName, "proxyResources"),
-                    // Task where karma.conf.js is created, in KotlinKarma.createTestExecutionSpec.
-                    mustRunAfterTask = kotlinCompilation.processResourcesTaskName,
-                )
-            }
+    /**
+     * Sets up resources for WASI by copying resources into the output directory and patching the
+     * generated `.mjs` file to configure WASI preopens.
+     *
+     * WASI preopens are a security mechanism that maps host directories into the WebAssembly
+     * module's accessible filesystem. Here, the current directory (`.`) is mapped to the resources
+     * location so that file operations work correctly.
+     */
+    private fun setupWasmWasiResources(kotlinCompilation: KotlinCompilation<*>) {
+        val project = kotlinCompilation.target.project
+        val tasks = project.tasks
+
+        // Derive output directory from the compile task's outputs.
+        val outputDir = tasks.named(wasmWasiCompileTaskName).map { task ->
+            // Find the directory containing .mjs files from task outputs.
+            task.outputs.files.files
+                .firstOrNull { it.extension == "mjs" }?.parentFile
+                ?: task.outputs.files.files.first().let { file ->
+                    if (file.isDirectory) file else file.parentFile
+                }
         }
 
-        return project.provider { emptyList() }
+        val copyTask = setupWasmWasiCopyResourcesTask(
+            kotlinCompilation = kotlinCompilation,
+            taskName = "wasmWasiTestCopyResources",
+            outputDir = outputDir
+        )
+
+        setupWasmWasiPatchMjsTask(
+            kotlinCompilation = kotlinCompilation,
+            taskName = "wasmWasiTestPatchMjs",
+            outputDir = outputDir,
+            dependsOnTask = copyTask
+        )
     }
 
     private fun isCompiledForTesting(kotlinCompilation: KotlinCompilation<*>) =
@@ -156,6 +204,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             returns(true) implies (kotlinCompilation is KotlinJsIrCompilation)
         }
         return kotlinCompilation is KotlinJsIrCompilation && kotlinCompilation.target.isBrowserConfigured
+    }
+
+    private fun isWasmWasiCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {
+        // String-based detection because Kotlin Gradle Plugin doesn't expose a KotlinWasmTarget type.
+        return kotlinCompilation.target.targetName == "wasmWasi"
     }
 
     private fun getResourceDirs(kotlinCompilation: KotlinCompilation<*>): List<File> {
@@ -313,5 +366,122 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     .forEach(assets::addStaticSourceDirectory)
             }
         }
+    }
+
+    private fun setupWasmWasiCopyResourcesTask(
+        kotlinCompilation: KotlinCompilation<*>,
+        taskName: String,
+        outputDir: Provider<File>
+    ): TaskProvider<Task> {
+        val project = kotlinCompilation.target.project
+        val tasks = project.tasks
+        val resourceDirs = getResourceDirs(kotlinCompilation)
+
+        val copyTask = tasks.register(taskName) { task ->
+            task.inputs.files(resourceDirs)
+            task.dependsOn(wasmWasiCompileTaskName)
+
+            @Suppress("ObjectLiteralToLambda")
+            task.doLast(object : Action<Task> {
+                override fun execute(task: Task) {
+                    // Sort so common* source sets (e.g., commonTest) are processed before
+                    // platform-specific ones (e.g., wasmWasiTest), allowing overrides.
+                    val sortedDirs = resourceDirs.sortedWith(
+                        compareBy { resourceDir: File ->
+                            val sourceSetName = resourceDir.parentFile?.name ?: ""
+                            if (sourceSetName.startsWith("common")) 0 else 1
+                        }
+                    )
+                    val dir = outputDir.get()
+                    for (resourceDir in sortedDirs) {
+                        resourceDir.copyRecursively(dir, overwrite = true)
+                    }
+                }
+            })
+        }
+
+        return copyTask
+    }
+
+    private fun setupWasmWasiPatchMjsTask(
+        kotlinCompilation: KotlinCompilation<*>,
+        taskName: String,
+        outputDir: Provider<File>,
+        dependsOnTask: TaskProvider<Task>
+    ): TaskProvider<Task> {
+        val project = kotlinCompilation.target.project
+        val tasks = project.tasks
+
+        val patchTask = tasks.register(taskName) { task ->
+            task.dependsOn(dependsOnTask)
+
+            @Suppress("ObjectLiteralToLambda")
+            task.doLast(object : Action<Task> {
+                override fun execute(task: Task) {
+                    val dir = outputDir.get()
+                    val mjsFiles = dir.listFiles { file -> file.extension == "mjs" }
+                    if (mjsFiles.isNullOrEmpty()) {
+                        project.logger.warn("No .mjs files found in $dir for WASI preopens patching")
+                        return
+                    }
+
+                    val resourcesDir = dir.absolutePath
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                    // Pattern to check if '.' mapping already exists in preopens.
+                    val dotMappingPattern = Regex("""preopens\s*:\s*\{[^}]*['"]\.['"]""")
+                    // Pattern to find existing preopens and merge into it.
+                    val existingPreopensPattern = Regex("""(preopens\s*:\s*\{)([^}]*)(\})""")
+                    // Pattern to add preopens to WASI constructor if none exists.
+                    val wasiPattern = Regex(
+                        pattern = """new\s+WASI\s*\(\s*\{(.*?)}\s*\)""",
+                        option = RegexOption.DOT_MATCHES_ALL
+                    )
+
+                    for (mjsFile in mjsFiles) {
+                        val content = mjsFile.readText()
+                        if (dotMappingPattern.containsMatchIn(content)) continue // Already has '.' mapping
+
+                        @Suppress("MagicNumber")
+                        val patched = if (existingPreopensPattern.containsMatchIn(content)) {
+                            // Merge '.' mapping into existing preopens object.
+                            existingPreopensPattern.replace(content) { match ->
+                                val prefix = match.groupValues[1]
+                                val existing = match.groupValues[2].trim().trimEnd(',')
+                                val suffix = match.groupValues[3]
+                                if (existing.isEmpty()) {
+                                    "$prefix '.': '$resourcesDir' $suffix"
+                                } else {
+                                    "$prefix$existing, '.': '$resourcesDir' $suffix"
+                                }
+                            }
+                        } else {
+                            // Add new preopens property to WASI options.
+                            wasiPattern.replace(content) { match ->
+                                val existingOptions = match.groupValues[1].trim().trimEnd(',').trim()
+                                val optionsWithPreopens = if (existingOptions.isEmpty()) {
+                                    "preopens: { '.': '$resourcesDir' }"
+                                } else {
+                                    "$existingOptions, preopens: { '.': '$resourcesDir' }"
+                                }
+                                "new WASI({ $optionsWithPreopens })"
+                            }
+                        }
+                        if (patched == content) {
+                            project.logger.warn("WASI constructor pattern not found in ${mjsFile.name}")
+                        }
+                        mjsFile.writeText(patched)
+                    }
+                }
+            })
+        }
+
+        // Name-based matching because Kotlin Gradle Plugin doesn't expose a public task class.
+        val testTaskName = "${kotlinCompilation.target.targetName}NodeTest"
+        tasks.matching { it.name == testTaskName }.configureEach { testTask ->
+            testTask.dependsOn(patchTask)
+        }
+
+        return patchTask
     }
 }

@@ -58,7 +58,9 @@ To access a file in your tests:
 1. Place it in a [`resources` folder](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.SourceSet.html#org.gradle.api.tasks.SourceSet:resources). For example, in `src/commonTest/resources/` to have it available in all targets, or `src/jsTest/resources/` to limit access to JS.
 2. Instantiate a `Resource` class with the path relative to that folder.
 
-### Basic Example
+### Examples
+
+#### Basic Multiplatform Example
 
 For a file located at `src/commonTest/resources/data/example.json`:
 
@@ -76,6 +78,23 @@ class MyTest {
     fun `example data ends in a newline`() {
         val content = Resource("data/example.json").readText()
         assertTrue(content.endsWith("\n"))
+    }
+}
+```
+
+#### Android Example
+
+For Android device tests, resources are packaged as assets. Place them under `src/androidDeviceTest/resources/` and access using the same relative paths:
+
+```kotlin
+import com.goncalossilva.resources.Resource
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class AndroidResourceTest {
+    @Test
+    fun readsFromAssets() {
+        assertEquals("hello", Resource("data/hello.txt").readText().trim())
     }
 }
 ```

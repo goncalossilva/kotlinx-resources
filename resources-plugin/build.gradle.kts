@@ -16,20 +16,22 @@ plugins {
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
     compileOnly(kotlin("gradle-plugin"))
     compileOnly(kotlin("stdlib"))
+    compileOnly("com.android.tools.build:gradle:${libs.versions.agp.get()}")
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(8)
+    options.release.set(11)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
+        jvmTarget = JvmTarget.JVM_11
         freeCompilerArgs.add("-opt-in=kotlin.contracts.ExperimentalContracts")
     }
 }

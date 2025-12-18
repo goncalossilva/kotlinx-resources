@@ -15,6 +15,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 - **BREAKING:** Add charset parameter to `readText()` with UTF-8 as default. Supported charsets: UTF-8, UTF-16, UTF-16BE, UTF-16LE, ISO-8859-1, and US-ASCII.
 - Wasm support via `wasmJs` target
 - Support for resources outside the project directory via `srcDir`
+- Support Android instrumented tests
 
 ### Fixed
 

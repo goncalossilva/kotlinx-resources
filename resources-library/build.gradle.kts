@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
 
     id("maven-publish")
     id("signing")
@@ -19,6 +20,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    google()
 }
 
 kotlin {
@@ -26,7 +28,17 @@ kotlin {
 
     jvm {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_1_8
+            jvmTarget = JvmTarget.JVM_11
+        }
+    }
+
+    androidLibrary {
+        namespace = "com.goncalossilva.resources"
+        compileSdk = libs.versions.android.sdk.compile.get().toInt()
+        minSdk = libs.versions.android.sdk.min.get().toInt()
+
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
         }
     }
 
@@ -78,6 +90,12 @@ kotlin {
             mingwX64Main.dependsOn(this)
             linuxX64Main.dependsOn(this)
             linuxArm64Main.dependsOn(this)
+        }
+
+        val androidMain by getting {
+            dependencies {
+                compileOnly(libs.androidx.test.core)
+            }
         }
     }
 

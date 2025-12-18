@@ -33,6 +33,9 @@ public actual class Resource actual constructor(private val path: String) {
         else -> throw UnsupportedOperationException("Unsupported JS runtime")
     }
 
+    /**
+     * Resource access via XMLHttpRequest (for browser environments).
+     */
     private class ResourceBrowser(path: String) {
         private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path
@@ -92,6 +95,9 @@ public actual class Resource actual constructor(private val path: String) {
         }
     }
 
+    /**
+     * Resource access via Node.js fs module (for Node.js environments).
+     */
     private class ResourceNode(path: String) {
         private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path

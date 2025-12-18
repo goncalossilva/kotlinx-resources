@@ -11,9 +11,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-
     alias(libs.plugins.useanybrowser)
-
     alias(libs.plugins.detekt)
 }
 

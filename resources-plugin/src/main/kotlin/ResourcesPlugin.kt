@@ -379,7 +379,9 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 override fun execute(task: Task) {
                     val dir = outputDir.get()
 
-                    // Copy resources to output directory (common source sets first, then platform-specific).
+                    // Copy resources to output directory. Sort so common* source sets (e.g., commonTest)
+                    // are processed before platform-specific ones (e.g., wasmWasiTest), allowing the
+                    // latter to override shared resources. Within each group, sort alphabetically.
                     val resourceDirs = getResourceDirs(kotlinCompilation)
                     val sortedDirs = resourceDirs.sortedWith(
                         compareBy<File> { resourceDir ->

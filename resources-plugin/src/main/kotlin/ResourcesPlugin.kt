@@ -371,9 +371,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val resourceDirs = getResourceDirs(kotlinCompilation)
 
         val setupTask = tasks.register(taskName) { task ->
-            // Declare inputs for better Gradle integration.
             task.inputs.files(resourceDirs)
-            // Always run: this task modifies generated .mjs files, so can't be properly cached.
+            // Always run: this task modifies generated .mjs files, so can't be cached.
             task.outputs.upToDateWhen { false }
 
             @Suppress("ObjectLiteralToLambda")
@@ -416,7 +415,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         val content = mjsFile.readText()
                         if (dotMappingPattern.containsMatchIn(content)) continue // Already has '.' mapping
 
-                        @Suppress("MagicNumber") // Regex group indices
+                        @Suppress("MagicNumber")
                         val patched = if (existingPreopensPattern.containsMatchIn(content)) {
                             // Merge '.' mapping into existing preopens object.
                             existingPreopensPattern.replace(content) { match ->

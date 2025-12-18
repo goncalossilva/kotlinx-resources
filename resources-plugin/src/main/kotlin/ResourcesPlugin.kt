@@ -139,8 +139,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Sets up resources for WASI by patching the generated `.mjs` file to configure WASI preopens
-     * and copying resources into the output directory.
+     * Sets up resources for WASI by copying resources into the output directory and patching the
+     * generated `.mjs` file to configure WASI preopens.
      *
      * WASI preopens are a security mechanism that maps host directories into the WebAssembly
      * module's accessible filesystem. Here, the current directory (`.`) is mapped to the resources
@@ -160,10 +160,17 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 }
         }
 
-        setupWasmWasiTestTask(
+        val copyTask = setupWasmWasiCopyResourcesTask(
             kotlinCompilation = kotlinCompilation,
             taskName = "wasmWasiTestCopyResources",
             outputDir = outputDir
+        )
+
+        setupWasmWasiPatchMjsTask(
+            kotlinCompilation = kotlinCompilation,
+            taskName = "wasmWasiTestPatchMjs",
+            outputDir = outputDir,
+            dependsOnTask = copyTask
         )
     }
 
@@ -361,7 +368,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
-    private fun setupWasmWasiTestTask(
+    private fun setupWasmWasiCopyResourcesTask(
         kotlinCompilation: KotlinCompilation<*>,
         taskName: String,
         outputDir: Provider<File>
@@ -370,35 +377,54 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val tasks = project.tasks
         val resourceDirs = getResourceDirs(kotlinCompilation)
 
-        val setupTask = tasks.register(taskName) { task ->
+        val copyTask = tasks.register(taskName) { task ->
             task.inputs.files(resourceDirs)
-            // Always run: this task modifies generated .mjs files, so can't be cached.
-            task.outputs.upToDateWhen { false }
+            task.dependsOn(wasmWasiCompileTaskName)
 
             @Suppress("ObjectLiteralToLambda")
             task.doLast(object : Action<Task> {
                 override fun execute(task: Task) {
-                    val dir = outputDir.get()
-
-                    // Copy resources to output directory. Sort so common* source sets (e.g., commonTest)
-                    // are processed before platform-specific ones (e.g., wasmWasiTest), allowing the
-                    // latter to override shared resources.
+                    // Sort so common* source sets (e.g., commonTest) are processed before
+                    // platform-specific ones (e.g., wasmWasiTest), allowing overrides.
                     val sortedDirs = resourceDirs.sortedWith(
                         compareBy { resourceDir: File ->
                             val sourceSetName = resourceDir.parentFile?.name ?: ""
                             if (sourceSetName.startsWith("common")) 0 else 1
                         }
                     )
+                    val dir = outputDir.get()
                     for (resourceDir in sortedDirs) {
                         resourceDir.copyRecursively(dir, overwrite = true)
                     }
+                }
+            })
+        }
 
-                    // Patch the generated .mjs file to configure WASI preopens.
+        return copyTask
+    }
+
+    private fun setupWasmWasiPatchMjsTask(
+        kotlinCompilation: KotlinCompilation<*>,
+        taskName: String,
+        outputDir: Provider<File>,
+        dependsOnTask: TaskProvider<Task>
+    ): TaskProvider<Task> {
+        val project = kotlinCompilation.target.project
+        val tasks = project.tasks
+
+        val patchTask = tasks.register(taskName) { task ->
+            task.dependsOn(dependsOnTask)
+
+            @Suppress("ObjectLiteralToLambda")
+            task.doLast(object : Action<Task> {
+                override fun execute(task: Task) {
+                    val dir = outputDir.get()
                     val mjsFiles = dir.listFiles { file -> file.extension == "mjs" }
                     if (mjsFiles.isNullOrEmpty()) {
                         project.logger.warn("No .mjs files found in $dir for WASI preopens patching")
                         return
                     }
+
                     val resourcesDir = dir.absolutePath
                         .replace("\\", "\\\\")
                         .replace("'", "\\'")
@@ -411,6 +437,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         pattern = """new\s+WASI\s*\(\s*\{(.*?)}\s*\)""",
                         option = RegexOption.DOT_MATCHES_ALL
                     )
+
                     for (mjsFile in mjsFiles) {
                         val content = mjsFile.readText()
                         if (dotMappingPattern.containsMatchIn(content)) continue // Already has '.' mapping
@@ -447,16 +474,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     }
                 }
             })
-            // The .mjs file is generated by this task. We need to run after it exists.
-            task.dependsOn(wasmWasiCompileTaskName)
         }
 
         // Name-based matching because Kotlin Gradle Plugin doesn't expose a public task class.
         val testTaskName = "${kotlinCompilation.target.targetName}NodeTest"
         tasks.matching { it.name == testTaskName }.configureEach { testTask ->
-            testTask.dependsOn(setupTask)
+            testTask.dependsOn(patchTask)
         }
 
-        return setupTask
+        return patchTask
     }
 }

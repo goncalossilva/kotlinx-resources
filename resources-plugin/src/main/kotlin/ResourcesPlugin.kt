@@ -431,7 +431,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
         // Note: Uses name-based task matching since Kotlin Gradle Plugin doesn't expose a public task class.
         // Unlike KotlinNativeTest, there's no KotlinWasmWasiTest type available.
-        tasks.matching { it.name == "wasmWasiNodeTest" }.configureEach { testTask ->
+        val testTaskName = "${kotlinCompilation.target.targetName}NodeTest"
+        tasks.matching { it.name == testTaskName }.configureEach { testTask ->
             testTask.dependsOn(setupTask)
         }
 

@@ -395,26 +395,46 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         project.logger.warn("No .mjs files found in $dir for WASI preopens patching")
                         return
                     }
-                    // Check for existing '.' mapping in preopens to avoid duplicate patching.
+                    val resourcesDir = dir.absolutePath
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                    // Pattern to check if '.' mapping already exists in preopens.
                     val dotMappingPattern = Regex("""preopens\s*:\s*\{[^}]*['"]\.['"]""")
+                    // Pattern to find existing preopens and merge into it.
+                    val existingPreopensPattern = Regex("""(preopens\s*:\s*\{)([^}]*)(\})""")
+                    // Pattern to add preopens to WASI constructor if none exists.
+                    val wasiPattern = Regex(
+                        pattern = """new\s+WASI\s*\(\s*\{(.*?)}\s*\)""",
+                        option = RegexOption.DOT_MATCHES_ALL
+                    )
                     for (mjsFile in mjsFiles) {
                         val content = mjsFile.readText()
                         if (dotMappingPattern.containsMatchIn(content)) continue // Already has '.' mapping
-                        val resourcesDir = dir.absolutePath
-                            .replace("\\", "\\\\")
-                            .replace("'", "\\'")
-                        val wasiPattern = Regex(
-                            pattern = """new\s+WASI\s*\(\s*\{(.*?)}\s*\)""",
-                            option = RegexOption.DOT_MATCHES_ALL
-                        )
-                        val patched = wasiPattern.replace(content) { match ->
-                            val existingOptions = match.groupValues[1].trim().trimEnd(',').trim()
-                            val optionsWithPreopens = if (existingOptions.isEmpty()) {
-                                "preopens: { '.': '$resourcesDir' }"
-                            } else {
-                                "$existingOptions, preopens: { '.': '$resourcesDir' }"
+
+                        @Suppress("MagicNumber") // Regex group indices
+                        val patched = if (existingPreopensPattern.containsMatchIn(content)) {
+                            // Merge '.' mapping into existing preopens object.
+                            existingPreopensPattern.replace(content) { match ->
+                                val prefix = match.groupValues[1]
+                                val existing = match.groupValues[2].trim().trimEnd(',')
+                                val suffix = match.groupValues[3]
+                                if (existing.isEmpty()) {
+                                    "$prefix '.': '$resourcesDir' $suffix"
+                                } else {
+                                    "$prefix$existing, '.': '$resourcesDir' $suffix"
+                                }
                             }
-                            "new WASI({ $optionsWithPreopens })"
+                        } else {
+                            // Add new preopens property to WASI options.
+                            wasiPattern.replace(content) { match ->
+                                val existingOptions = match.groupValues[1].trim().trimEnd(',').trim()
+                                val optionsWithPreopens = if (existingOptions.isEmpty()) {
+                                    "preopens: { '.': '$resourcesDir' }"
+                                } else {
+                                    "$existingOptions, preopens: { '.': '$resourcesDir' }"
+                                }
+                                "new WASI({ $optionsWithPreopens })"
+                            }
                         }
                         if (patched == content) {
                             project.logger.warn("WASI constructor pattern not found in ${mjsFile.name}")

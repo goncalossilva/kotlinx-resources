@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.util.suffixIfNot
 import java.io.File
 import kotlin.contracts.contract
-import kotlin.jvm.java
 
 @Suppress("TooManyFunctions")
 class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
@@ -397,10 +396,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         project.logger.warn("No .mjs files found in $dir for WASI preopens patching")
                         return
                     }
-                    val preopensPattern = Regex("""\bpreopens\s*:""")
+                    // Check for existing '.' mapping in preopens to avoid duplicate patching.
+                    val dotMappingPattern = Regex("""preopens\s*:\s*\{[^}]*['"]\.['"]""")
                     for (mjsFile in mjsFiles) {
                         val content = mjsFile.readText()
-                        if (preopensPattern.containsMatchIn(content)) continue // Already patched
+                        if (dotMappingPattern.containsMatchIn(content)) continue // Already has '.' mapping
                         val resourcesDir = dir.absolutePath
                             .replace("\\", "\\\\")
                             .replace("'", "\\'")

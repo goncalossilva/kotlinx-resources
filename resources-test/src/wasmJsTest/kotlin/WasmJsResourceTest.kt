@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class WasmJsResourceTest {
 
     @Test
-    fun platformResourceOverload() {
+    fun platformResourceOverride() {
         assertTrue(Resource("platform_resource.txt").exists())
         assertEquals("wasmjs", Resource("platform_resource.txt").readText())
     }

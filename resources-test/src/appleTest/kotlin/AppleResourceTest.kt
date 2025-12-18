@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class AppleResourceTest {
 
     @Test
-    fun platformResourceOverload() {
+    fun platformResourceOverride() {
         assertTrue(Resource("platform_resource.txt").exists())
         assertEquals("apple", Resource("platform_resource.txt").readText())
     }

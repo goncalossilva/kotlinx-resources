@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class LinuxResourceTest {
 
     @Test
-    fun platformResourceOverload() {
+    fun platformResourceOverride() {
         assertTrue(Resource("platform_resource.txt").exists())
         assertEquals("linux", Resource("platform_resource.txt").readText())
     }

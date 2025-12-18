@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class JsResourceTest {
 
     @Test
-    fun platformResourceOverload() {
+    fun platformResourceOverride() {
         assertTrue(Resource("platform_resource.txt").exists())
         assertEquals("js", Resource("platform_resource.txt").readText())
     }

@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class JvmResourceTest {
 
     @Test
-    fun platformResourceOverload() {
+    fun platformResourceOverride() {
         assertTrue(Resource("platform_resource.txt").exists())
         assertEquals("jvm", Resource("platform_resource.txt").readText())
     }

@@ -9,6 +9,12 @@
       "matchPackagePrefixes": [
         "org.jetbrains.kotlin"
       ]
+    },
+    {
+      "groupName": "AndroidX Test dependencies",
+      "matchPackagePrefixes": [
+        "androidx.test"
+      ]
     }
   ]
 }

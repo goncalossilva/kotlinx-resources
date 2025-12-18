@@ -254,24 +254,64 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Configure Android device test assets.
+     * Wires KMP `androidDeviceTest` resources into AGP's androidTest assets.
+     *
      * Must be called early in the build lifecycle, before AGP finalizes its variants.
+     *
+     * KMP puts device test resources under `src/androidDeviceTest/resources/`, but AGP expects
+     * files to be packaged as assets for device tests. This hooks into AGP's variant API and adds
+     * those resource directories as static asset sources for the device test component.
      */
     private fun configureAndroidInstrumentedTestAssets(project: Project) {
         project.plugins.withId("com.android.kotlin.multiplatform.library") {
-            configureAndroidAssetsForInstrumentedTests(project)
+            AndroidAssetsConfigurer.configure(project)
         }
         // Legacy plugin, to remove when AGP 9.0 is widely adopted.
         project.plugins.withId("com.android.library") {
-            configureAndroidAssetsForInstrumentedTests(project)
+            AndroidAssetsConfigurer.configure(project)
         }
         // Legacy plugin, to remove when AGP 9.0 is widely adopted.
         project.plugins.withId("com.android.application") {
-            configureAndroidAssetsForInstrumentedTests(project)
+            AndroidAssetsConfigurer.configure(project)
         }
     }
 
-    private fun configureAndroidAssetsForInstrumentedTests(project: Project) {
-        AndroidInstrumentedTestAssetsConfigurer().configure(project)
+    /**
+     * Inner object for Android SDK integration.
+     *
+     * Kept as a separate object to enable lazy class loading, avoiding ClassNotFoundException
+     * when the plugin is applied to non-Android projects.
+     */
+    private object AndroidAssetsConfigurer {
+        fun configure(project: Project) {
+            val kotlinExt = project.extensions
+                .findByType(org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension::class.java) ?: return
+            val androidComponents = project.extensions
+                .findByType(com.android.build.api.variant.AndroidComponentsExtension::class.java) ?: return
+
+            androidComponents.onVariants { variant ->
+                val androidTest = (variant as? com.android.build.api.variant.HasAndroidTest)
+                    ?.androidTest ?: return@onVariants
+                val assets = androidTest.sources.assets ?: return@onVariants
+
+                val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
+                val targetSourceSetNames = setOf(
+                    "androidDeviceTest",
+                    "androidDeviceTest$variantSuffix",
+                    // Legacy source set names, to remove when AGP 9.0 is widely adopted.
+                    "androidInstrumentedTest",
+                    "androidInstrumentedTest$variantSuffix",
+                )
+
+                kotlinExt.sourceSets
+                    .asSequence()
+                    .filter { it.name in targetSourceSetNames }
+                    .flatMap { it.resources.srcDirs.asSequence() }
+                    .filter { it.exists() }
+                    .map { it.absolutePath }
+                    .distinct()
+                    .forEach(assets::addStaticSourceDirectory)
+            }
+        }
     }
 }

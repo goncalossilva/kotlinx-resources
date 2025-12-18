@@ -22,7 +22,6 @@ private const val OFLAGS_NONE: Short = 0
 // Rights needed for reading files
 private const val RIGHTS_FD_READ: Long = 1L shl 1
 private const val RIGHTS_FD_SEEK: Long = 1L shl 2
-private const val RIGHTS_FD_FILESTAT_GET: Long = 1L shl 21
 
 // Pre-opened directory file descriptor (typically starts at 3).
 private const val PREOPENED_FD: Fd = 3
@@ -61,12 +60,6 @@ private external fun wasiPathFilestatGet(
     resultBuf: Int
 ): Errno
 
-@WasmImport("wasi_snapshot_preview1", "fd_filestat_get")
-private external fun wasiFdFilestatGet(
-    fd: Fd,
-    resultBuf: Int
-): Errno
-
 // Buffer size balances memory usage with I/O efficiency for typical resource files.
 private const val BUFFER_SIZE = 8 * 1024
 
@@ -102,14 +95,6 @@ public actual class Resource actual constructor(private val path: String) {
         }
     }
 
-    private fun ByteArray.decodeIso8859(): String {
-        val chars = CharArray(size)
-        for (i in indices) {
-            chars[i] = (this[i].toInt() and 0xFF).toChar()
-        }
-        return chars.concatToString()
-    }
-
     public actual fun readBytes(): ByteArray = withScopedMemoryAllocator { allocator ->
         val fd = openFile(allocator, path)
         try {
@@ -130,7 +115,7 @@ public actual class Resource actual constructor(private val path: String) {
             pathPtr.address.toInt(),
             pathBytes.size,
             OFLAGS_NONE,
-            RIGHTS_FD_READ or RIGHTS_FD_SEEK or RIGHTS_FD_FILESTAT_GET,
+            RIGHTS_FD_READ or RIGHTS_FD_SEEK,
             0L, // no inheriting rights
             0, // fdflags
             resultFdPtr.address.toInt()
@@ -144,43 +129,8 @@ public actual class Resource actual constructor(private val path: String) {
     }
 
     private fun readFileContent(allocator: MemoryAllocator, fd: Fd): ByteArray {
-        val fileSize = getFileSize(allocator, fd)
         val iovec = allocator.allocate(8) // iovec struct: buf pointer (4) + buf_len (4)
         val nreadPtr = allocator.allocate(4)
-
-        // If file size is known, allocate exact buffer and read directly.
-        if (fileSize > 0) {
-            val buffer = allocator.allocate(fileSize)
-            iovec.storeInt(buffer.address.toInt())
-            (iovec + 4).storeInt(fileSize)
-
-            var totalRead = 0
-            while (totalRead < fileSize) {
-                val errno = wasiFdRead(
-                    fd,
-                    iovec.address.toInt(),
-                    1,
-                    nreadPtr.address.toInt()
-                )
-                if (errno != ERRNO_SUCCESS) {
-                    throw ResourceReadException("$path: Read failed (errno=$errno)")
-                }
-                val nread = nreadPtr.loadInt()
-                if (nread == 0) break
-                totalRead += nread
-                // Update iovec for next read.
-                iovec.storeInt((buffer + totalRead).address.toInt())
-                (iovec + 4).storeInt(fileSize - totalRead)
-            }
-
-            val result = ByteArray(totalRead)
-            for (i in 0 until totalRead) {
-                result[i] = (buffer + i).loadByte()
-            }
-            return result
-        }
-
-        // Fall back to chunked reading if size is unknown.
         val chunks = mutableListOf<ByteArray>()
         val buffer = allocator.allocate(BUFFER_SIZE)
         iovec.storeInt(buffer.address.toInt())
@@ -214,16 +164,6 @@ public actual class Resource actual constructor(private val path: String) {
             offset += chunk.size
         }
         return result
-    }
-
-    private fun getFileSize(allocator: MemoryAllocator, fd: Fd): Int {
-        val filestatBuf = allocator.allocate(64)
-        val errno = wasiFdFilestatGet(fd, filestatBuf.address.toInt())
-        if (errno != ERRNO_SUCCESS) return -1
-        // Size is at offset 32 (see filestat layout comment in exists()).
-        val size = (filestatBuf + 32).loadLong()
-        // Return as Int if it fits, otherwise -1 to trigger chunked reading.
-        return if (size in 0..Int.MAX_VALUE) size.toInt() else -1
     }
 
     private fun MemoryAllocator.writeBytes(bytes: ByteArray): Pointer {

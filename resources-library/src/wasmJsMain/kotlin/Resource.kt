@@ -38,6 +38,7 @@ public actual class Resource actual constructor(private val path: String) {
      */
     private class ResourceBrowser(path: String) {
         private val jsPath: JsString = path.toJsString()
+        private val jsBrowserPath: JsString = "/base/${path.removePrefix("/")}".toJsString()
         private val errorPrefix: String = path
 
         fun exists(): Boolean = runCatching {
@@ -67,7 +68,7 @@ public actual class Resource actual constructor(private val path: String) {
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             createXMLHttpRequest().apply {
-                open(method.toJsString(), jsPath, false)
+                open(method.toJsString(), jsBrowserPath, false)
                 config?.invoke(this)
                 send()
             }

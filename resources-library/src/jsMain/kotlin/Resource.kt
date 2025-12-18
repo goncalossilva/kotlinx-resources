@@ -50,7 +50,8 @@ public actual class Resource actual constructor(path: String) {
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             XMLHttpRequest().apply {
-                open(method, path, false)
+                val url = "/base/${path.removePrefix("/")}"
+                open(method, url, false)
                 config?.invoke(this)
                 send()
             }

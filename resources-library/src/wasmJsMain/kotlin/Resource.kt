@@ -37,12 +37,30 @@ public actual class Resource actual constructor(private val path: String) {
      * Resource access via XMLHttpRequest (for browser environments).
      */
     private class ResourceBrowser(path: String) {
-        private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path
+        private val jsUrl: JsString = run {
+            val normalizedPath = path.removePrefix("/")
+            val urlRoot = karmaUrlRootOrNull()?.toString()
+            val url = when {
+                urlRoot != null -> {
+                    val root = if (urlRoot.endsWith("/")) urlRoot else "$urlRoot/"
+                    "${root}base/$normalizedPath"
+                }
+                isKarmaAvailable() -> "/base/$normalizedPath"
+                else -> path
+            }
+            url.toJsString()
+        }
 
-        fun exists(): Boolean = runCatching {
-            request(method = "HEAD").isSuccessful()
-        }.getOrDefault(false)
+        fun exists(): Boolean {
+            if (isKarmaAvailable()) {
+                return karmaHasFile(jsUrl)
+            }
+
+            return runCatching {
+                request(method = "HEAD").isSuccessful()
+            }.getOrDefault(false)
+        }
 
         fun readText(charset: Charset): String {
             val bytes = readBytes()
@@ -50,6 +68,10 @@ public actual class Resource actual constructor(private val path: String) {
         }
 
         fun readBytes(): ByteArray {
+            if (isKarmaAvailable() && !karmaHasFile(jsUrl)) {
+                throw ResourceReadException("$errorPrefix: Read failed (not found)")
+            }
+
             val request = request {
                 overrideMimeType("text/plain; charset=x-user-defined".toJsString())
             }
@@ -67,7 +89,7 @@ public actual class Resource actual constructor(private val path: String) {
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             createXMLHttpRequest().apply {
-                open(method.toJsString(), jsPath, false)
+                open(method.toJsString(), jsUrl, false)
                 config?.invoke(this)
                 send()
             }
@@ -139,6 +161,14 @@ public actual class Resource actual constructor(private val path: String) {
 private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
 
 private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
+
+private fun isKarmaAvailable(): Boolean = js("typeof __karma__ !== 'undefined' && __karma__.files != null")
+
+private fun karmaUrlRootOrNull(): JsString? =
+    js("typeof __karma__ !== 'undefined' && typeof location !== 'undefined' ? location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1) : null")
+
+private fun karmaHasFile(url: JsString): Boolean =
+    js("typeof __karma__ !== 'undefined' && __karma__.files != null && __karma__.files[url] !== undefined")
 
 private fun nodeExistsSync(path: JsString): Boolean = js("require('fs').existsSync(path)")
 

@@ -45,12 +45,42 @@ public actual class Resource actual constructor(path: String) {
      * Resource access via XMLHttpRequest (for browser environments).
      */
     private class ResourceBrowser(private val path: String) {
+        private fun karmaFilesOrNull(): dynamic =
+            js("typeof __karma__ !== 'undefined' && __karma__.files != null ? __karma__.files : null")
+
+        private fun karmaUrlRootOrNull(): String? =
+            js(
+                "typeof __karma__ !== 'undefined' && typeof location !== 'undefined' ? location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1) : null"
+            )
+
+        private fun browserUrl(): String {
+            val normalizedPath = path.removePrefix("/")
+            val urlRoot = karmaUrlRootOrNull()
+            if (urlRoot != null) {
+                val root = if (urlRoot.endsWith("/")) urlRoot else "$urlRoot/"
+                return "${root}base/$normalizedPath"
+            }
+
+            // Best-effort fallback when Karma is present but urlRoot isn't available.
+            if (karmaFilesOrNull() != null) {
+                return "/base/$normalizedPath"
+            }
+
+            return path
+        }
+
+        private fun karmaHasFile(url: String): Boolean {
+            val files = karmaFilesOrNull() ?: return false
+            return files[url] != js("undefined")
+        }
+
         private fun request(
+            url: String,
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             XMLHttpRequest().apply {
-                open(method, path, false)
+                open(method, url, false)
                 config?.invoke(this)
                 send()
             }
@@ -60,9 +90,18 @@ public actual class Resource actual constructor(path: String) {
 
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
-        fun exists(): Boolean = runCatching {
-            request(method = "HEAD").isSuccessful()
-        }.getOrDefault(false)
+        fun exists(): Boolean {
+            val url = browserUrl()
+
+            val karmaFiles = karmaFilesOrNull()
+            if (karmaFiles != null) {
+                return karmaHasFile(url)
+            }
+
+            return runCatching {
+                request(url = url, method = "HEAD").isSuccessful()
+            }.getOrDefault(false)
+        }
 
         fun readText(charset: Charset): String {
             val bytes = readBytes()
@@ -70,7 +109,14 @@ public actual class Resource actual constructor(path: String) {
         }
 
         fun readBytes(): ByteArray {
-            val request = request {
+            val url = browserUrl()
+
+            val karmaFiles = karmaFilesOrNull()
+            if (karmaFiles != null && !karmaHasFile(url)) {
+                throw ResourceReadException("$path: Read failed (not found)")
+            }
+
+            val request = request(url = url) {
                 // https://web.archive.org/web/20071103070418/http://mgran.blogspot.com/2006/08/downloading-binary-streams-with.html
                 overrideMimeType("text/plain; charset=x-user-defined")
             }

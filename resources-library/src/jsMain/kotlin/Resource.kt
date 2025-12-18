@@ -48,17 +48,17 @@ public actual class Resource actual constructor(path: String) {
         private fun request(
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
-        ): XMLHttpRequest = runCatching {
-            XMLHttpRequest().apply {
-                open(method, path, false)
-                config?.invoke(this)
-                send()
+        ): XMLHttpRequest {
+            val xhr = XMLHttpRequest()
+            xhr.open(method, path, false)
+            config?.invoke(xhr)
+            if (!xhrSendSafe(xhr)) {
+                throw ResourceReadException("$path: Request failed")
             }
-        }.getOrElse { cause ->
-            throw ResourceReadException("$path: Request failed", cause)
+            return xhr
         }
 
-        private fun XMLHttpRequest.isSuccessful() = status in 200..299
+        private fun XMLHttpRequest.isSuccessful() = xhrStatusSafe(this) in 200..299
 
         fun exists(): Boolean = runCatching {
             request(method = "HEAD").isSuccessful()
@@ -70,15 +70,15 @@ public actual class Resource actual constructor(path: String) {
         }
 
         fun readBytes(): ByteArray {
-            val request = request {
+            val xhr = request {
                 // https://web.archive.org/web/20071103070418/http://mgran.blogspot.com/2006/08/downloading-binary-streams-with.html
                 overrideMimeType("text/plain; charset=x-user-defined")
             }
-            return if (request.isSuccessful()) {
-                val response = request.responseText
+            return if (xhr.isSuccessful()) {
+                val response = xhr.responseText
                 ByteArray(response.length) { response[it].code.toUByte().toByte() }
             } else {
-                throw ResourceReadException("$path: Read failed (status=${request.status})")
+                throw ResourceReadException("$path: Read failed (status=${xhrStatusSafe(xhr)})")
             }
         }
 
@@ -160,6 +160,13 @@ public actual class Resource actual constructor(path: String) {
         }
     }
 }
+
+// JavaScript-level try-catch to handle XHR errors that may escape Kotlin's runCatching
+private fun xhrSendSafe(xhr: XMLHttpRequest): Boolean =
+    js("(function() { try { xhr.send(); return true; } catch (e) { return false; } })()") as Boolean
+
+private fun xhrStatusSafe(xhr: XMLHttpRequest): Short =
+    js("(function() { try { return xhr.status; } catch (e) { return 0; } })()") as Short
 
 private fun Charset.toNodeEncoding(): String? = when (this) {
     Charset.UTF_8 -> "utf8"

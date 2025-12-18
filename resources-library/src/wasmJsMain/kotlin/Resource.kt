@@ -50,32 +50,32 @@ public actual class Resource actual constructor(private val path: String) {
         }
 
         fun readBytes(): ByteArray {
-            val request = request {
+            val xhr = request {
                 overrideMimeType("text/plain; charset=x-user-defined".toJsString())
             }
-            return if (request.isSuccessful()) {
-                val response = request.responseText
+            return if (xhr.isSuccessful()) {
+                val response = xhr.responseText
                 val length = jsStringLength(response)
                 ByteArray(length) { (jsCharCodeAt(response, it) and 0xFF).toByte() }
             } else {
-                throw ResourceReadException("$errorPrefix: Read failed (status=${request.status})")
+                throw ResourceReadException("$errorPrefix: Read failed (status=${xhrStatusSafe(xhr)})")
             }
         }
 
         private fun request(
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
-        ): XMLHttpRequest = runCatching {
-            createXMLHttpRequest().apply {
-                open(method.toJsString(), jsPath, false)
-                config?.invoke(this)
-                send()
+        ): XMLHttpRequest {
+            val xhr = createXMLHttpRequest()
+            xhr.open(method.toJsString(), jsPath, false)
+            config?.invoke(xhr)
+            if (!xhrSendSafe(xhr)) {
+                throw ResourceReadException("$errorPrefix: Request failed")
             }
-        }.getOrElse { cause ->
-            throw ResourceReadException("$errorPrefix: Request failed", cause)
+            return xhr
         }
 
-        private fun XMLHttpRequest.isSuccessful() = status in 200..299
+        private fun XMLHttpRequest.isSuccessful() = xhrStatusSafe(this) in 200..299
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
             Charset.UTF_8 -> decodeWithTextDecoder("utf-8")
@@ -163,6 +163,13 @@ private external class XMLHttpRequest : JsAny {
 }
 
 private fun createXMLHttpRequest(): XMLHttpRequest = js("new XMLHttpRequest()")
+
+// JavaScript-level try-catch to handle XHR errors that may escape Kotlin's runCatching
+private fun xhrSendSafe(xhr: XMLHttpRequest): Boolean =
+    js("{ try { xhr.send(); return true; } catch (e) { return false; } }")
+
+private fun xhrStatusSafe(xhr: XMLHttpRequest): Int =
+    js("{ try { return xhr.status; } catch (e) { return 0; } }")
 
 private external class TextDecoder : JsAny {
     fun decode(input: Uint8Array): JsString

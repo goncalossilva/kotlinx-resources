@@ -56,7 +56,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         if (isNativeCompilation(kotlinCompilation)) {
             setupNativeResources(kotlinCompilation)
         }
-        // Exclude wasmWasi: it's a KotlinJsIrCompilation but uses WASI-specific resource handling.
         if ((isJsNodeCompilation(kotlinCompilation) || isJsBrowserCompilation(kotlinCompilation)) &&
             !isWasmWasiCompilation(kotlinCompilation)
         ) {

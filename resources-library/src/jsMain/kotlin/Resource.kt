@@ -58,7 +58,6 @@ public actual class Resource actual constructor(path: String) {
             throw ResourceReadException("$path: Request failed", cause)
         }
 
-        @Suppress("MagicNumber")
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
         fun exists(): Boolean = runCatching {

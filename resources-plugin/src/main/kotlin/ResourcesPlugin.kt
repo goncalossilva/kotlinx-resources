@@ -442,7 +442,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         val content = mjsFile.readText()
                         if (dotMappingPattern.containsMatchIn(content)) continue // Already has '.' mapping
 
-                        @Suppress("MagicNumber")
                         val patched = if (existingPreopensPattern.containsMatchIn(content)) {
                             // Merge '.' mapping into existing preopens object.
                             existingPreopensPattern.replace(content) { match ->

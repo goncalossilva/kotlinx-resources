@@ -162,7 +162,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
         setupWasmWasiTestTask(
             kotlinCompilation = kotlinCompilation,
-            taskName = "wasmWasiTestSetupResources",
+            taskName = "wasmWasiTestCopyResources",
             outputDir = outputDir
         )
     }

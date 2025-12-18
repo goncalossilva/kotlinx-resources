@@ -1,3 +1,7 @@
 naming:
     InvalidPackageDeclaration:
         rootPackage: 'com.goncalossilva.resources'
+
+style:
+    MagicNumber:
+        active: false

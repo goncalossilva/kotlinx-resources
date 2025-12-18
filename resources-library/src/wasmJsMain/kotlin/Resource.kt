@@ -75,7 +75,6 @@ public actual class Resource actual constructor(private val path: String) {
             throw ResourceReadException("$errorPrefix: Request failed", cause)
         }
 
-        @Suppress("MagicNumber")
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {

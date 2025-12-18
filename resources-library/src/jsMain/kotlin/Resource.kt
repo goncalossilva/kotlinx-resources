@@ -48,15 +48,19 @@ public actual class Resource actual constructor(path: String) {
         private fun request(
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
-        ): XMLHttpRequest = runCatching {
-            XMLHttpRequest().apply {
-                open(method, path, false)
-                config?.invoke(this)
-                send()
+        ): XMLHttpRequest =
+            try {
+                XMLHttpRequest().apply {
+                    open(method, path, false)
+                    config?.invoke(this)
+                    send()
+                }
+            } catch (error: dynamic) {
+                throw ResourceReadException(
+                    "$path: Request failed${error.describe()}",
+                    error.asThrowable(),
+                )
             }
-        }.getOrElse { cause ->
-            throw ResourceReadException("$path: Request failed", cause)
-        }
 
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
@@ -170,3 +174,18 @@ private fun Charset.toNodeEncoding(): String? = when (this) {
     Charset.UTF_16 -> null
     Charset.UTF_16BE -> null
 }
+
+private fun Any?.asThrowable(): Throwable? = this as? Throwable
+
+private fun Any?.describe(): String =
+    when (this) {
+        null -> ""
+        is Throwable -> this.message.orEmpty().prefix()
+        is String -> this.prefix()
+        else -> runCatching {
+            (this.asDynamic().message as? String)?.prefix()
+                ?: this.toString().prefix()
+        }.getOrDefault("")
+    }
+
+private fun String.prefix(): String = if (isEmpty()) "" else " ($this)"

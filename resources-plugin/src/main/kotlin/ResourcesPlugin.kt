@@ -368,8 +368,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     ): TaskProvider<Task> {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
+        val resourceDirs = getResourceDirs(kotlinCompilation)
 
         val setupTask = tasks.register(taskName) { task ->
+            // Declare inputs for better Gradle integration.
+            task.inputs.files(resourceDirs)
+            // Always run: this task modifies generated .mjs files, so can't be properly cached.
+            task.outputs.upToDateWhen { false }
+
             @Suppress("ObjectLiteralToLambda")
             task.doLast(object : Action<Task> {
                 override fun execute(task: Task) {
@@ -378,7 +384,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     // Copy resources to output directory. Sort so common* source sets (e.g., commonTest)
                     // are processed before platform-specific ones (e.g., wasmWasiTest), allowing the
                     // latter to override shared resources.
-                    val resourceDirs = getResourceDirs(kotlinCompilation)
                     val sortedDirs = resourceDirs.sortedWith(
                         compareBy { resourceDir: File ->
                             val sourceSetName = resourceDir.parentFile?.name ?: ""

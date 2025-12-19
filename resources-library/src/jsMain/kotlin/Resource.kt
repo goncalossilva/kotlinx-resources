@@ -58,7 +58,8 @@ public actual class Resource actual constructor(path: String) {
             throw ResourceReadException("$path: Request failed", cause)
         }
 
-        private fun XMLHttpRequest.isSuccessful() = status in 200..299
+        private fun XMLHttpRequest.isSuccessful() =
+            readyState == 4.toShort() && status in 200..299
 
         fun exists(): Boolean = runCatching {
             request(method = "HEAD").isSuccessful()

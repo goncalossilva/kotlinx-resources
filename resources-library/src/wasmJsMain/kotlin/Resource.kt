@@ -75,7 +75,7 @@ public actual class Resource actual constructor(private val path: String) {
             throw ResourceReadException("$errorPrefix: Request failed", cause)
         }
 
-        private fun XMLHttpRequest.isSuccessful() = status in 200..299
+        private fun XMLHttpRequest.isSuccessful() = readyState == 4 && status in 200..299
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
             Charset.UTF_8 -> decodeWithTextDecoder("utf-8")
@@ -157,6 +157,7 @@ private external class XMLHttpRequest : JsAny {
     fun open(method: JsString, url: JsString, async: Boolean)
     fun send()
     fun overrideMimeType(mimeType: JsString)
+    val readyState: Int
     val status: Int
     val statusText: JsString
     val responseText: JsString

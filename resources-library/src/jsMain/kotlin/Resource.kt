@@ -9,6 +9,8 @@ private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
 
 private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
 
+private val IS_KARMA: Boolean = js(IS_KARMA_JS_CHECK)
+
 private external class TextDecoder(encoding: String = definedExternally) {
     fun decode(input: Uint8Array): String
 }
@@ -45,12 +47,15 @@ public actual class Resource actual constructor(path: String) {
      * Resource access via XMLHttpRequest (for browser environments).
      */
     private class ResourceBrowser(private val path: String) {
+        private val requestUrl: String =
+            if (IS_KARMA && !path.startsWith("/") && !path.contains("://")) "/base/$path" else path
+
         private fun request(
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             XMLHttpRequest().apply {
-                open(method, path, false)
+                open(method, requestUrl, false)
                 config?.invoke(this)
                 send()
             }

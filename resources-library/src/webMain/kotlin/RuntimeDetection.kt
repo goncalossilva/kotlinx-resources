@@ -6,3 +6,5 @@ internal const val IS_BROWSER_JS_CHECK: String =
 
 internal const val IS_NODE_JS_CHECK: String =
     "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
+
+internal const val IS_KARMA_JS_CHECK: String = "typeof __karma__ !== 'undefined'"

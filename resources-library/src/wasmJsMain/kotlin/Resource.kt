@@ -37,7 +37,8 @@ public actual class Resource actual constructor(private val path: String) {
      * Resource access via XMLHttpRequest (for browser environments).
      */
     private class ResourceBrowser(path: String) {
-        private val jsPath: JsString = path.toJsString()
+        private val jsPath: JsString =
+            (if (IS_KARMA && !path.startsWith("/") && !path.contains("://")) "/base/$path" else path).toJsString()
         private val errorPrefix: String = path
 
         fun exists(): Boolean = runCatching {
@@ -139,6 +140,8 @@ public actual class Resource actual constructor(private val path: String) {
 private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
 
 private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
+
+private val IS_KARMA: Boolean = js(IS_KARMA_JS_CHECK)
 
 private fun nodeExistsSync(path: JsString): Boolean = js("require('fs').existsSync(path)")
 

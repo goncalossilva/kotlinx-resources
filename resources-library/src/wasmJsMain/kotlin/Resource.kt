@@ -70,6 +70,7 @@ public actual class Resource actual constructor(private val path: String) {
                 open(method.toJsString(), jsPath, false)
                 config?.invoke(this)
                 send()
+                check(readyState == XMLHttpRequest.DONE) { "Request incomplete" }
             }
         }.getOrElse { cause ->
             throw ResourceReadException("$errorPrefix: Request failed", cause)
@@ -157,9 +158,14 @@ private external class XMLHttpRequest : JsAny {
     fun open(method: JsString, url: JsString, async: Boolean)
     fun send()
     fun overrideMimeType(mimeType: JsString)
+    val readyState: Int
     val status: Int
     val statusText: JsString
     val responseText: JsString
+
+    companion object {
+        val DONE: Int
+    }
 }
 
 private fun createXMLHttpRequest(): XMLHttpRequest = js("new XMLHttpRequest()")

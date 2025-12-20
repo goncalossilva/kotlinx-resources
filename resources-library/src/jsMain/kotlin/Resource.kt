@@ -53,6 +53,7 @@ public actual class Resource actual constructor(path: String) {
                 open(method, path, false)
                 config?.invoke(this)
                 send()
+                check(readyState == XMLHttpRequest.DONE) { "Request incomplete" }
             }
         }.getOrElse { cause ->
             throw ResourceReadException("$path: Request failed", cause)

@@ -65,15 +65,32 @@ public actual class Resource actual constructor(private val path: String) {
         private fun request(
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
-        ): XMLHttpRequest = runCatching {
-            createXMLHttpRequest().apply {
-                open(method.toJsString(), jsPath, false)
-                config?.invoke(this)
-                send()
-                check(readyState == XMLHttpRequest.DONE) { "Request incomplete" }
+        ): XMLHttpRequest {
+            val request = createXMLHttpRequest()
+            val openError = openRequest(request, method.toJsString(), jsPath)
+            if (openError != null) {
+                throw ResourceReadException(
+                    "$errorPrefix: Request failed (${jsErrorToString(openError)})"
+                )
             }
-        }.getOrElse { cause ->
-            throw ResourceReadException("$errorPrefix: Request failed", cause)
+            try {
+                config?.invoke(request)
+            } catch (cause: Throwable) {
+                throw ResourceReadException("$errorPrefix: Request failed", cause)
+            }
+            val sendError = sendRequest(request)
+            if (sendError != null) {
+                throw ResourceReadException(
+                    "$errorPrefix: Request failed (${jsErrorToString(sendError)})"
+                )
+            }
+            if (request.readyState != XMLHttpRequest.DONE) {
+                throw ResourceReadException(
+                    "$errorPrefix: Request failed",
+                    IllegalStateException("Request incomplete")
+                )
+            }
+            return request
         }
 
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
@@ -169,6 +186,26 @@ private external class XMLHttpRequest : JsAny {
 }
 
 private fun createXMLHttpRequest(): XMLHttpRequest = js("new XMLHttpRequest()")
+
+private fun openRequest(
+    request: XMLHttpRequest,
+    method: JsString,
+    resourcePath: JsString,
+): JsAny? = js(
+    "(function() {" +
+        "try { request.open(method, resourcePath, false); return null; }" +
+        "catch (e) { return e; }" +
+    "})()"
+)
+
+private fun sendRequest(request: XMLHttpRequest): JsAny? = js(
+    "(function() {" +
+        "try { request.send(); return null; }" +
+        "catch (e) { return e; }" +
+    "})()"
+)
+
+private fun jsErrorToString(error: JsAny): String = js("String(error)")
 
 private external class TextDecoder : JsAny {
     fun decode(input: Uint8Array): JsString

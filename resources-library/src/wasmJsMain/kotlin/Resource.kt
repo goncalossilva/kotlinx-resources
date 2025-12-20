@@ -37,12 +37,19 @@ public actual class Resource actual constructor(private val path: String) {
      * Resource access via XMLHttpRequest (for browser environments).
      */
     private class ResourceBrowser(path: String) {
-        private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path
+        private val jsUrl: JsString = browserUrl(path).toJsString()
 
-        fun exists(): Boolean = runCatching {
-            request(method = "HEAD").isSuccessful()
-        }.getOrDefault(false)
+        fun exists(): Boolean {
+            // In Karma test environment, check the file registry directly to avoid
+            // flaky synchronous XHR issues in ChromeHeadless.
+            if (isKarmaAvailable()) {
+                return karmaHasFile(jsUrl)
+            }
+            return runCatching {
+                request(method = "HEAD").isSuccessful()
+            }.getOrDefault(false)
+        }
 
         fun readText(charset: Charset): String {
             val bytes = readBytes()
@@ -50,6 +57,11 @@ public actual class Resource actual constructor(private val path: String) {
         }
 
         fun readBytes(): ByteArray {
+            // In Karma test environment, check the file registry first to provide
+            // a clear error for missing files.
+            if (isKarmaAvailable() && !karmaHasFile(jsUrl)) {
+                throw ResourceReadException("$errorPrefix: Read failed (not found)")
+            }
             val request = request {
                 overrideMimeType("text/plain; charset=x-user-defined".toJsString())
             }
@@ -67,7 +79,7 @@ public actual class Resource actual constructor(private val path: String) {
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             createXMLHttpRequest().apply {
-                open(method.toJsString(), jsPath, false)
+                open(method.toJsString(), jsUrl, false)
                 config?.invoke(this)
                 send()
                 check(readyState == XMLHttpRequest.DONE) { "Request incomplete" }
@@ -202,4 +214,31 @@ private fun Charset.toNodeEncoding(): String? = when (this) {
     // Node doesn't support UTF-16 with BOM or UTF-16BE natively.
     Charset.UTF_16 -> null
     Charset.UTF_16BE -> null
+}
+
+// Karma test environment detection and file registry access.
+// This avoids flaky synchronous XHR issues in ChromeHeadless by checking
+// Karma's internal file registry directly.
+
+private fun isKarmaAvailable(): Boolean =
+    js("typeof __karma__ !== 'undefined' && __karma__.files != null")
+
+private fun karmaUrlRootOrNull(): JsString? =
+    js("typeof __karma__ !== 'undefined' && typeof location !== 'undefined' ? location.pathname.substring(0, location.pathname.lastIndexOf('/') + 1) : null")
+
+private fun karmaHasFile(url: JsString): Boolean =
+    js("typeof __karma__ !== 'undefined' && __karma__.files != null && __karma__.files[url] !== undefined")
+
+private fun browserUrl(path: String): String {
+    val normalizedPath = path.removePrefix("/")
+    val urlRoot = karmaUrlRootOrNull()?.toString()
+    if (urlRoot != null) {
+        val root = if (urlRoot.endsWith("/")) urlRoot else "$urlRoot/"
+        return "${root}base/$normalizedPath"
+    }
+    // Best-effort fallback when Karma is present but urlRoot isn't available.
+    if (isKarmaAvailable()) {
+        return "/base/$normalizedPath"
+    }
+    return path
 }

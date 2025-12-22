@@ -37,11 +37,16 @@ public actual class Resource actual constructor(private val path: String) {
      * Resource access via XMLHttpRequest (for browser environments).
      */
     private class ResourceBrowser(path: String) {
+        private val path: String = path
         private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path
 
         fun exists(): Boolean = runCatching {
-            request(method = "HEAD").isSuccessful()
+            val request = request()
+            request.isSuccessful() && !isFallbackResponse(
+                request.responseText,
+                request.getResponseHeader("Content-Type".toJsString())?.toString(),
+            )
         }.getOrDefault(false)
 
         fun readText(charset: Charset): String {
@@ -55,6 +60,9 @@ public actual class Resource actual constructor(private val path: String) {
             }
             return if (request.isSuccessful()) {
                 val response = request.responseText
+                if (isFallbackResponse(response, request.getResponseHeader("Content-Type".toJsString())?.toString())) {
+                    throw ResourceReadException("$errorPrefix: Read failed (status=${request.status})")
+                }
                 val length = jsStringLength(response)
                 ByteArray(length) { (jsCharCodeAt(response, it) and 0xFF).toByte() }
             } else {
@@ -77,6 +85,43 @@ public actual class Resource actual constructor(private val path: String) {
         }
 
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
+
+        private fun isFallbackResponse(responseText: JsString, contentType: String?): Boolean {
+            if (path.endsWith(".html", ignoreCase = true) || path.endsWith(".htm", ignoreCase = true)) {
+                return false
+            }
+            val normalizedType = contentType?.trim()
+            if (normalizedType != null && normalizedType.startsWith("text/html", ignoreCase = true)) {
+                return true
+            }
+            val isScriptPath = path.endsWith(".js", ignoreCase = true) ||
+                path.endsWith(".mjs", ignoreCase = true) ||
+                path.endsWith(".cjs", ignoreCase = true)
+            if (!isScriptPath && normalizedType != null && isScriptContentType(normalizedType)) {
+                return true
+            }
+            var trimmed = responseText.toString().trimStart()
+            if (trimmed.startsWith("\uFEFF")) {
+                trimmed = trimmed.removePrefix("\uFEFF")
+            }
+            if (trimmed.isEmpty()) return false
+            val sample = if (trimmed.length > 1024) trimmed.substring(0, 1024) else trimmed
+            if (sample.contains("<html", ignoreCase = true) ||
+                sample.startsWith("<!doctype html", ignoreCase = true)) {
+                return true
+            }
+            if (!isScriptPath && sample.contains("__karma__")) {
+                return true
+            }
+            return false
+        }
+
+        private fun isScriptContentType(contentType: String): Boolean =
+            contentType.startsWith("application/javascript", ignoreCase = true) ||
+                contentType.startsWith("text/javascript", ignoreCase = true) ||
+                contentType.startsWith("application/x-javascript", ignoreCase = true) ||
+                contentType.startsWith("application/ecmascript", ignoreCase = true) ||
+                contentType.startsWith("text/ecmascript", ignoreCase = true)
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
             Charset.UTF_8 -> decodeWithTextDecoder("utf-8")
@@ -158,6 +203,7 @@ private external class XMLHttpRequest : JsAny {
     fun open(method: JsString, url: JsString, async: Boolean)
     fun send()
     fun overrideMimeType(mimeType: JsString)
+    fun getResponseHeader(name: JsString): JsString?
     val readyState: Int
     val status: Int
     val statusText: JsString

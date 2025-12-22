@@ -62,7 +62,11 @@ public actual class Resource actual constructor(path: String) {
         private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
         fun exists(): Boolean = runCatching {
-            request(method = "HEAD").isSuccessful()
+            val request = request()
+            request.isSuccessful() && !isFallbackResponse(
+                request.responseText,
+                request.getResponseHeader("Content-Type"),
+            )
         }.getOrDefault(false)
 
         fun readText(charset: Charset): String {
@@ -77,11 +81,51 @@ public actual class Resource actual constructor(path: String) {
             }
             return if (request.isSuccessful()) {
                 val response = request.responseText
+                if (isFallbackResponse(response, request.getResponseHeader("Content-Type"))) {
+                    throw ResourceReadException("$path: Read failed (status=${request.status})")
+                }
                 ByteArray(response.length) { response[it].code.toUByte().toByte() }
             } else {
                 throw ResourceReadException("$path: Read failed (status=${request.status})")
             }
         }
+
+        private fun isFallbackResponse(responseText: String, contentType: String?): Boolean {
+            if (path.endsWith(".html", ignoreCase = true) || path.endsWith(".htm", ignoreCase = true)) {
+                return false
+            }
+            val normalizedType = contentType?.trim()
+            if (normalizedType != null && normalizedType.startsWith("text/html", ignoreCase = true)) {
+                return true
+            }
+            val isScriptPath = path.endsWith(".js", ignoreCase = true) ||
+                path.endsWith(".mjs", ignoreCase = true) ||
+                path.endsWith(".cjs", ignoreCase = true)
+            if (!isScriptPath && normalizedType != null && isScriptContentType(normalizedType)) {
+                return true
+            }
+            var trimmed = responseText.trimStart()
+            if (trimmed.startsWith("\uFEFF")) {
+                trimmed = trimmed.removePrefix("\uFEFF")
+            }
+            if (trimmed.isEmpty()) return false
+            val sample = if (trimmed.length > 1024) trimmed.substring(0, 1024) else trimmed
+            if (sample.contains("<html", ignoreCase = true) ||
+                sample.startsWith("<!doctype html", ignoreCase = true)) {
+                return true
+            }
+            if (!isScriptPath && sample.contains("__karma__")) {
+                return true
+            }
+            return false
+        }
+
+        private fun isScriptContentType(contentType: String): Boolean =
+            contentType.startsWith("application/javascript", ignoreCase = true) ||
+                contentType.startsWith("text/javascript", ignoreCase = true) ||
+                contentType.startsWith("application/x-javascript", ignoreCase = true) ||
+                contentType.startsWith("application/ecmascript", ignoreCase = true) ||
+                contentType.startsWith("text/ecmascript", ignoreCase = true)
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
             Charset.UTF_8 -> decodeWithTextDecoder("utf-8")

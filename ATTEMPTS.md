@@ -8,12 +8,13 @@ Last updated: 2025-12-24
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
-- Add a Karma middleware that checks `/base/*` requests against the filesystem
-  and returns a real 404 (text/plain) when the target file doesn't exist.
-- Register the middleware ahead of other handlers to avoid HTML fallbacks.
-- Keep library code unchanged; fix behavior in the test harness only.
+- Treat urlRoot-prefixed `/base/` paths (e.g., `/__karma__/base/...`) as
+  resource requests in the Karma middleware so missing files always return 404.
+- Keep the middleware first in the chain; no library changes.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): Karma 404 middleware for /base
 - Attempt 1: FAIL (run 20481341626, 2025-12-24)
   - macOS wasmJs browser: Karma config error
     (SyntaxError: Identifier 'path' has already been declared). Streak reset.
@@ -21,6 +22,14 @@ Last updated: 2025-12-24
   - Windows build: Gradle wrapper download timeout (infra). Rerun.
 - Attempt 3: PASS (run 20485372937, 2025-12-24)
 - Attempt 4: PASS (run 20485986327, 2025-12-24)
+- Attempt 5: PASS (run 20486676133, 2025-12-24)
+- Attempt 6: PASS (rerun 20486676133, 2025-12-24)
+- Attempt 7: PASS (rerun 20486676133, 2025-12-24)
+- Attempt 8: PASS (rerun 20486676133, 2025-12-24)
+- Attempt 9: PASS (rerun 20486676133, 2025-12-24)
+- Attempt 10: FAIL (rerun 20486676133, 2025-12-24)
+  - Windows JS browser: ResourceTest.readBytesNestedThrowsWhenNotFound FAILED
+    (ChromeHeadless143.0.0.0, Windows10). Streak reset.
 
 ## Previous hypothesis (ended): JSON/plain 404 payload detection
 - Treat JSON/plain-text 404 fallback payloads (e.g., "Cannot GET", "Not Found",

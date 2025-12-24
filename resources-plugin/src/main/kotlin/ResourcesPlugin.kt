@@ -245,15 +245,29 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |        }
         |    };
         |    const stripQuery = (input) => input.split("?")[0].split("#")[0];
+        |    const normalizeRoot = (root) => {
+        |        let normalized = root || "/";
+        |        if (!normalized.startsWith("/")) {
+        |            normalized = "/" + normalized;
+        |        }
+        |        if (!normalized.endsWith("/")) {
+        |            normalized += "/";
+        |        }
+        |        return normalized;
+        |    };
         |    const resolveBasePath = (url) => {
         |        const pathPart = stripQuery(url || "");
-        |        if (pathPart == "/base" || pathPart == "/base/") {
-        |            return "";
+        |        const urlRoot = normalizeRoot(config.urlRoot || "/");
+        |        const basePrefixes = ["/base/", urlRoot + "base/"];
+        |        for (const basePrefix of basePrefixes) {
+        |            if (pathPart == basePrefix.slice(0, -1)) {
+        |                return "";
+        |            }
+        |            if (pathPart.startsWith(basePrefix)) {
+        |                return decodePath(pathPart.slice(basePrefix.length));
+        |            }
         |        }
-        |        if (!pathPart.startsWith("/base/")) {
-        |            return null;
-        |        }
-        |        return decodePath(pathPart.slice("/base/".length));
+        |        return null;
         |    };
         |
         |    const resource404 = function () {

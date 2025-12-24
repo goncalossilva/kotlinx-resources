@@ -14,6 +14,9 @@ Last updated: 2025-12-24
 - Keep library code unchanged; fix behavior in the test harness only.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: FAIL (run 20481341626, 2025-12-24)
+  - macOS wasmJs browser: Karma config error
+    (SyntaxError: Identifier 'path' has already been declared). Streak reset.
 
 ## Previous hypothesis (ended): JSON/plain 404 payload detection
 - Treat JSON/plain-text 404 fallback payloads (e.g., "Cannot GET", "Not Found",

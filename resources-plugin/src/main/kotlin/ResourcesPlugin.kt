@@ -232,76 +232,78 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         """.trimMargin()
 
     private val karmaProxyResourcesConfig = """
-        |const path = require("path");
-        |const fs = require("fs");
+        |(function () {
+        |    const path = require("path");
+        |    const fs = require("fs");
         |
-        |const baseDir = path.resolve(config.basePath || "");
-        |const decodePath = (input) => {
-        |    try {
-        |        return decodeURIComponent(input);
-        |    } catch (error) {
-        |        return input;
-        |    }
-        |};
-        |const stripQuery = (input) => input.split("?")[0].split("#")[0];
-        |const resolveBasePath = (url) => {
-        |    const pathPart = stripQuery(url || "");
-        |    if (pathPart == "/base" || pathPart == "/base/") {
-        |        return "";
-        |    }
-        |    if (!pathPart.startsWith("/base/")) {
-        |        return null;
-        |    }
-        |    return decodePath(pathPart.slice("/base/".length));
-        |};
-        |
-        |const resource404 = function () {
-        |    return function resource404Middleware(req, res, next) {
-        |        const relativePath = resolveBasePath(req.url);
-        |        if (relativePath == null) {
-        |            return next();
-        |        }
-        |
-        |        const fullPath = path.resolve(baseDir, relativePath);
-        |        const relative = path.relative(baseDir, fullPath);
-        |        if (relative.startsWith("..") || path.isAbsolute(relative)) {
-        |            res.statusCode = 404;
-        |            res.setHeader("Content-Type", "text/plain; charset=utf-8");
-        |            res.end("Not Found");
-        |            return;
-        |        }
-        |
+        |    const baseDir = path.resolve(config.basePath || "");
+        |    const decodePath = (input) => {
         |        try {
-        |            const stat = fs.statSync(fullPath);
-        |            if (!stat.isFile()) {
+        |            return decodeURIComponent(input);
+        |        } catch (error) {
+        |            return input;
+        |        }
+        |    };
+        |    const stripQuery = (input) => input.split("?")[0].split("#")[0];
+        |    const resolveBasePath = (url) => {
+        |        const pathPart = stripQuery(url || "");
+        |        if (pathPart == "/base" || pathPart == "/base/") {
+        |            return "";
+        |        }
+        |        if (!pathPart.startsWith("/base/")) {
+        |            return null;
+        |        }
+        |        return decodePath(pathPart.slice("/base/".length));
+        |    };
+        |
+        |    const resource404 = function () {
+        |        return function resource404Middleware(req, res, next) {
+        |            const relativePath = resolveBasePath(req.url);
+        |            if (relativePath == null) {
+        |                return next();
+        |            }
+        |
+        |            const fullPath = path.resolve(baseDir, relativePath);
+        |            const relative = path.relative(baseDir, fullPath);
+        |            if (relative.startsWith("..") || path.isAbsolute(relative)) {
         |                res.statusCode = 404;
         |                res.setHeader("Content-Type", "text/plain; charset=utf-8");
         |                res.end("Not Found");
         |                return;
         |            }
-        |        } catch (error) {
-        |            res.statusCode = 404;
-        |            res.setHeader("Content-Type", "text/plain; charset=utf-8");
-        |            res.end("Not Found");
-        |            return;
-        |        }
         |
-        |        return next();
+        |            try {
+        |                const stat = fs.statSync(fullPath);
+        |                if (!stat.isFile()) {
+        |                    res.statusCode = 404;
+        |                    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        |                    res.end("Not Found");
+        |                    return;
+        |                }
+        |            } catch (error) {
+        |                res.statusCode = 404;
+        |                res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        |                res.end("Not Found");
+        |                return;
+        |            }
+        |
+        |            return next();
+        |        };
         |    };
-        |};
         |
-        |config.set({
-        |    "proxies": {
-        |       "/": "/base/"
-        |    },
-        |    "urlRoot": "/__karma__/",
-        |    "hostname": "127.0.0.1",
-        |    "listenAddress": "127.0.0.1",
-        |    "plugins": (config.plugins || []).concat([{
-        |        "middleware:resource404": ["factory", resource404]
-        |    }]),
-        |    "middleware": ["resource404"].concat(config.middleware || [])
-        |});
+        |    config.set({
+        |        "proxies": {
+        |           "/": "/base/"
+        |        },
+        |        "urlRoot": "/__karma__/",
+        |        "hostname": "127.0.0.1",
+        |        "listenAddress": "127.0.0.1",
+        |        "plugins": (config.plugins || []).concat([{
+        |            "middleware:resource404": ["factory", resource404]
+        |        }]),
+        |        "middleware": ["resource404"].concat(config.middleware || [])
+        |    });
+        |})();
         """.trimMargin()
 
     private fun writeKarmaProxyResourcesConfig(confWriter: PrintWriter) {

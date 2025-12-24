@@ -304,6 +304,26 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |            return next();
         |        };
         |    };
+        |    const hasResourceMiddleware = () => {
+        |        const plugins = config.plugins || [];
+        |        return plugins.some((plugin) => plugin && plugin["middleware:resource404"]);
+        |    };
+        |    const ensureResourceMiddleware = () => {
+        |        if (!hasResourceMiddleware()) {
+        |            config.plugins = (config.plugins || []).concat([{
+        |                "middleware:resource404": ["factory", resource404]
+        |            }]);
+        |        }
+        |        const middleware = (config.middleware || []).filter(
+        |            (name) => name != "resource404"
+        |        );
+        |        config.middleware = ["resource404"].concat(middleware);
+        |    };
+        |    const originalSet = config.set.bind(config);
+        |    config.set = function (newConfig) {
+        |        originalSet(newConfig);
+        |        ensureResourceMiddleware();
+        |    };
         |
         |    config.set({
         |        "proxies": {
@@ -312,11 +332,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |        "urlRoot": "/__karma__/",
         |        "hostname": "127.0.0.1",
         |        "listenAddress": "127.0.0.1",
-        |        "plugins": (config.plugins || []).concat([{
-        |            "middleware:resource404": ["factory", resource404]
-        |        }]),
-        |        "middleware": ["resource404"].concat(config.middleware || [])
+        |        "plugins": config.plugins,
+        |        "middleware": config.middleware
         |    });
+        |    ensureResourceMiddleware();
         |})();
         """.trimMargin()
 

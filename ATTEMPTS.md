@@ -8,11 +8,17 @@ Last updated: 2025-12-24
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
-- Treat urlRoot-prefixed `/base/` paths (e.g., `/__karma__/base/...`) as
-  resource requests in the Karma middleware so missing files always return 404.
-- Keep the middleware first in the chain; no library changes.
+- Wrap `config.set` in the Karma fragment so the resource404 middleware is
+  re-applied after every config update (protects against fragment ordering).
+- Keep urlRoot-aware `/base/` handling; no library changes.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): urlRoot-prefixed /base handling
+- Attempt 1: PASS (run 20490718242, 2025-12-24)
+- Attempt 2: FAIL (rerun 20490718242, 2025-12-24)
+  - macOS JS browser: ResourceTest.doesNotExistNested FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7). Streak reset.
 
 ## Previous hypothesis (ended): Karma 404 middleware for /base
 - Attempt 1: FAIL (run 20481341626, 2025-12-24)

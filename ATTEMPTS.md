@@ -17,6 +17,8 @@ Last updated: 2025-12-24
 - Attempt 1: FAIL (run 20481341626, 2025-12-24)
   - macOS wasmJs browser: Karma config error
     (SyntaxError: Identifier 'path' has already been declared). Streak reset.
+- Attempt 2: FAIL (run 20484919027, 2025-12-24)
+  - Windows build: Gradle wrapper download timeout (infra). Rerun.
 
 ## Previous hypothesis (ended): JSON/plain 404 payload detection
 - Treat JSON/plain-text 404 fallback payloads (e.g., "Cannot GET", "Not Found",

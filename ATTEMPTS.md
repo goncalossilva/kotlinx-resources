@@ -13,6 +13,7 @@ Last updated: 2025-12-25
   header-based heuristics so HEAD/GET behave consistently.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PASS (run 20510992409, 2025-12-25)
 
 ## Previous hypothesis (ended): urlRoot XHR rewrite with header heuristics
 - Treat urlRoot-relative XHR as resources even when `sec-fetch-dest` is missing,

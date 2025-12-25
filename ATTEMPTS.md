@@ -16,6 +16,7 @@ Last updated: 2025-12-25
 - Attempt 1: PASS (run 20498780840, 2025-12-25)
 - Attempt 2: PASS (run 20498951037, 2025-12-25)
 - Attempt 3: PASS (run 20499194126, 2025-12-25)
+- Attempt 4: PASS (run 20499402139, 2025-12-25)
 
 ## Previous hypothesis (ended): re-apply resource404 middleware after config.set
 - Wrap `config.set` in the Karma fragment so the resource404 middleware is

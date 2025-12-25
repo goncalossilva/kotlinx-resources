@@ -8,17 +8,29 @@ Last updated: 2025-12-25
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Handle `HEAD` requests inside the Karma resource middleware:
+  return 200 with Content-Length when the file exists, 404 otherwise.
+- Keep urlRoot-aware `/base/` handling and the middleware re-apply hook.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PENDING
+
+## Previous hypothesis (ended): re-apply resource404 middleware after config.set
 - Wrap `config.set` in the Karma fragment so the resource404 middleware is
   re-applied after every config update (protects against fragment ordering).
 - Keep urlRoot-aware `/base/` handling; no library changes.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20492547071, 2025-12-24)
 - Attempt 2: PASS (rerun 20492547071, 2025-12-24)
 - Attempt 3: PASS (rerun 20492547071, 2025-12-24)
 - Attempt 4: CANCELED (run 20498380550, 2025-12-25)
   - GitHub Actions concurrency canceled this run. Streak reset; rerun.
 - Attempt 5: PASS (run 20498399369, 2025-12-25)
+- Attempt 6: FAIL (run 20498570641, 2025-12-25)
+  - Windows wasmJs browser: WasmJsResourceTest.platformResourceOverride FAILED
+    (ChromeHeadless143.0.0.0, Windows10). Streak reset.
+  - macOS job canceled after Windows failure (fail-fast).
 
 ## Previous hypothesis (ended): urlRoot-prefixed /base handling
 - Attempt 1: PASS (run 20490718242, 2025-12-24)

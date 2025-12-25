@@ -286,8 +286,9 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |                return;
         |            }
         |
+        |            let stat;
         |            try {
-        |                const stat = fs.statSync(fullPath);
+        |                stat = fs.statSync(fullPath);
         |                if (!stat.isFile()) {
         |                    res.statusCode = 404;
         |                    res.setHeader("Content-Type", "text/plain; charset=utf-8");
@@ -298,6 +299,13 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |                res.statusCode = 404;
         |                res.setHeader("Content-Type", "text/plain; charset=utf-8");
         |                res.end("Not Found");
+        |                return;
+        |            }
+        |
+        |            if ((req.method || "").toUpperCase() === "HEAD") {
+        |                res.statusCode = 200;
+        |                res.setHeader("Content-Length", stat.size);
+        |                res.end();
         |                return;
         |            }
         |

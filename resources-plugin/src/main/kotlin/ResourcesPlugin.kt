@@ -275,11 +275,29 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |        if (!pathPart.startsWith(urlRoot)) {
         |            return null;
         |        }
-        |        const fetchDest = (req.headers["sec-fetch-dest"] || "").toLowerCase();
-        |        if (fetchDest !== "empty") {
+        |        const method = (req.method || "").toUpperCase();
+        |        if (method && method !== "GET" && method !== "HEAD") {
         |            return null;
         |        }
-        |        return decodePath(pathPart.slice(urlRoot.length));
+        |        const relativePath = decodePath(pathPart.slice(urlRoot.length));
+        |        const fetchDest = (req.headers["sec-fetch-dest"] || "").toLowerCase();
+        |        if (fetchDest === "empty") {
+        |            return relativePath;
+        |        }
+        |        if (fetchDest !== "") {
+        |            return null;
+        |        }
+        |        const lower = relativePath.toLowerCase();
+        |        if (lower === "" ||
+        |            lower.startsWith("context.") ||
+        |            lower.startsWith("debug.") ||
+        |            lower.startsWith("karma.") ||
+        |            lower.startsWith("adapter.") ||
+        |            lower === "favicon.ico"
+        |        ) {
+        |            return null;
+        |        }
+        |        return relativePath;
         |    };
         |
         |    const resource404 = function () {

@@ -8,10 +8,19 @@ Last updated: 2025-12-25
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Treat urlRoot-relative XHR as resources even when `sec-fetch-dest` is missing,
+  as long as the path is not an HTML/script asset. This ensures the resource404
+  middleware consistently rewrites to `/base/` and returns 404 for missing files.
+- Revert JS/wasm browser fallback detection to the baseline status-only check,
+  relying on Karma middleware for missing resources instead.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): HTML/plain-text fallback detection (JS + wasm)
 - Treat HTML/plain-text fallback bodies as missing resources in browser
   Resource implementations (JS + wasm), while keeping current Karma config.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20502477408, 2025-12-25)
 - Attempt 2: PASS (run 20502873070, 2025-12-25)
 - Attempt 3: PASS (run 20503301834, 2025-12-25)
@@ -23,6 +32,9 @@ Last updated: 2025-12-25
 - Attempt 9: PASS (run 20505886617, 2025-12-25)
 - Attempt 10: PASS (run 20506037446, 2025-12-25)
 - Attempt 11: PASS (run 20506183346, 2025-12-25)
+- Attempt 12: FAIL (run 20506360115, 2025-12-25)
+  - Windows JS browser: ResourceTest.readBytesNestedThrowsWhenNotFound FAILED
+    (ChromeHeadless143.0.0.0, Windows10). Streak reset.
 
 ## Previous hypothesis (ended): rewrite urlRoot XHR to /base
 - Rewrite XHR/fetch requests under urlRoot to `/base/` before the resource

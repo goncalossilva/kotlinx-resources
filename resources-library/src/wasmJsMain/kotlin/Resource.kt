@@ -76,25 +76,7 @@ public actual class Resource actual constructor(private val path: String) {
             throw ResourceReadException("$errorPrefix: Request failed", cause)
         }
 
-        private fun XMLHttpRequest.isSuccessful(): Boolean {
-            if (status !in 200..299) return false
-            if (errorPrefix.endsWith(".html", ignoreCase = true) ||
-                errorPrefix.endsWith(".htm", ignoreCase = true)
-            ) {
-                return true
-            }
-            val body = responseText.toString().trimStart()
-            if (body.startsWith("<!DOCTYPE", ignoreCase = true) ||
-                body.startsWith("<html", ignoreCase = true)
-            ) {
-                return false
-            }
-            val lower = body.lowercase()
-            if (lower.startsWith("cannot get") || lower.startsWith("not found")) {
-                return false
-            }
-            return true
-        }
+        private fun XMLHttpRequest.isSuccessful(): Boolean = status in 200..299
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
             Charset.UTF_8 -> decodeWithTextDecoder("utf-8")

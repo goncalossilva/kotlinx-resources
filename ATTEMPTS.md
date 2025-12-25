@@ -8,13 +8,23 @@ Last updated: 2025-12-25
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Treat HTML/plain-text fallback bodies as missing resources in browser
+  Resource implementations (JS + wasm), while keeping current Karma config.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PENDING
+
+## Previous hypothesis (ended): rewrite urlRoot XHR to /base
 - Rewrite XHR/fetch requests under urlRoot to `/base/` before the resource
   middleware runs (use `sec-fetch-dest: empty` as a signal).
 - Keep `HEAD` handling, urlRoot-aware `/base/` checks, and the middleware
   re-apply hook.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20500319907, 2025-12-25)
+- Attempt 2: FAIL (run 20500639968, 2025-12-25)
+  - Windows JS browser: ResourceTest.readTextNestedThrowsWhenNotFound FAILED
+    (ChromeHeadless143.0.0.0, Windows10). Streak reset.
 
 ## Previous hypothesis (ended): handle HEAD in resource middleware
 - Handle `HEAD` requests inside the Karma resource middleware:

@@ -13,6 +13,10 @@ Last updated: 2025-12-24
 - Keep urlRoot-aware `/base/` handling; no library changes.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PASS (run 20492547071, 2025-12-24)
+- Attempt 2: PASS (rerun 20492547071, 2025-12-24)
+- Attempt 3: PASS (rerun 20492547071, 2025-12-24)
+- Attempt 4: PASS (rerun 20492547071, 2025-12-25)
 
 ## Previous hypothesis (ended): urlRoot-prefixed /base handling
 - Attempt 1: PASS (run 20490718242, 2025-12-24)

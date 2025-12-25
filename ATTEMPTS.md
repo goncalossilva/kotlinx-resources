@@ -16,6 +16,8 @@ Last updated: 2025-12-24
 - Attempt 1: PASS (run 20492547071, 2025-12-24)
 - Attempt 2: PASS (rerun 20492547071, 2025-12-24)
 - Attempt 3: PASS (rerun 20492547071, 2025-12-24)
+- Attempt 4: CANCELED (run 20498380550, 2025-12-25)
+  - GitHub Actions concurrency canceled this run. Streak reset; rerun.
 - Attempt 4: PASS (rerun 20492547071, 2025-12-25)
 
 ## Previous hypothesis (ended): urlRoot-prefixed /base handling

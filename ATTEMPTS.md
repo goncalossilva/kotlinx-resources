@@ -14,7 +14,7 @@ Last updated: 2025-12-25
   re-apply hook.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
-- Attempt 1: PENDING
+- Attempt 1: PASS (run 20500319907, 2025-12-25)
 
 ## Previous hypothesis (ended): handle HEAD in resource middleware
 - Handle `HEAD` requests inside the Karma resource middleware:

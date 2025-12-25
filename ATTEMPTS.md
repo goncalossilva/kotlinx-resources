@@ -16,6 +16,7 @@ Last updated: 2025-12-25
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20507872870, 2025-12-25)
+- Attempt 2: PASS (run 20508008088, 2025-12-25)
 
 ## Previous hypothesis (ended): HTML/plain-text fallback detection (JS + wasm)
 - Treat HTML/plain-text fallback bodies as missing resources in browser

@@ -8,13 +8,20 @@ Last updated: 2025-12-25
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Treat any request under urlRoot as a resource (rewrite to `/base/`) unless it
+  targets known Karma assets (context/debug/karma/adapter/favicon), removing
+  header-based heuristics so HEAD/GET behave consistently.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): urlRoot XHR rewrite with header heuristics
 - Treat urlRoot-relative XHR as resources even when `sec-fetch-dest` is missing,
   as long as the path is not an HTML/script asset. This ensures the resource404
   middleware consistently rewrites to `/base/` and returns 404 for missing files.
 - Revert JS/wasm browser fallback detection to the baseline status-only check,
   relying on Karma middleware for missing resources instead.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20507872870, 2025-12-25)
 - Attempt 2: PASS (run 20508008088, 2025-12-25)
 - Attempt 3: PASS (run 20508290350, 2025-12-25)
@@ -22,6 +29,9 @@ Last updated: 2025-12-25
 - Attempt 5: PASS (run 20508849811, 2025-12-25)
 - Attempt 6: PASS (run 20509249798, 2025-12-25)
 - Attempt 7: PASS (run 20509792330, 2025-12-25)
+- Attempt 8: FAIL (run 20509910475, 2025-12-25)
+  - macOS JS browser: ResourceTest.doesNotExistNested FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7). Streak reset.
 
 ## Previous hypothesis (ended): HTML/plain-text fallback detection (JS + wasm)
 - Treat HTML/plain-text fallback bodies as missing resources in browser

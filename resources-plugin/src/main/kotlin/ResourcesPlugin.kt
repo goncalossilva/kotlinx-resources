@@ -280,13 +280,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |            return null;
         |        }
         |        const relativePath = decodePath(pathPart.slice(urlRoot.length));
-        |        const fetchDest = (req.headers["sec-fetch-dest"] || "").toLowerCase();
-        |        if (fetchDest === "empty") {
-        |            return relativePath;
-        |        }
-        |        if (fetchDest !== "") {
-        |            return null;
-        |        }
         |        const lower = relativePath.toLowerCase();
         |        if (lower === "" ||
         |            lower.startsWith("context.") ||

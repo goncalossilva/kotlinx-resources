@@ -8,16 +8,28 @@ Last updated: 2025-12-25
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Rewrite XHR/fetch requests under urlRoot to `/base/` before the resource
+  middleware runs (use `sec-fetch-dest: empty` as a signal).
+- Keep `HEAD` handling, urlRoot-aware `/base/` checks, and the middleware
+  re-apply hook.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PENDING
+
+## Previous hypothesis (ended): handle HEAD in resource middleware
 - Handle `HEAD` requests inside the Karma resource middleware:
   return 200 with Content-Length when the file exists, 404 otherwise.
 - Keep urlRoot-aware `/base/` handling and the middleware re-apply hook.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20498780840, 2025-12-25)
 - Attempt 2: PASS (run 20498951037, 2025-12-25)
 - Attempt 3: PASS (run 20499194126, 2025-12-25)
 - Attempt 4: PASS (run 20499402139, 2025-12-25)
 - Attempt 5: PASS (run 20499630919, 2025-12-25)
+- Attempt 6: FAIL (run 20499835906, 2025-12-25)
+  - Windows wasmJs browser: ResourceTest.readTextNestedThrowsWhenNotFound FAILED
+    (ChromeHeadless143.0.0.0, Windows10). Streak reset.
 
 ## Previous hypothesis (ended): re-apply resource404 middleware after config.set
 - Wrap `config.set` in the Karma fragment so the resource404 middleware is

@@ -269,10 +269,29 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |        }
         |        return null;
         |    };
+        |    const resolveUrlRootPath = (req) => {
+        |        const pathPart = stripQuery(req.url || "");
+        |        const urlRoot = normalizeRoot(config.urlRoot || "/");
+        |        if (!pathPart.startsWith(urlRoot)) {
+        |            return null;
+        |        }
+        |        const fetchDest = (req.headers["sec-fetch-dest"] || "").toLowerCase();
+        |        if (fetchDest !== "empty") {
+        |            return null;
+        |        }
+        |        return decodePath(pathPart.slice(urlRoot.length));
+        |    };
         |
         |    const resource404 = function () {
         |        return function resource404Middleware(req, res, next) {
-        |            const relativePath = resolveBasePath(req.url);
+        |            let relativePath = resolveBasePath(req.url);
+        |            if (relativePath == null) {
+        |                const urlRootPath = resolveUrlRootPath(req);
+        |                if (urlRootPath != null) {
+        |                    relativePath = urlRootPath;
+        |                    req.url = "/base/" + urlRootPath;
+        |                }
+        |            }
         |            if (relativePath == null) {
         |                return next();
         |            }

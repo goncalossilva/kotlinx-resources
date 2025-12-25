@@ -19,6 +19,7 @@ Last updated: 2025-12-25
 - Attempt 5: PASS (run 20504061889, 2025-12-25)
 - Attempt 6: PASS (run 20504294326, 2025-12-25)
 - Attempt 7: PASS (run 20505204329, 2025-12-25)
+- Attempt 8: PASS (run 20505685978, 2025-12-25)
 
 ## Previous hypothesis (ended): rewrite urlRoot XHR to /base
 - Rewrite XHR/fetch requests under urlRoot to `/base/` before the resource

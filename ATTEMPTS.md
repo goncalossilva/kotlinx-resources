@@ -13,7 +13,7 @@ Last updated: 2025-12-25
 - Keep urlRoot-aware `/base/` handling and the middleware re-apply hook.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
-- Attempt 1: PENDING
+- Attempt 1: PASS (run 20498780840, 2025-12-25)
 
 ## Previous hypothesis (ended): re-apply resource404 middleware after config.set
 - Wrap `config.set` in the Karma fragment so the resource404 middleware is

@@ -19,6 +19,7 @@ Last updated: 2025-12-25
 - Attempt 2: PASS (run 20508008088, 2025-12-25)
 - Attempt 3: PASS (run 20508290350, 2025-12-25)
 - Attempt 4: PASS (run 20508668163, 2025-12-25)
+- Attempt 5: PASS (run 20508849811, 2025-12-25)
 
 ## Previous hypothesis (ended): HTML/plain-text fallback detection (JS + wasm)
 - Treat HTML/plain-text fallback bodies as missing resources in browser

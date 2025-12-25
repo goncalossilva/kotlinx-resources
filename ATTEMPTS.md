@@ -12,7 +12,7 @@ Last updated: 2025-12-25
   Resource implementations (JS + wasm), while keeping current Karma config.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
-- Attempt 1: PENDING
+- Attempt 1: PASS (run 20502477408, 2025-12-25)
 
 ## Previous hypothesis (ended): rewrite urlRoot XHR to /base
 - Rewrite XHR/fetch requests under urlRoot to `/base/` before the resource

@@ -14,6 +14,7 @@ Last updated: 2025-12-26
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20514377487, 2025-12-26)
+- Attempt 2: PASS (run 20514534500, 2025-12-26)
 
 ## Previous hypothesis (ended): GET exists + raw body fallback detection
 - Use GET for browser `exists()` and enhance fallback detection by inspecting

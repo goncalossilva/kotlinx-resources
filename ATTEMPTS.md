@@ -16,6 +16,7 @@ Last updated: 2025-12-26
 - Attempt 1: PASS (run 20514377487, 2025-12-26)
 - Attempt 2: PASS (run 20514534500, 2025-12-26)
 - Attempt 3: PASS (run 20514754949, 2025-12-26)
+- Attempt 4: PASS (run 20515101897, 2025-12-26)
 
 ## Previous hypothesis (ended): GET exists + raw body fallback detection
 - Use GET for browser `exists()` and enhance fallback detection by inspecting

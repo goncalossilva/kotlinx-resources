@@ -13,6 +13,7 @@ Last updated: 2025-12-26
   missing resources don't report as present.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PASS (run 20513982005, 2025-12-26)
 
 ## Previous hypothesis (ended): urlRoot rewrite for all non-Karma assets
 - Treat any request under urlRoot as a resource (rewrite to `/base/`) unless it

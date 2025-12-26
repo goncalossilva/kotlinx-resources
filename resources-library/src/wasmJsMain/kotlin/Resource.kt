@@ -41,7 +41,7 @@ public actual class Resource actual constructor(private val path: String) {
         private val errorPrefix: String = path
 
         fun exists(): Boolean = runCatching {
-            request(method = "HEAD").isSuccessful()
+            request(method = "GET").isSuccessful()
         }.getOrDefault(false)
 
         fun readText(charset: Charset): String {
@@ -76,7 +76,29 @@ public actual class Resource actual constructor(private val path: String) {
             throw ResourceReadException("$errorPrefix: Request failed", cause)
         }
 
-        private fun XMLHttpRequest.isSuccessful(): Boolean = status in 200..299
+        private fun XMLHttpRequest.isSuccessful(): Boolean {
+            if (status !in 200..299) return false
+            if (errorPrefix.endsWith(".html", ignoreCase = true) ||
+                errorPrefix.endsWith(".htm", ignoreCase = true)
+            ) {
+                return true
+            }
+            val snippet = responseText
+                .toString()
+                .trimStart()
+                .take(256)
+                .lowercase()
+            if (snippet.contains("<!doctype") || snippet.contains("<html")) {
+                return false
+            }
+            if (snippet.startsWith("cannot get") || snippet.startsWith("not found")) {
+                return false
+            }
+            if (snippet.startsWith("error") && snippet.contains("not found")) {
+                return false
+            }
+            return true
+        }
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {
             Charset.UTF_8 -> decodeWithTextDecoder("utf-8")

@@ -8,11 +8,18 @@ Last updated: 2025-12-26
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Use GET for browser `exists()` and enhance fallback detection by inspecting
+  the start of the response body for HTML/error prefixes in JS + wasm, so
+  missing resources don't report as present.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): urlRoot rewrite for all non-Karma assets
 - Treat any request under urlRoot as a resource (rewrite to `/base/`) unless it
   targets known Karma assets (context/debug/karma/adapter/favicon), removing
   header-based heuristics so HEAD/GET behave consistently.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20510992409, 2025-12-25)
 - Attempt 2: PASS (run 20511453149, 2025-12-25)
 - Attempt 3: PASS (run 20512338466, 2025-12-25)
@@ -20,6 +27,9 @@ Last updated: 2025-12-26
 - Attempt 5: PASS (run 20512862762, 2025-12-26)
 - Attempt 6: PASS (run 20513026043, 2025-12-26)
 - Attempt 7: PASS (run 20513223955, 2025-12-26)
+- Attempt 8: FAIL (run 20513832634, 2025-12-26)
+  - macOS JS browser: ResourceTest.doesNotExistNested FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7). Streak reset.
 
 ## Previous hypothesis (ended): urlRoot XHR rewrite with header heuristics
 - Treat urlRoot-relative XHR as resources even when `sec-fetch-dest` is missing,

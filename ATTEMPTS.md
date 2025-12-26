@@ -1,6 +1,6 @@
 # Flaky test attempts log
 
-Last updated: 2025-12-25
+Last updated: 2025-12-26
 
 ## Rules in effect
 - Flake considered solved only after 10 consecutive CI passes (later raised to 20).
@@ -16,6 +16,7 @@ Last updated: 2025-12-25
 - Attempt 1: PASS (run 20510992409, 2025-12-25)
 - Attempt 2: PASS (run 20511453149, 2025-12-25)
 - Attempt 3: PASS (run 20512338466, 2025-12-25)
+- Attempt 4: PASS (run 20512506240, 2025-12-26)
 
 ## Previous hypothesis (ended): urlRoot XHR rewrite with header heuristics
 - Treat urlRoot-relative XHR as resources even when `sec-fetch-dest` is missing,

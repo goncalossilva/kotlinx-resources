@@ -18,6 +18,7 @@ Last updated: 2025-12-26
 - Attempt 3: PASS (run 20512338466, 2025-12-25)
 - Attempt 4: PASS (run 20512506240, 2025-12-26)
 - Attempt 5: PASS (run 20512862762, 2025-12-26)
+- Attempt 6: PASS (run 20513026043, 2025-12-26)
 
 ## Previous hypothesis (ended): urlRoot XHR rewrite with header heuristics
 - Treat urlRoot-relative XHR as resources even when `sec-fetch-dest` is missing,

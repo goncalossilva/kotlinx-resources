@@ -8,12 +8,24 @@ Last updated: 2025-12-26
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Keep GET-based `exists()` but only apply HTML/error body detection when the
+  response looks like text (printable ratio), skipping binary payloads so
+  readBytes for real resources doesn't false-positive.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): GET exists + raw body fallback detection
 - Use GET for browser `exists()` and enhance fallback detection by inspecting
   the start of the response body for HTML/error prefixes in JS + wasm, so
   missing resources don't report as present.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20513982005, 2025-12-26)
+- Attempt 2: FAIL (run 20514176761, 2025-12-26)
+  - Windows wasmJs browser: ResourceTest.readBytesNested FAILED
+    (ChromeHeadless143.0.0.0, Windows10).
+  - Windows wasmJs browser: ResourceTest.readBytesRootThrowsWhenNotFound FAILED
+    (ChromeHeadless143.0.0.0, Windows10). Streak reset.
 
 ## Previous hypothesis (ended): urlRoot rewrite for all non-Karma assets
 - Treat any request under urlRoot as a resource (rewrite to `/base/`) unless it

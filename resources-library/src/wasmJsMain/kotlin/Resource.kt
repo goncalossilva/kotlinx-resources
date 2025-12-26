@@ -83,9 +83,13 @@ public actual class Resource actual constructor(private val path: String) {
             ) {
                 return true
             }
-            val snippet = responseText
+            val trimmed = responseText
                 .toString()
                 .trimStart()
+            if (!trimmed.isProbablyText()) {
+                return true
+            }
+            val snippet = trimmed
                 .take(256)
                 .lowercase()
             if (snippet.contains("<!doctype") || snippet.contains("<html")) {
@@ -98,6 +102,18 @@ public actual class Resource actual constructor(private val path: String) {
                 return false
             }
             return true
+        }
+
+        private fun String.isProbablyText(): Boolean {
+            if (isEmpty()) return true
+            val sample = take(256)
+            var printable = 0
+            for (ch in sample) {
+                if (ch == '\n' || ch == '\r' || ch == '\t' || ch in ' '..'~') {
+                    printable++
+                }
+            }
+            return printable * 100 / sample.length >= 80
         }
 
         private fun ByteArray.decodeWith(charset: Charset): String = when (charset) {

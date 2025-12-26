@@ -8,17 +8,30 @@ Last updated: 2025-12-26
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Gate HTML/error body inspection on Content-Type (text/*, json, xml) and skip
+  body checks for binary types, to avoid false positives on readBytes.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): printable-ratio guard for body detection
 - Keep GET-based `exists()` but only apply HTML/error body detection when the
   response looks like text (printable ratio), skipping binary payloads so
   readBytes for real resources doesn't false-positive.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20514377487, 2025-12-26)
 - Attempt 2: PASS (run 20514534500, 2025-12-26)
 - Attempt 3: PASS (run 20514754949, 2025-12-26)
 - Attempt 4: PASS (run 20515101897, 2025-12-26)
 - Attempt 5: PASS (run 20515313597, 2025-12-26)
 - Attempt 6: PASS (run 20515974623, 2025-12-26)
+- Attempt 7: FAIL (run 20516380769, 2025-12-26)
+  - Windows wasmJs browser: ResourceTest.readBytesNested FAILED
+    (ChromeHeadless143.0.0.0, Windows10).
+  - Windows wasmJs browser: ResourceTest.readBytesRootThrowsWhenNotFound FAILED
+    (ChromeHeadless143.0.0.0, Windows10).
+  - Windows wasmJs browser: ResourceTest.readBytesNestedThrowsWhenNotFound FAILED
+    (ChromeHeadless143.0.0.0, Windows10). Streak reset.
 
 ## Previous hypothesis (ended): GET exists + raw body fallback detection
 - Use GET for browser `exists()` and enhance fallback detection by inspecting

@@ -66,11 +66,21 @@ public actual class Resource actual constructor(path: String) {
             ) {
                 return true
             }
-            val trimmed = responseText.trimStart()
-            if (!trimmed.isProbablyText()) {
+            val contentType = getResponseHeader("content-type")
+                ?.lowercase()
+                .orEmpty()
+            if (contentType.startsWith("text/html")) {
+                return false
+            }
+            val shouldInspect = contentType.isEmpty() ||
+                contentType.startsWith("text/") ||
+                contentType.contains("json") ||
+                contentType.contains("xml")
+            if (!shouldInspect) {
                 return true
             }
-            val snippet = trimmed
+            val snippet = responseText
+                .trimStart()
                 .take(256)
                 .lowercase()
             if (snippet.contains("<!doctype") || snippet.contains("<html")) {
@@ -85,17 +95,6 @@ public actual class Resource actual constructor(path: String) {
             return true
         }
 
-        private fun String.isProbablyText(): Boolean {
-            if (isEmpty()) return true
-            val sample = take(256)
-            var printable = 0
-            for (ch in sample) {
-                if (ch == '\n' || ch == '\r' || ch == '\t' || ch in ' '..'~') {
-                    printable++
-                }
-            }
-            return printable * 100 / sample.length >= 80
-        }
 
         fun exists(): Boolean = runCatching {
             request(method = "GET").isSuccessful()

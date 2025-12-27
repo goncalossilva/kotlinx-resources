@@ -18,6 +18,7 @@ Last updated: 2025-12-27
 - Attempt 2: FAIL (run 20545789024, 2025-12-27)
   - Ubuntu build: :resources-library:compileKotlinWasmJs failed
     (lowercase() on JsString; convert to String before lowercasing).
+- Attempt 3: PASS (run 20545863444, 2025-12-27)
 
 ## Previous hypothesis (ended): printable-ratio guard for body detection
 - Keep GET-based `exists()` but only apply HTML/error body detection when the

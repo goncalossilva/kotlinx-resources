@@ -15,6 +15,9 @@ Last updated: 2025-12-27
 - Attempt 1: FAIL (run 20517065260, 2025-12-26)
   - Ubuntu build: :resources-library:compileKotlinWasmJs failed
     (unresolved reference getResponseHeader in wasm Resource). Fix and rerun.
+- Attempt 2: FAIL (run 20545789024, 2025-12-27)
+  - Ubuntu build: :resources-library:compileKotlinWasmJs failed
+    (lowercase() on JsString; convert to String before lowercasing).
 
 ## Previous hypothesis (ended): printable-ratio guard for body detection
 - Keep GET-based `exists()` but only apply HTML/error body detection when the

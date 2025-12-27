@@ -84,6 +84,7 @@ public actual class Resource actual constructor(private val path: String) {
                 return true
             }
             val contentType = getResponseHeader("content-type".toJsString())
+                ?.toString()
                 ?.lowercase()
                 .orEmpty()
             if (contentType.startsWith("text/html")) {

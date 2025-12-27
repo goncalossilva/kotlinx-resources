@@ -1,6 +1,6 @@
 # Flaky test attempts log
 
-Last updated: 2025-12-26
+Last updated: 2025-12-27
 
 ## Rules in effect
 - Flake considered solved only after 10 consecutive CI passes (later raised to 20).
@@ -12,6 +12,9 @@ Last updated: 2025-12-26
   body checks for binary types, to avoid false positives on readBytes.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: FAIL (run 20517065260, 2025-12-26)
+  - Ubuntu build: :resources-library:compileKotlinWasmJs failed
+    (unresolved reference getResponseHeader in wasm Resource). Fix and rerun.
 
 ## Previous hypothesis (ended): printable-ratio guard for body detection
 - Keep GET-based `exists()` but only apply HTML/error body detection when the

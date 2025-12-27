@@ -83,7 +83,7 @@ public actual class Resource actual constructor(private val path: String) {
             ) {
                 return true
             }
-            val contentType = getResponseHeader("content-type")
+            val contentType = getResponseHeader("content-type".toJsString())
                 ?.lowercase()
                 .orEmpty()
             if (contentType.startsWith("text/html")) {
@@ -194,6 +194,7 @@ private external class XMLHttpRequest : JsAny {
     fun open(method: JsString, url: JsString, async: Boolean)
     fun send()
     fun overrideMimeType(mimeType: JsString)
+    fun getResponseHeader(name: JsString): JsString?
     val readyState: Int
     val status: Int
     val statusText: JsString

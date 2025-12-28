@@ -20,6 +20,7 @@ Last updated: 2025-12-28
     (lowercase() on JsString; convert to String before lowercasing).
 - Attempt 3: PASS (run 20545863444, 2025-12-27)
 - Attempt 4: PASS (run 20545993784, 2025-12-28)
+- Attempt 5: PASS (run 20546128527, 2025-12-28)
 
 ## Previous hypothesis (ended): printable-ratio guard for body detection
 - Keep GET-based `exists()` but only apply HTML/error body detection when the

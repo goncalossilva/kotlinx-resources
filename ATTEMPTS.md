@@ -13,6 +13,7 @@ Last updated: 2025-12-28
   Karma still surface as not found.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PASS (run 20546905369, 2025-12-28)
 
 ## Previous hypothesis (ended): Content-Type gated body inspection
 - Gate HTML/error body inspection on Content-Type (text/*, json, xml) and skip

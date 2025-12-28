@@ -21,6 +21,7 @@ Last updated: 2025-12-28
 - Attempt 6: PASS (run 20547497870, 2025-12-28)
 - Attempt 7: PASS (run 20547648958, 2025-12-28)
 - Attempt 8: PASS (run 20547756156, 2025-12-28)
+- Attempt 9: PASS (run 20547887844, 2025-12-28)
 
 ## Previous hypothesis (ended): Content-Type gated body inspection
 - Gate HTML/error body inspection on Content-Type (text/*, json, xml) and skip

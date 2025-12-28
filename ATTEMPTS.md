@@ -12,7 +12,7 @@ Last updated: 2025-12-28
   rewriting them to `/base/` before proxying so missing files return a real 404.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
-- Attempt 1: PENDING
+- Attempt 1: PASS (run 20548705580, 2025-12-28)
 
 ## Previous hypothesis (ended): Inspect response bodies for text-like extensions
 - Inspect response bodies for text-like resource extensions (.json, .txt, .xml,

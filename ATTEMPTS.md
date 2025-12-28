@@ -8,10 +8,17 @@ Last updated: 2025-12-28
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Inspect response bodies for text-like resource extensions (.json, .txt, .xml,
+  .csv) even when Content-Type isn't text, so missing resources mislabelled by
+  Karma still surface as not found.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+
+## Previous hypothesis (ended): Content-Type gated body inspection
 - Gate HTML/error body inspection on Content-Type (text/*, json, xml) and skip
   body checks for binary types, to avoid false positives on readBytes.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: FAIL (run 20517065260, 2025-12-26)
   - Ubuntu build: :resources-library:compileKotlinWasmJs failed
     (unresolved reference getResponseHeader in wasm Resource). Fix and rerun.
@@ -23,6 +30,11 @@ Last updated: 2025-12-28
 - Attempt 5: PASS (run 20546128527, 2025-12-28)
 - Attempt 6: PASS (run 20546247475, 2025-12-28)
 - Attempt 7: PASS (run 20546558448, 2025-12-28)
+- Attempt 8: FAIL (run 20546695082, 2025-12-28)
+  - macOS JS browser: ResourceTest.doesNotExistRoot FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7).
+  - macOS JS browser: ResourceTest.doesNotExistNested FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7). Streak reset.
 
 ## Previous hypothesis (ended): printable-ratio guard for body detection
 - Keep GET-based `exists()` but only apply HTML/error body detection when the

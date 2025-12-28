@@ -90,7 +90,12 @@ public actual class Resource actual constructor(private val path: String) {
             if (contentType.startsWith("text/html")) {
                 return false
             }
-            val shouldInspect = contentType.isEmpty() ||
+            val hasTextExtension = errorPrefix.endsWith(".json", ignoreCase = true) ||
+                errorPrefix.endsWith(".txt", ignoreCase = true) ||
+                errorPrefix.endsWith(".xml", ignoreCase = true) ||
+                errorPrefix.endsWith(".csv", ignoreCase = true)
+            val shouldInspect = hasTextExtension ||
+                contentType.isEmpty() ||
                 contentType.startsWith("text/") ||
                 contentType.contains("json") ||
                 contentType.contains("xml")

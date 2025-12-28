@@ -8,11 +8,18 @@ Last updated: 2025-12-28
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Treat root-relative resource requests as resources in the Karma middleware,
+  rewriting them to `/base/` before proxying so missing files return a real 404.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PENDING
+
+## Previous hypothesis (ended): Inspect response bodies for text-like extensions
 - Inspect response bodies for text-like resource extensions (.json, .txt, .xml,
   .csv) even when Content-Type isn't text, so missing resources mislabelled by
   Karma still surface as not found.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20546905369, 2025-12-28)
 - Attempt 2: PASS (run 20547016281, 2025-12-28)
 - Attempt 3: PASS (run 20547152515, 2025-12-28)
@@ -24,6 +31,11 @@ Last updated: 2025-12-28
 - Attempt 9: PASS (run 20547887844, 2025-12-28)
 - Attempt 10: PASS (run 20548033495, 2025-12-28)
 - Attempt 11: PASS (run 20548165535, 2025-12-28)
+- Attempt 12: FAIL (run 20548283401, 2025-12-28)
+  - macOS JS browser: ResourceTest.doesNotExistRoot FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7).
+  - macOS JS browser: ResourceTest.doesNotExistNested FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7). Streak reset.
 
 ## Previous hypothesis (ended): Content-Type gated body inspection
 - Gate HTML/error body inspection on Content-Type (text/*, json, xml) and skip

@@ -1,6 +1,6 @@
 # Flaky test attempts log
 
-Last updated: 2025-12-27
+Last updated: 2025-12-28
 
 ## Rules in effect
 - Flake considered solved only after 10 consecutive CI passes (later raised to 20).
@@ -19,6 +19,7 @@ Last updated: 2025-12-27
   - Ubuntu build: :resources-library:compileKotlinWasmJs failed
     (lowercase() on JsString; convert to String before lowercasing).
 - Attempt 3: PASS (run 20545863444, 2025-12-27)
+- Attempt 4: PASS (run 20545993784, 2025-12-28)
 
 ## Previous hypothesis (ended): printable-ratio guard for body detection
 - Keep GET-based `exists()` but only apply HTML/error body detection when the

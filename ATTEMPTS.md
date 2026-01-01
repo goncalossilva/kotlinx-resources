@@ -12,7 +12,7 @@ Last updated: 2026-01-01
   to avoid incorrect rewrites while keeping urlRoot requests mapped.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
-- Attempt 1: PENDING
+- Attempt 1: PASS (run 20647389731, 2026-01-01)
 
 ## Previous hypothesis (ended): filename prefix to force last-load
 - Ensure the Karma resources config fragment runs last (filename prefix),

@@ -1,6 +1,6 @@
 # Flaky test attempts log
 
-Last updated: 2025-12-28
+Last updated: 2026-01-01
 
 ## Rules in effect
 - Flake considered solved only after 10 consecutive CI passes (later raised to 20).
@@ -8,10 +8,17 @@ Last updated: 2025-12-28
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
+- Ensure the Karma resources config fragment runs last (filename prefix),
+  so other fragments don't override the resource404 middleware/proxies.
+
+## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PENDING
+
+## Previous hypothesis (ended): root-relative rewrite in middleware
 - Treat root-relative resource requests as resources in the Karma middleware,
   rewriting them to `/base/` before proxying so missing files return a real 404.
 
-## CI streak for current hypothesis (target: 20 consecutive passes)
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20548705580, 2025-12-28)
 - Attempt 2: PASS (run 20548973381, 2025-12-28)
 - Attempt 3: PASS (run 20549884014, 2025-12-28)
@@ -21,6 +28,9 @@ Last updated: 2025-12-28
 - Attempt 7: PASS (run 20551989423, 2025-12-28)
 - Attempt 8: PASS (run 20552793183, 2025-12-28)
 - Attempt 9: PASS (run 20644764036, 2026-01-01)
+- Attempt 10: FAIL (run 20646129960, 2026-01-01)
+  - macOS JS browser: ResourceTest.doesNotExistNested FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7). Streak reset.
 
 ## Previous hypothesis (ended): Inspect response bodies for text-like extensions
 - Inspect response bodies for text-like resource extensions (.json, .txt, .xml,

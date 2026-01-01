@@ -292,32 +292,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |        }
         |        return relativePath;
         |    };
-        |    const resolveRootPath = (req) => {
-        |        const pathPart = stripQuery(req.url || "");
-        |        const urlRoot = normalizeRoot(config.urlRoot || "/");
-        |        if (!pathPart.startsWith("/") ||
-        |            pathPart.startsWith("/base/") ||
-        |            pathPart.startsWith(urlRoot)
-        |        ) {
-        |            return null;
-        |        }
-        |        const method = (req.method || "").toUpperCase();
-        |        if (method && method !== "GET" && method !== "HEAD") {
-        |            return null;
-        |        }
-        |        const relativePath = decodePath(pathPart.slice(1));
-        |        const lower = relativePath.toLowerCase();
-        |        if (lower === "" ||
-        |            lower.startsWith("context.") ||
-        |            lower.startsWith("debug.") ||
-        |            lower.startsWith("karma.") ||
-        |            lower.startsWith("adapter.") ||
-        |            lower === "favicon.ico"
-        |        ) {
-        |            return null;
-        |        }
-        |        return relativePath;
-        |    };
         |
         |    const resource404 = function () {
         |        return function resource404Middleware(req, res, next) {
@@ -327,13 +301,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |                if (urlRootPath != null) {
         |                    relativePath = urlRootPath;
         |                    req.url = "/base/" + urlRootPath;
-        |                }
-        |            }
-        |            if (relativePath == null) {
-        |                const rootPath = resolveRootPath(req);
-        |                if (rootPath != null) {
-        |                    relativePath = rootPath;
-        |                    req.url = "/base/" + rootPath;
         |                }
         |            }
         |            if (relativePath == null) {
@@ -453,7 +420,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             .resolve("karma.config.d")
             .apply { mkdirs() }
             // Avoid cleanup races between multiple browser targets (e.g., js/wasmJs).
-            .resolve("resources-$taskName.js")
+            .resolve("zz-resources-$taskName.js")
 
         val proxyResourcesTask = tasks.register(taskName) { task ->
             @Suppress("ObjectLiteralToLambda")

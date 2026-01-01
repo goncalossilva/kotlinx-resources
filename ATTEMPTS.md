@@ -8,11 +8,20 @@ Last updated: 2026-01-01
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
-- Ensure the Karma resources config fragment runs last (filename prefix),
-  so other fragments don't override the resource404 middleware/proxies.
+- Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),
+  to avoid incorrect rewrites while keeping urlRoot requests mapped.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
 - Attempt 1: PENDING
+
+## Previous hypothesis (ended): filename prefix to force last-load
+- Ensure the Karma resources config fragment runs last (filename prefix),
+  so other fragments don't override the resource404 middleware/proxies.
+
+## CI streak for previous hypothesis (target: 20 consecutive passes)
+- Attempt 1: FAIL (run 20646414814, 2026-01-01)
+  - macOS JS browser: ResourceTest.doesNotExistNested FAILED
+    (ChromeHeadless143.0.0.0, MacOS10.15.7). Streak reset.
 
 ## Previous hypothesis (ended): root-relative rewrite in middleware
 - Treat root-relative resource requests as resources in the Karma middleware,

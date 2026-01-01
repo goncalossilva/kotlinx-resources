@@ -365,7 +365,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         |
         |    config.set({
         |        "proxies": {
-        |           "/": "/base/"
+        |           "/__karma__/": "/base/"
         |        },
         |        "urlRoot": "/__karma__/",
         |        "hostname": "127.0.0.1",
@@ -420,7 +420,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             .resolve("karma.config.d")
             .apply { mkdirs() }
             // Avoid cleanup races between multiple browser targets (e.g., js/wasmJs).
-            .resolve("zz-resources-$taskName.js")
+            .resolve("resources-$taskName.js")
 
         val proxyResourcesTask = tasks.register(taskName) { task ->
             @Suppress("ObjectLiteralToLambda")

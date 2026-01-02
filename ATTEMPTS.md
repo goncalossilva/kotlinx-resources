@@ -36,6 +36,9 @@ Last updated: 2026-01-01
     Not counted toward the streak; rerun.
 - Attempt 16: PASS (run 20650903671, 2026-01-02)
 - Attempt 17: PASS (run 20651028626, 2026-01-02)
+- Attempt 18: INFRA (run 20651152086, 2026-01-02)
+  - Windows build: Maven Central 403 downloading junit platform artifacts.
+    Not counted toward the streak; rerun.
 
 ## Previous hypothesis (ended): filename prefix to force last-load
 - Ensure the Karma resources config fragment runs last (filename prefix),

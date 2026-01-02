@@ -34,6 +34,7 @@ Last updated: 2026-01-01
 - Attempt 15: INFRA (run 20650333560, 2026-01-02)
   - Windows build: Maven Central 403 downloading test deps.
     Not counted toward the streak; rerun.
+- Attempt 16: PASS (run 20650903671, 2026-01-02)
 
 ## Previous hypothesis (ended): filename prefix to force last-load
 - Ensure the Karma resources config fragment runs last (filename prefix),

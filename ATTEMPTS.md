@@ -22,6 +22,7 @@ Last updated: 2026-01-01
   - Windows build: Maven Central 403 downloading dependencies
     (kotlin-stdlib-wasm-wasi, kotlin-test-junit5, junit-jupiter, etc). Not
     counted toward the streak; rerun.
+- Attempt 8: PASS (run 20648516566, 2026-01-02)
 
 ## Previous hypothesis (ended): filename prefix to force last-load
 - Ensure the Karma resources config fragment runs last (filename prefix),

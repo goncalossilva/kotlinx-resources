@@ -30,6 +30,7 @@ Last updated: 2026-01-01
 - Attempt 13: INFRA (run 20649640661, 2026-01-02)
   - Maven Central 403s on ubuntu/windows for plugin/deps, plus Android emulator
     adb connection error. Not counted toward the streak; rerun.
+- Attempt 14: PASS (run 20649828879, 2026-01-02)
 
 ## Previous hypothesis (ended): filename prefix to force last-load
 - Ensure the Karma resources config fragment runs last (filename prefix),

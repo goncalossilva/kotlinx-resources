@@ -14,6 +14,7 @@ Last updated: 2026-01-01
 ## CI streak for current hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20647389731, 2026-01-01)
 - Attempt 2: PASS (run 20647508735, 2026-01-01)
+- Attempt 3: PASS (run 20647684906, 2026-01-02)
 
 ## Previous hypothesis (ended): filename prefix to force last-load
 - Ensure the Karma resources config fragment runs last (filename prefix),

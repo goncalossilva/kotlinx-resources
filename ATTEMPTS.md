@@ -26,6 +26,7 @@ Last updated: 2026-01-01
 - Attempt 9: PASS (run 20648718506, 2026-01-02)
 - Attempt 10: PASS (run 20648907995, 2026-01-02)
 - Attempt 11: PASS (run 20649084896, 2026-01-02)
+- Attempt 12: PASS (run 20649397848, 2026-01-02)
 
 ## Previous hypothesis (ended): filename prefix to force last-load
 - Ensure the Karma resources config fragment runs last (filename prefix),

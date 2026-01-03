@@ -46,6 +46,7 @@ Last updated: 2026-01-03
 - Attempt 20: PASS (run 20673015749, 2026-01-03)
 - Attempt 21: PASS (run 20673191023, 2026-01-03)
 - Attempt 22: PASS (run 20673337558, 2026-01-03)
+- Attempt 23: PASS (run 20673486964, 2026-01-03)
 
 ## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
 - Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),

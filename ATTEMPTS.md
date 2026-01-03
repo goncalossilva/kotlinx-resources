@@ -14,6 +14,8 @@ Last updated: 2026-01-03
 ## CI streak for current hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20670712480, 2026-01-03)
 - Attempt 2: PASS (run 20670835846, 2026-01-03)
+- Attempt 3: INFRA (run 20670969386, 2026-01-03)
+  - Maven Central 403 downloading junit platform artifacts (ubuntu jvmTest). Not counted toward the streak; rerun.
 
 ## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
 - Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),

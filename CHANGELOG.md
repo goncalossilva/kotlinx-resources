@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- Proxy Karma urlRoot to `/base/` for stable browser resource loading
+
 ## [0.14.0] - 2025-12-18
 
 ### Added

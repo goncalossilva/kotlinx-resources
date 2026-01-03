@@ -20,6 +20,7 @@ Last updated: 2026-01-03
   - Maven Central 403 downloading Gradle/Kotlin/Android plugin deps (ubuntu). Not counted toward the streak; rerun.
 - Attempt 5: PASS (run 20671095038, 2026-01-03)
 - Attempt 6: PASS (run 20671243527, 2026-01-03)
+- Attempt 7: PASS (run 20671399323, 2026-01-03)
 
 ## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
 - Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),

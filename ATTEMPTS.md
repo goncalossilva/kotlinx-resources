@@ -1,6 +1,6 @@
 # Flaky test attempts log
 
-Last updated: 2026-01-01
+Last updated: 2026-01-03
 
 ## Rules in effect
 - Flake considered solved only after 10 consecutive CI passes (later raised to 20).
@@ -8,10 +8,18 @@ Last updated: 2026-01-01
 - If a run fails, reset to the base commit and form a new hypothesis.
 
 ## Current hypothesis (active)
-- Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),
-  to avoid incorrect rewrites while keeping urlRoot requests mapped.
+- Minimal change: only proxy Karma urlRoot (`/__karma__/`) to `/base/`,
+  keeping default status-only `isSuccessful()` and HEAD-based `exists()`.
 
 ## CI streak for current hypothesis (target: 20 consecutive passes)
+- Attempt 1: PENDING
+
+## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
+- Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),
+  to avoid incorrect rewrites while keeping urlRoot requests mapped.
+- Added browser/wasm fallback detection in `isSuccessful()` and switched `exists()` to GET.
+
+## CI streak for previous hypothesis (target: 20 consecutive passes)
 - Attempt 1: PASS (run 20647389731, 2026-01-01)
 - Attempt 2: PASS (run 20647508735, 2026-01-01)
 - Attempt 3: PASS (run 20647684906, 2026-01-02)

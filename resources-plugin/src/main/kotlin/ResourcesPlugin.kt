@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.util.suffixIfNot
 import java.io.File
-import java.io.PrintWriter
 import kotlin.contracts.contract
 
 @Suppress("TooManyFunctions")
@@ -221,167 +220,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     private fun getTaskName(prefix: String, vararg qualifiers: String) =
         "$prefix${qualifiers.joinToString("") { it.replaceFirstChar(Char::titlecase) }}"
 
-    private val karmaResourcesFilesConfig = """
-        |config.files.push({
-        |   pattern: __dirname + "/**",
-        |   watched: false,
-        |   included: false,
-        |   served: true,
-        |   nocache: false
-        |});
-        """.trimMargin()
-
-    private val karmaProxyResourcesConfig = """
-        |(function () {
-        |    const path = require("path");
-        |    const fs = require("fs");
-        |
-        |    const baseDir = path.resolve(config.basePath || "");
-        |    const decodePath = (input) => {
-        |        try {
-        |            return decodeURIComponent(input);
-        |        } catch (error) {
-        |            return input;
-        |        }
-        |    };
-        |    const stripQuery = (input) => input.split("?")[0].split("#")[0];
-        |    const normalizeRoot = (root) => {
-        |        let normalized = root || "/";
-        |        if (!normalized.startsWith("/")) {
-        |            normalized = "/" + normalized;
-        |        }
-        |        if (!normalized.endsWith("/")) {
-        |            normalized += "/";
-        |        }
-        |        return normalized;
-        |    };
-        |    const resolveBasePath = (url) => {
-        |        const pathPart = stripQuery(url || "");
-        |        const urlRoot = normalizeRoot(config.urlRoot || "/");
-        |        const basePrefixes = ["/base/", urlRoot + "base/"];
-        |        for (const basePrefix of basePrefixes) {
-        |            if (pathPart == basePrefix.slice(0, -1)) {
-        |                return "";
-        |            }
-        |            if (pathPart.startsWith(basePrefix)) {
-        |                return decodePath(pathPart.slice(basePrefix.length));
-        |            }
-        |        }
-        |        return null;
-        |    };
-        |    const resolveUrlRootPath = (req) => {
-        |        const pathPart = stripQuery(req.url || "");
-        |        const urlRoot = normalizeRoot(config.urlRoot || "/");
-        |        if (!pathPart.startsWith(urlRoot)) {
-        |            return null;
-        |        }
-        |        const method = (req.method || "").toUpperCase();
-        |        if (method && method !== "GET" && method !== "HEAD") {
-        |            return null;
-        |        }
-        |        const relativePath = decodePath(pathPart.slice(urlRoot.length));
-        |        const lower = relativePath.toLowerCase();
-        |        if (lower === "" ||
-        |            lower.startsWith("context.") ||
-        |            lower.startsWith("debug.") ||
-        |            lower.startsWith("karma.") ||
-        |            lower.startsWith("adapter.") ||
-        |            lower === "favicon.ico"
-        |        ) {
-        |            return null;
-        |        }
-        |        return relativePath;
-        |    };
-        |
-        |    const resource404 = function () {
-        |        return function resource404Middleware(req, res, next) {
-        |            let relativePath = resolveBasePath(req.url);
-        |            if (relativePath == null) {
-        |                const urlRootPath = resolveUrlRootPath(req);
-        |                if (urlRootPath != null) {
-        |                    relativePath = urlRootPath;
-        |                    req.url = "/base/" + urlRootPath;
-        |                }
-        |            }
-        |            if (relativePath == null) {
-        |                return next();
-        |            }
-        |
-        |            const fullPath = path.resolve(baseDir, relativePath);
-        |            const relative = path.relative(baseDir, fullPath);
-        |            if (relative.startsWith("..") || path.isAbsolute(relative)) {
-        |                res.statusCode = 404;
-        |                res.setHeader("Content-Type", "text/plain; charset=utf-8");
-        |                res.end("Not Found");
-        |                return;
-        |            }
-        |
-        |            let stat;
-        |            try {
-        |                stat = fs.statSync(fullPath);
-        |                if (!stat.isFile()) {
-        |                    res.statusCode = 404;
-        |                    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-        |                    res.end("Not Found");
-        |                    return;
-        |                }
-        |            } catch (error) {
-        |                res.statusCode = 404;
-        |                res.setHeader("Content-Type", "text/plain; charset=utf-8");
-        |                res.end("Not Found");
-        |                return;
-        |            }
-        |
-        |            if ((req.method || "").toUpperCase() === "HEAD") {
-        |                res.statusCode = 200;
-        |                res.setHeader("Content-Length", stat.size);
-        |                res.end();
-        |                return;
-        |            }
-        |
-        |            return next();
-        |        };
-        |    };
-        |    const hasResourceMiddleware = () => {
-        |        const plugins = config.plugins || [];
-        |        return plugins.some((plugin) => plugin && plugin["middleware:resource404"]);
-        |    };
-        |    const ensureResourceMiddleware = () => {
-        |        if (!hasResourceMiddleware()) {
-        |            config.plugins = (config.plugins || []).concat([{
-        |                "middleware:resource404": ["factory", resource404]
-        |            }]);
-        |        }
-        |        const middleware = (config.middleware || []).filter(
-        |            (name) => name != "resource404"
-        |        );
-        |        config.middleware = ["resource404"].concat(middleware);
-        |    };
-        |    const originalSet = config.set.bind(config);
-        |    config.set = function (newConfig) {
-        |        originalSet(newConfig);
-        |        ensureResourceMiddleware();
-        |    };
-        |
-        |    config.set({
-        |        "proxies": {
-        |           "/__karma__/": "/base/"
-        |        },
-        |        "urlRoot": "/__karma__/",
-        |        "hostname": "127.0.0.1",
-        |        "listenAddress": "127.0.0.1",
-        |        "plugins": config.plugins,
-        |        "middleware": config.middleware
-        |    });
-        |    ensureResourceMiddleware();
-        |})();
-        """.trimMargin()
-
-    private fun writeKarmaProxyResourcesConfig(confWriter: PrintWriter) {
-        confWriter.println(karmaResourcesFilesConfig)
-        confWriter.println(karmaProxyResourcesConfig)
-    }
-
     private fun setupCopyResourcesTask(
         kotlinCompilation: KotlinCompilation<*>,
         taskName: String,
@@ -428,7 +266,29 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 override fun execute(task: Task) {
                     // Create karma configuration file in the expected location, deleting when done.
                     confFile.printWriter().use { confWriter ->
-                        writeKarmaProxyResourcesConfig(confWriter)
+                        confWriter.println(
+                            """
+                                |config.files.push({
+                                |   pattern: __dirname + "/**",
+                                |   watched: false,
+                                |   included: false,
+                                |   served: true,
+                                |   nocache: false
+                                |});
+                                """.trimMargin()
+                        )
+                        confWriter.println(
+                            """
+                            |config.set({
+                            |    "proxies": {
+                            |       "/__karma__/": "/base/"
+                            |    },
+                            |    "urlRoot": "/__karma__/",
+                            |    "hostname": "127.0.0.1",
+                            |    "listenAddress": "127.0.0.1"
+                            |});
+                            """.trimMargin()
+                        )
                     }
                 }
             })

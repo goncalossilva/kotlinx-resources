@@ -59,45 +59,10 @@ public actual class Resource actual constructor(path: String) {
             throw ResourceReadException("$path: Request failed", cause)
         }
 
-        private fun XMLHttpRequest.isSuccessful(): Boolean {
-            if (status !in 200..299) return false
-            if (path.endsWith(".html", ignoreCase = true) ||
-                path.endsWith(".htm", ignoreCase = true)
-            ) {
-                return true
-            }
-            val contentType = getResponseHeader("content-type")
-                ?.lowercase()
-                .orEmpty()
-            if (contentType.startsWith("text/html")) {
-                return false
-            }
-            val shouldInspect = contentType.isEmpty() ||
-                contentType.startsWith("text/") ||
-                contentType.contains("json") ||
-                contentType.contains("xml")
-            if (!shouldInspect) {
-                return true
-            }
-            val snippet = responseText
-                .trimStart()
-                .take(256)
-                .lowercase()
-            if (snippet.contains("<!doctype") || snippet.contains("<html")) {
-                return false
-            }
-            if (snippet.startsWith("cannot get") || snippet.startsWith("not found")) {
-                return false
-            }
-            if (snippet.startsWith("error") && snippet.contains("not found")) {
-                return false
-            }
-            return true
-        }
-
+        private fun XMLHttpRequest.isSuccessful() = status in 200..299
 
         fun exists(): Boolean = runCatching {
-            request(method = "GET").isSuccessful()
+            request(method = "HEAD").isSuccessful()
         }.getOrDefault(false)
 
         fun readText(charset: Charset): String {

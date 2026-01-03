@@ -41,6 +41,7 @@ Last updated: 2026-01-03
 - Attempt 17: INFRA (run 20672537222, 2026-01-03)
   - Windows build: Maven Central 403 fetching kotlin-klib-commonizer-embeddable.
     Not counted toward the streak; rerun.
+- Attempt 18: PASS (run 20672653828, 2026-01-03)
 
 ## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
 - Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),

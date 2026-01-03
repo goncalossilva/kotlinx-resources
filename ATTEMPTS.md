@@ -38,6 +38,9 @@ Last updated: 2026-01-03
     logged adb daemon connection failure. Not counted toward the streak; rerun.
 - Attempt 15: PASS (run 20672227951, 2026-01-03)
 - Attempt 16: PASS (run 20672367833, 2026-01-03)
+- Attempt 17: INFRA (run 20672537222, 2026-01-03)
+  - Windows build: Maven Central 403 fetching kotlin-klib-commonizer-embeddable.
+    Not counted toward the streak; rerun.
 
 ## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
 - Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),

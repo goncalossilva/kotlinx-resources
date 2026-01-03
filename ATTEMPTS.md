@@ -36,6 +36,7 @@ Last updated: 2026-01-03
 - Attempt 14: INFRA (run 20672186217, 2026-01-03)
   - Windows/Android builds: Maven Central 403s fetching deps; Android emulator
     logged adb daemon connection failure. Not counted toward the streak; rerun.
+- Attempt 15: PASS (run 20672227951, 2026-01-03)
 
 ## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
 - Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),

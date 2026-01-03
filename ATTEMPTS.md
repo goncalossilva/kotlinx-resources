@@ -27,6 +27,9 @@ Last updated: 2026-01-03
 - Attempt 11: INFRA (run 20672012658, 2026-01-03)
   - Ubuntu build: Maven Central 403s downloading Kotlin/Android plugin deps.
     Not counted toward the streak; rerun.
+- Attempt 12: INFRA (run 20672092992, 2026-01-03)
+  - Ubuntu/Android builds: Maven Central 403s fetching deps; Android emulator
+    also logged adb connection failure. Not counted toward the streak; rerun.
 
 ## Previous hypothesis (ended): urlRoot-only proxy + browser heuristics
 - Proxy only the Karma urlRoot to `/base/` (drop the `/ -> /base/` proxy),

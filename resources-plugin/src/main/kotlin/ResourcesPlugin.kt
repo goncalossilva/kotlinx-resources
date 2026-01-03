@@ -281,7 +281,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                             """
                             |config.set({
                             |    "proxies": {
-                            |       "/": "/base/"
+                            |       "/__karma__/": "/base/"
                             |    },
                             |    "urlRoot": "/__karma__/",
                             |    "hostname": "127.0.0.1",

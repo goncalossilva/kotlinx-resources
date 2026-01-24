@@ -10,6 +10,7 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
@@ -319,6 +320,9 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         project.plugins.withId("com.android.kotlin.multiplatform.library") {
             AndroidAssetsConfigurer.configure(project)
         }
+        project.plugins.withId("com.android.kotlin.multiplatform.application") {
+            AndroidAssetsConfigurer.configure(project)
+        }
         // Legacy plugin, to remove when AGP 9.0 is widely adopted.
         project.plugins.withId("com.android.library") {
             AndroidAssetsConfigurer.configure(project)
@@ -356,14 +360,31 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     "androidInstrumentedTest$variantSuffix",
                 )
 
-                kotlinExt.sourceSets
+                // Select the Android device/instrumented test source sets for this variant.
+                val targetSourceSets = kotlinExt.sourceSets
                     .asSequence()
                     .filter { it.name in targetSourceSetNames }
+                    .toList()
+
+                // Expand transitive dependsOn relations so commonTest resources are included.
+                val sourceSetsForAssets = LinkedHashSet<KotlinSourceSet>()
+                val pendingSourceSets = ArrayDeque<KotlinSourceSet>().apply { addAll(targetSourceSets) }
+
+                while (pendingSourceSets.isNotEmpty()) {
+                    val sourceSet = pendingSourceSets.removeLast()
+                    if (!sourceSetsForAssets.add(sourceSet)) continue
+                    pendingSourceSets.addAll(sourceSet.dependsOn)
+                }
+
+                // Register all resource dirs as static Android test assets.
+                val assetResourceDirs = sourceSetsForAssets
+                    .asSequence()
                     .flatMap { it.resources.srcDirs.asSequence() }
                     .filter { it.exists() }
                     .map { it.absolutePath }
                     .distinct()
-                    .forEach(assets::addStaticSourceDirectory)
+
+                assetResourceDirs.forEach(assets::addStaticSourceDirectory)
             }
         }
     }

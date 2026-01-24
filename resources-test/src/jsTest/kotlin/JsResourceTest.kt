@@ -11,4 +11,9 @@ class JsResourceTest {
         assertTrue(Resource("platform_resource.txt").exists())
         assertEquals("js", Resource("platform_resource.txt").readText())
     }
+
+    @Test
+    fun readsResourceWithSpaces() {
+        assertEquals("hello", Resource("file with spaces.txt").readText().trim())
+    }
 }

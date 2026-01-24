@@ -45,12 +45,14 @@ public actual class Resource actual constructor(path: String) {
      * Resource access via XMLHttpRequest (for browser environments).
      */
     private class ResourceBrowser(private val path: String) {
+        private val encodedPath: String = encodeResourcePathForBrowser(path)
+
         private fun request(
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             XMLHttpRequest().apply {
-                open(method, path, false)
+                open(method, encodedPath, false)
                 config?.invoke(this)
                 send()
             }
@@ -170,3 +172,20 @@ private fun Charset.toNodeEncoding(): String? = when (this) {
     Charset.UTF_16 -> null
     Charset.UTF_16BE -> null
 }
+
+/**
+ * Encodes each path segment so `/` is preserved while other URL-special filename characters are escaped.
+ */
+private fun encodeResourcePathForBrowser(path: String): String = buildString(path.length) {
+    var segmentStart = 0
+    for (i in path.indices) {
+        if (path[i] == '/') {
+            append(encodeURIComponent(path.substring(segmentStart, i)))
+            append('/')
+            segmentStart = i + 1
+        }
+    }
+    append(encodeURIComponent(path.substring(segmentStart)))
+}
+
+private external fun encodeURIComponent(component: String): String

@@ -4,6 +4,13 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-01-25
+
+### Fixed
+
+- Fix JS/wasmJS resource loading when filenames contain spaces or other URL-special characters
+- Fix Android missing common resources in instrumented tests (including `com.android.kotlin.multiplatform.application`).
+
 ## [0.14.1] - 2026-01-03
 
 ### Fixed

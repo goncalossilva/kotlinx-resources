@@ -38,6 +38,7 @@ public actual class Resource actual constructor(private val path: String) {
      */
     private class ResourceBrowser(path: String) {
         private val jsPath: JsString = path.toJsString()
+        private val jsEncodedPath: JsString = encodeResourcePathForBrowser(jsPath)
         private val errorPrefix: String = path
 
         fun exists(): Boolean = runCatching {
@@ -67,7 +68,7 @@ public actual class Resource actual constructor(private val path: String) {
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             createXMLHttpRequest().apply {
-                open(method.toJsString(), jsPath, false)
+                open(method.toJsString(), jsEncodedPath, false)
                 config?.invoke(this)
                 send()
             }
@@ -163,6 +164,12 @@ private external class XMLHttpRequest : JsAny {
 }
 
 private fun createXMLHttpRequest(): XMLHttpRequest = js("new XMLHttpRequest()")
+
+/**
+ * Encodes each path segment so `/` is preserved while other URL-special filename characters are escaped.
+ */
+private fun encodeResourcePathForBrowser(path: JsString): JsString =
+    js("path.split('/').map(encodeURIComponent).join('/')")
 
 private external class TextDecoder : JsAny {
     fun decode(input: Uint8Array): JsString

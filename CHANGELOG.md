@@ -14,13 +14,13 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Added
 
-- Support for 
+- WASI support via `wasmWasi` target
 
 ## [0.13.0] - 2025-12-18
 
 ### Added
 
-- WASI support via `wasmWasi` target
+- Android instrumented tests support
 
 ## [0.12.0] - 2025-12-17
 

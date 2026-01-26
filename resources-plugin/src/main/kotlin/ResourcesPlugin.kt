@@ -326,7 +326,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Merges Kotlin MPP instrumented/device-test resources into the test APK assets (AGP 8+).
+     * Wires KMP `androidDeviceTest` resources into the Android device/instrumented test APK.
+     *
+     * Must be called early, before AGP finalizes its variants.
+     *
+     * KMP places test resources under `src/<sourceSet>/resources`, but Android device/instrumented
+     * tests read resources from the APK assets. This hooks into AGP's Variant API and transforms
+     * the merged assets artifact to include those resource directories (including transitive
+     * `dependsOn` source sets like `commonTest`).
      */
     private fun configureAndroidInstrumentedTestAssets(project: Project) {
         listOf(
@@ -343,7 +350,12 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
-    // Separate object to keep Android classes lazily loaded for non-Android projects.
+    /**
+     * Configures Android test variants to package KMP test resources as assets.
+     *
+     * Kept as a separate object so AGP classes are only loaded when an Android plugin is applied,
+     * avoiding `ClassNotFoundException` for non-Android builds.
+     */
     private object AndroidAssetsConfigurer {
         private const val configuredMarker = "com.goncalossilva.resources.androidAssetsConfigurer.configured"
 

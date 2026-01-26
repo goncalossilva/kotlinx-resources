@@ -41,10 +41,12 @@ kotlin {
             dependsOn(commonTest)
         }
 
-        androidDeviceTest.dependencies {
+        commonTest.dependencies {
             implementation(kotlin("test"))
-            implementation(kotlin("test-junit"))
             implementation("com.goncalossilva:resources-library")
+        }
+
+        androidDeviceTest.dependencies {
             implementation(libs.androidx.test.runner)
         }
     }

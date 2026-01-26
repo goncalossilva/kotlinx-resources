@@ -1,13 +1,33 @@
 package com.goncalossilva.resources
 
+import com.android.build.api.AndroidPluginVersion
+import com.android.build.api.artifact.SingleArtifact
+import com.android.build.api.variant.AndroidComponentsExtension
+import com.android.build.api.variant.HasAndroidTest
+import com.android.build.api.variant.HasDeviceTests
+import com.android.build.api.variant.TestComponent
+import com.android.build.api.variant.Variant
 import org.gradle.api.Action
+import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.TaskAction
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
@@ -21,6 +41,7 @@ import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.util.suffixIfNot
 import java.io.File
+import javax.inject.Inject
 import kotlin.contracts.contract
 
 @Suppress("TooManyFunctions")
@@ -308,83 +329,140 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Wires KMP `androidDeviceTest` resources into AGP's androidTest assets.
-     *
-     * Must be called early in the build lifecycle, before AGP finalizes its variants.
-     *
-     * KMP puts device test resources under `src/androidDeviceTest/resources/`, but AGP expects
-     * files to be packaged as assets for device tests. This hooks into AGP's variant API and adds
-     * those resource directories as static asset sources for the device test component.
+     * Merges Kotlin MPP instrumented/device-test resources into the test APK assets (AGP 9+).
      */
     private fun configureAndroidInstrumentedTestAssets(project: Project) {
-        project.plugins.withId("com.android.kotlin.multiplatform.library") {
-            AndroidAssetsConfigurer.configure(project)
-        }
-        project.plugins.withId("com.android.kotlin.multiplatform.application") {
-            AndroidAssetsConfigurer.configure(project)
-        }
-        // Legacy plugin, to remove when AGP 9.0 is widely adopted.
-        project.plugins.withId("com.android.library") {
-            AndroidAssetsConfigurer.configure(project)
-        }
-        // Legacy plugin, to remove when AGP 9.0 is widely adopted.
-        project.plugins.withId("com.android.application") {
-            AndroidAssetsConfigurer.configure(project)
+        listOf(
+            "com.android.kotlin.multiplatform.library",
+            "com.android.kotlin.multiplatform.application",
+            "com.android.library",
+            "com.android.application",
+        ).forEach { id ->
+            project.plugins.withId(id) {
+                project.plugins.withId("org.jetbrains.kotlin.multiplatform") {
+                    AndroidAssetsConfigurer.configureWhenReady(project)
+                }
+            }
         }
     }
 
-    /**
-     * Inner object for Android SDK integration.
-     *
-     * Kept as a separate object to enable lazy class loading, avoiding ClassNotFoundException
-     * when the plugin is applied to non-Android projects.
-     */
+    // Separate object to keep Android classes lazily loaded for non-Android projects.
     private object AndroidAssetsConfigurer {
-        fun configure(project: Project) {
+        private const val configuredMarker = "com.goncalossilva.resources.androidAssetsConfigurer.configured"
+
+        fun configureWhenReady(project: Project) {
+            if (project.extensions.extraProperties.has(configuredMarker)) return
+
             val kotlinExt = project.extensions
-                .findByType(org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension::class.java) ?: return
+                .findByType(KotlinMultiplatformExtension::class.java)
             val androidComponents = project.extensions
-                .findByType(com.android.build.api.variant.AndroidComponentsExtension::class.java) ?: return
+                .findByType(AndroidComponentsExtension::class.java)
+            if (kotlinExt == null || androidComponents == null) return
 
-            androidComponents.onVariants { variant ->
-                val androidTest = (variant as? com.android.build.api.variant.HasAndroidTest)
-                    ?.androidTest ?: return@onVariants
-                val assets = androidTest.sources.assets ?: return@onVariants
-
-                val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
-                val targetSourceSetNames = setOf(
-                    "androidDeviceTest",
-                    "androidDeviceTest$variantSuffix",
-                    // Legacy source set names, to remove when AGP 9.0 is widely adopted.
-                    "androidInstrumentedTest",
-                    "androidInstrumentedTest$variantSuffix",
-                )
-
-                // Select the Android device/instrumented test source sets for this variant.
-                val targetSourceSets = kotlinExt.sourceSets
-                    .asSequence()
-                    .filter { it.name in targetSourceSetNames }
-                    .toList()
-
-                // Expand transitive dependsOn relations so commonTest resources are included.
-                val sourceSetsForAssets = LinkedHashSet<KotlinSourceSet>()
-                val pendingSourceSets = ArrayDeque<KotlinSourceSet>().apply { addAll(targetSourceSets) }
-
-                while (pendingSourceSets.isNotEmpty()) {
-                    val sourceSet = pendingSourceSets.removeLast()
-                    if (!sourceSetsForAssets.add(sourceSet)) continue
-                    pendingSourceSets.addAll(sourceSet.dependsOn)
+            val agpVersion = runCatching { AndroidPluginVersion.getCurrent() }
+                .getOrElse { cause ->
+                    throw GradleException(
+                        "kotlinx-resources requires Android Gradle Plugin 9.0+ " +
+                            "for Android device tests.",
+                        cause
+                    )
                 }
+            if (agpVersion.major < 9) {
+                throw GradleException(
+                    "kotlinx-resources requires Android Gradle Plugin 9.0+ " +
+                        "for Android device tests. Found ${agpVersion.version} in ${project.path}."
+                )
+            }
 
-                // Register all resource dirs as static Android test assets.
-                val assetResourceDirs = sourceSetsForAssets
-                    .asSequence()
-                    .flatMap { it.resources.srcDirs.asSequence() }
-                    .filter { it.exists() }
-                    .map { it.absolutePath }
-                    .distinct()
+            project.extensions.extraProperties.set(configuredMarker, true)
 
-                assetResourceDirs.forEach(assets::addStaticSourceDirectory)
+            androidComponents.onVariants { variant -> configureVariant(project, kotlinExt, variant) }
+        }
+
+        private fun configureVariant(
+            project: Project,
+            kotlinExt: KotlinMultiplatformExtension,
+            variant: Variant
+        ) {
+            val testComponents = buildList<TestComponent> {
+                (variant as? HasAndroidTest)?.androidTest?.let(::add)
+                (variant as? HasDeviceTests)?.deviceTests?.values?.let(::addAll)
+            }.distinctBy { it.name }
+
+            val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
+            val targetSourceSets = listOf(
+                "androidDeviceTest",
+                "androidDeviceTest$variantSuffix",
+                // Classic `com.android.*` projects use `androidInstrumentedTest*` for instrumented tests.
+                "androidInstrumentedTest",
+                "androidInstrumentedTest$variantSuffix",
+            ).mapNotNull(kotlinExt.sourceSets::findByName)
+            if (testComponents.isEmpty() || targetSourceSets.isEmpty()) return
+
+            // Expand transitive dependsOn relations so commonTest resources are included.
+            val sourceSetsForAssets = LinkedHashSet<KotlinSourceSet>()
+            val pendingSourceSets = ArrayDeque<KotlinSourceSet>().apply { addAll(targetSourceSets) }
+
+            while (pendingSourceSets.isNotEmpty()) {
+                val sourceSet = pendingSourceSets.removeLast()
+                if (!sourceSetsForAssets.add(sourceSet)) continue
+                pendingSourceSets.addAll(sourceSet.dependsOn)
+            }
+
+            val resourceDirsInOrder = sourceSetsForAssets
+                .asSequence()
+                .sortedWith(
+                    // Sort common* source sets first so platform-specific resources can override them.
+                    compareBy<KotlinSourceSet> { !it.name.startsWith("common") }.thenBy { it.name }
+                )
+                .flatMap { it.resources.srcDirs.asSequence() }
+                .distinctBy { it.absolutePath }
+                .toList()
+
+            if (resourceDirsInOrder.none(File::exists)) return
+
+            // KMP places resources under `src/<sourceSet>/resources`, but Android instrumented/device tests load
+            // files via APK assets. Transform the merged assets to include those directories.
+            for (testComponent in testComponents) {
+                val taskProvider = project.tasks.register(
+                    testComponent.computeTaskName("kotlinxResources", "MergeAssets"),
+                    MergeKotlinResourcesIntoAssetsTask::class.java
+                ) { it.additionalAssetDirs.set(resourceDirsInOrder) }
+
+                testComponent.artifacts
+                    .use(taskProvider)
+                    .wiredWithDirectories(
+                        MergeKotlinResourcesIntoAssetsTask::inputAssetsDir,
+                        MergeKotlinResourcesIntoAssetsTask::outputAssetsDir
+                    )
+                    .toTransform(SingleArtifact.ASSETS)
+            }
+        }
+    }
+
+    abstract class MergeKotlinResourcesIntoAssetsTask : DefaultTask() {
+        @get:InputDirectory
+        @get:PathSensitive(PathSensitivity.RELATIVE)
+        abstract val inputAssetsDir: DirectoryProperty
+
+        @get:InputFiles
+        @get:PathSensitive(PathSensitivity.RELATIVE)
+        abstract val additionalAssetDirs: ListProperty<File>
+
+        @get:OutputDirectory
+        abstract val outputAssetsDir: DirectoryProperty
+
+        @get:Inject
+        abstract val fileSystemOperations: FileSystemOperations
+
+        @TaskAction
+        fun mergeAssets() {
+            fileSystemOperations.sync { spec ->
+                // Allow later sources to override earlier ones (e.g., androidDeviceTest overrides commonTest).
+                spec.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                spec.into(outputAssetsDir)
+                spec.from(inputAssetsDir)
+                additionalAssetDirs.get().forEach(spec::from)
             }
         }
     }

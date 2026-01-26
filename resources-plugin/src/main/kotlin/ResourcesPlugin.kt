@@ -271,51 +271,20 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         taskName: String,
         mustRunAfterTask: String,
     ): TaskProvider<Task> {
-        val compilation = kotlinCompilation as KotlinJsIrCompilation
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
-        val npmProjectDir = compilation.npmProject.dir.map(Directory::getAsFile)
-        val karmaConfigDir = project.projectDir
+        val confFile = project.projectDir
             .resolve("karma.config.d")
             .apply { mkdirs() }
             // Avoid cleanup races between multiple browser targets (e.g., js/wasmJs).
-        val baseFileName = "resources-$taskName-base.js"
-        val confFile = karmaConfigDir.resolve("resources-$taskName.js")
+            .resolve("resources-$taskName.js")
 
         val proxyResourcesTask = tasks.register(taskName) { task ->
-                @Suppress("ObjectLiteralToLambda")
-                task.doLast(object : Action<Task> {
-                    override fun execute(task: Task) {
-                        // Create karma configuration file in the expected location, deleting when done.
-                        val baseFile = npmProjectDir.get().resolve(baseFileName)
-                        baseFile.printWriter().use { baseWriter ->
-                            baseWriter.println(
-                                """
-                                    |(function () {
-                                    |  if (typeof document === "undefined") return;
-                                    |
-                                    |  // Ensure relative resource URLs resolve to Karma's `/base/` file server.
-                                    |  if (document.querySelector("base") !== null) return;
-                                    |
-                                    |  var base = document.createElement("base");
-                                    |  base.href = "/base/";
-                                    |  document.head.prepend(base);
-                                    |})();
-                                    """.trimMargin()
-                            )
-                        }
+            @Suppress("ObjectLiteralToLambda")
+            task.doLast(object : Action<Task> {
+                override fun execute(task: Task) {
+                    // Create karma configuration file in the expected location, deleting when done.
                     confFile.printWriter().use { confWriter ->
-                        confWriter.println(
-                            """
-                                |config.files.unshift({
-                                |   pattern: __dirname + "/$baseFileName",
-                                |   watched: false,
-                                |   included: true,
-                                |   served: true,
-                                |   nocache: false
-                                |});
-                                """.trimMargin()
-                        )
                         confWriter.println(
                             """
                                 |config.files.push({
@@ -330,6 +299,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         confWriter.println(
                             """
                             |config.set({
+                            |    "proxies": {
+                            |       "/__karma__/": "/base/"
+                            |    },
+                            |    "urlRoot": "/__karma__/",
                             |    "hostname": "127.0.0.1",
                             |    "listenAddress": "127.0.0.1"
                             |});

@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix Android instrumented/device test resources on AGP 8.2.2+.
+
 ## [0.14.2] - 2026-01-25
 
 ### Fixed

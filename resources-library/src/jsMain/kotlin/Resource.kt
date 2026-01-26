@@ -9,8 +9,6 @@ private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
 
 private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
 
-private val IS_KARMA: Boolean = js("typeof __karma__ !== 'undefined'")
-
 private external class TextDecoder(encoding: String = definedExternally) {
     fun decode(input: Uint8Array): String
 }
@@ -48,18 +46,13 @@ public actual class Resource actual constructor(path: String) {
      */
     private class ResourceBrowser(private val path: String) {
         private val encodedPath: String = encodeResourcePathForBrowser(path)
-        private val requestPath: String = when {
-            // Karma serves files under `/base/` regardless of urlRoot/proxy settings.
-            IS_KARMA && !path.startsWith("/") && !path.contains("://") -> "/base/$encodedPath"
-            else -> encodedPath
-        }
 
         private fun request(
             method: String = "GET",
             config: (XMLHttpRequest.() -> Unit)? = null,
         ): XMLHttpRequest = runCatching {
             XMLHttpRequest().apply {
-                open(method, requestPath, false)
+                open(method, encodedPath, false)
                 config?.invoke(this)
                 send()
             }

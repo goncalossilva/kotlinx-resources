@@ -342,7 +342,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         ).forEach { id ->
             project.plugins.withId(id) {
                 project.plugins.withId("org.jetbrains.kotlin.multiplatform") {
-                    AndroidAssetsConfigurer.configureWhenReady(project)
+                    AndroidAssetsConfigurer.configure(project)
                 }
             }
         }
@@ -357,7 +357,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     private object AndroidAssetsConfigurer {
         private const val configuredMarker = "com.goncalossilva.resources.androidAssetsConfigurer.configured"
 
-        fun configureWhenReady(project: Project) {
+        fun configure(project: Project) {
             if (project.extensions.extraProperties.has(configuredMarker)) return
 
             val kotlinExt = project.extensions

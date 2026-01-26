@@ -376,23 +376,24 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
 	            val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
 	            for (testComponent in testComponents) {
-	                val sourceSetPrefix = if (testComponent.name.startsWith("androidDeviceTest")) {
-	                    "androidDeviceTest"
-	                } else {
-	                    // Classic `com.android.*` projects use `androidInstrumentedTest*` for instrumented tests.
-	                    "androidInstrumentedTest"
-	                }
+                val sourceSetPrefix = if (testComponent.name.startsWith("androidDeviceTest")) {
+                    "androidDeviceTest"
+                } else {
+                    // Classic `com.android.*` projects use `androidInstrumentedTest*` for instrumented tests.
+                    "androidInstrumentedTest"
+                }
 
-	                val resourceDirsInOrder = resourceDirsInOrder(kotlinExt, sourceSetPrefix, variantSuffix)
-	                if (resourceDirsInOrder.any(File::exists)) {
-	                    // KMP places resources under `src/<sourceSet>/resources`, but Android test components
-	                    // load assets from the APK. Transform the merged assets to include those directories.
-	                    val taskName = "kotlinxResources" + listOf(variant.name, testComponent.name, "mergeAssets")
-	                        .joinToString("") { it.replaceFirstChar(Char::titlecase) }
-	                    val taskProvider = project.tasks.register(
-	                        taskName,
-	                        MergeKotlinResourcesIntoAssetsTask::class.java
-	                    ) { it.additionalAssetDirs.set(resourceDirsInOrder) }
+                val resourceDirsInOrder = resourceDirsInOrder(kotlinExt, sourceSetPrefix, variantSuffix)
+                val existingResourceDirsInOrder = resourceDirsInOrder.filter(File::exists)
+                if (existingResourceDirsInOrder.isNotEmpty()) {
+                    // KMP places resources under `src/<sourceSet>/resources`, but Android test components
+                    // load assets from the APK. Transform the merged assets to include those directories.
+                    val taskName = "kotlinxResources" + listOf(variant.name, testComponent.name, "mergeAssets")
+                        .joinToString("") { it.replaceFirstChar(Char::titlecase) }
+                    val taskProvider = project.tasks.register(
+                        taskName,
+                        MergeKotlinResourcesIntoAssetsTask::class.java
+                    ) { it.additionalAssetDirs.set(existingResourceDirsInOrder) }
 
 	                    testComponent.artifacts
 	                        .use(taskProvider)

@@ -361,11 +361,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             androidComponents.onVariants { variant -> configureVariant(project, kotlinExt, variant) }
         }
 
-	        private fun configureVariant(
-	            project: Project,
-	            kotlinExt: KotlinMultiplatformExtension,
-	            variant: Variant
-	        ) {
+        private fun configureVariant(
+            project: Project,
+            kotlinExt: KotlinMultiplatformExtension,
+            variant: Variant
+        ) {
             val testComponents = buildList<TestComponent> {
                 (variant as? HasAndroidTest)?.androidTest?.let(::add)
                 variant.components.filterIsInstance<TestComponent>()
@@ -374,8 +374,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             }.distinctBy { it.name }
             if (testComponents.isEmpty()) return
 
-	            val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
-	            for (testComponent in testComponents) {
+            val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
+            for (testComponent in testComponents) {
                 val sourceSetPrefix = if (testComponent.name.startsWith("androidDeviceTest")) {
                     "androidDeviceTest"
                 } else {
@@ -395,50 +395,50 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                         MergeKotlinResourcesIntoAssetsTask::class.java
                     ) { it.additionalAssetDirs.set(existingResourceDirsInOrder) }
 
-	                    testComponent.artifacts
-	                        .use(taskProvider)
-	                        .wiredWithDirectories(
-	                            MergeKotlinResourcesIntoAssetsTask::inputAssetsDir,
-	                            MergeKotlinResourcesIntoAssetsTask::outputAssetsDir
-	                        )
-	                        .toTransform(SingleArtifact.ASSETS)
-	                }
-	            }
-	        }
+                    testComponent.artifacts
+                        .use(taskProvider)
+                        .wiredWithDirectories(
+                            MergeKotlinResourcesIntoAssetsTask::inputAssetsDir,
+                            MergeKotlinResourcesIntoAssetsTask::outputAssetsDir
+                        )
+                        .toTransform(SingleArtifact.ASSETS)
+                }
+            }
+        }
 
-	        private fun resourceDirsInOrder(
-	            kotlinExt: KotlinMultiplatformExtension,
-	            sourceSetPrefix: String,
-	            variantSuffix: String
-	        ): List<File> {
-	            val targetSourceSets = listOf(
-	                sourceSetPrefix,
-	                "$sourceSetPrefix$variantSuffix"
-	            ).mapNotNull(kotlinExt.sourceSets::findByName)
-	            if (targetSourceSets.isEmpty()) return emptyList()
+        private fun resourceDirsInOrder(
+            kotlinExt: KotlinMultiplatformExtension,
+            sourceSetPrefix: String,
+            variantSuffix: String
+        ): List<File> {
+            val targetSourceSets = listOf(
+                sourceSetPrefix,
+                "$sourceSetPrefix$variantSuffix"
+            ).mapNotNull(kotlinExt.sourceSets::findByName)
+            if (targetSourceSets.isEmpty()) return emptyList()
 
-	            // Expand transitive dependsOn relations so commonTest resources are included.
-	            val sourceSetsForAssets = LinkedHashSet<KotlinSourceSet>()
-	            val pendingSourceSets = ArrayDeque<KotlinSourceSet>().apply { addAll(targetSourceSets) }
+            // Expand transitive dependsOn relations so commonTest resources are included.
+            val sourceSetsForAssets = LinkedHashSet<KotlinSourceSet>()
+            val pendingSourceSets = ArrayDeque<KotlinSourceSet>().apply { addAll(targetSourceSets) }
 
-	            while (pendingSourceSets.isNotEmpty()) {
-	                val sourceSet = pendingSourceSets.removeLast()
-	                if (sourceSetsForAssets.add(sourceSet)) {
-	                    pendingSourceSets.addAll(sourceSet.dependsOn)
-	                }
-	            }
+            while (pendingSourceSets.isNotEmpty()) {
+                val sourceSet = pendingSourceSets.removeLast()
+                if (sourceSetsForAssets.add(sourceSet)) {
+                    pendingSourceSets.addAll(sourceSet.dependsOn)
+                }
+            }
 
-	            return sourceSetsForAssets
-	                .asSequence()
-	                .sortedWith(
-	                    // Sort common* source sets first so platform-specific resources override them.
-	                    compareBy<KotlinSourceSet> { !it.name.startsWith("common") }.thenBy { it.name }
-	                )
-	                .flatMap { it.resources.srcDirs.asSequence() }
-	                .distinctBy { it.absolutePath }
-	                .toList()
-	        }
-	    }
+            return sourceSetsForAssets
+                .asSequence()
+                .sortedWith(
+                    // Sort common* source sets first so platform-specific resources override them.
+                    compareBy<KotlinSourceSet> { !it.name.startsWith("common") }.thenBy { it.name }
+                )
+                .flatMap { it.resources.srcDirs.asSequence() }
+                .distinctBy { it.absolutePath }
+                .toList()
+        }
+    }
 
     abstract class MergeKotlinResourcesIntoAssetsTask : DefaultTask() {
         @get:InputDirectory

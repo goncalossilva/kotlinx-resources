@@ -10,10 +10,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
@@ -394,6 +394,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 }
 
                 val resourceDirsInOrder = resourceDirsInOrder(kotlinExt, sourceSetPrefix, variantSuffix)
+                // We filter non-existent resource dirs here so we avoid wiring an assets transform
+                // when there are no KMP resources. This means dirs created during the build won't be picked up.
                 val existingResourceDirsInOrder = resourceDirsInOrder.filter(File::exists)
                 if (existingResourceDirsInOrder.isNotEmpty()) {
                     // KMP places resources under `src/<sourceSet>/resources`, but Android test components
@@ -403,7 +405,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     val taskProvider = project.tasks.register(
                         taskName,
                         MergeKotlinResourcesIntoAssetsTask::class.java
-                    ) { it.additionalAssetDirs.set(existingResourceDirsInOrder) }
+                    ) { it.additionalAssetDirs.from(existingResourceDirsInOrder) }
 
                     testComponent.artifacts
                         .use(taskProvider)
@@ -457,7 +459,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
         @get:InputFiles
         @get:PathSensitive(PathSensitivity.RELATIVE)
-        abstract val additionalAssetDirs: ListProperty<File>
+        abstract val additionalAssetDirs: ConfigurableFileCollection
 
         @get:OutputDirectory
         abstract val outputAssetsDir: DirectoryProperty
@@ -472,7 +474,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 spec.duplicatesStrategy = DuplicatesStrategy.INCLUDE
                 spec.into(outputAssetsDir)
                 spec.from(inputAssetsDir)
-                additionalAssetDirs.get().forEach(spec::from)
+                spec.from(additionalAssetDirs)
             }
         }
     }

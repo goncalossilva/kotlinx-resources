@@ -3,7 +3,8 @@ package com.goncalossilva.resources
 /**
  * Provides access to resource on [path].
  *
- * The path should be relative to the project's directory, such as
+ * The path should be relative to the resources folder where the file is located, such as:
+ * `Resource("some/optional/folders/file.txt")` for a file located at
  * `src/commonTest/resources/some/optional/folders/file.txt`.
  */
 public expect class Resource(path: String) {

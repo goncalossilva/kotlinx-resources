@@ -22,7 +22,7 @@ repositories {
 dependencies {
     compileOnly(kotlin("gradle-plugin"))
     compileOnly(kotlin("stdlib"))
-    compileOnly("com.android.tools.build:gradle:${libs.versions.agp.get()}")
+    compileOnly("com.android.tools.build:gradle-api:${libs.versions.agp.min.get()}")
 }
 
 tasks.withType<JavaCompile>().configureEach {

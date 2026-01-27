@@ -378,6 +378,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         ) {
             val testComponents = buildList<TestComponent> {
                 (variant as? HasAndroidTest)?.androidTest?.let(::add)
+                // AGP 8.x doesn't expose device tests via a typed API in `gradle-api`, so we fall back to
+                // scanning the variant components by name. Once we require AGP 9.0.0+, we can switch to:
+                // (variant as? HasAndroidTest)?.androidTest
+                // (variant as? HasDeviceTests)?.deviceTests?.values
                 variant.components.filterIsInstance<TestComponent>()
                     .filter { it.name == "androidTest" || it.name.startsWith("androidDeviceTest") }
                     .let(::addAll)

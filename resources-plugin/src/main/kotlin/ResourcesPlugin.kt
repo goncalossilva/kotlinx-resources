@@ -375,100 +375,100 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             androidComponents.onVariants { variant -> configureVariant(project, kotlinExt, variant) }
         }
 
-	        private fun configureVariant(
-	            project: Project,
-	            kotlinExt: KotlinMultiplatformExtension,
-	            variant: Variant
-	        ) {
-	            val testComponents = testComponents(variant)
-	            if (testComponents.isEmpty()) return
-	
-	            val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
-	            for (testComponent in testComponents) {
-	                val sourceSetPrefix = sourceSetPrefix(testComponent)
-	
-	                // We filter non-existent resource dirs here so we avoid wiring an assets transform
-	                // when there are no KMP resources. This means dirs created during the build won't be picked up.
-	                val existingResourceDirsInOrder = resourceDirsInOrder(kotlinExt, sourceSetPrefix, variantSuffix)
-	                    .filter(File::exists)
-	                if (existingResourceDirsInOrder.isEmpty()) continue
-	
-	                if (isClasspathTest(testComponent)) {
-	                    configureClasspathTestResources(testComponent, existingResourceDirsInOrder)
-	                } else {
-	                    configureAssetsTestResources(project, variant, testComponent, existingResourceDirsInOrder)
-	                }
-	            }
-	        }
-	
-	        private fun testComponents(variant: Variant): List<TestComponent> = buildList<TestComponent> {
-	            (variant as? HasAndroidTest)?.androidTest?.let(::add)
-	            (variant as? HasUnitTest)?.unitTest?.let(::add)
-	            // AGP 8.x doesn't expose host/device tests via typed APIs in `gradle-api`
-	            // (`HasHostTests` / `HasDeviceTests`), so we fall back to scanning the variant components by name.
-	            // TODO(AGP 9+): Once we can raise our minimum supported `gradle-api` to 9.0.0+,
-	            // replace this block with:
-	            // (variant as? HasHostTests)?.hostTests?.values?.forEach(::add)
-	            // (variant as? HasDeviceTests)?.deviceTests?.values?.forEach(::add)
-	            variant.components.filterIsInstance<TestComponent>()
-	                .filter { it.name == "androidHostTest" || it.name.startsWith("androidDeviceTest") }
-	                .let(::addAll)
-	        }.distinctBy { it.name }
-	
-	        private fun sourceSetPrefix(testComponent: TestComponent): String = when {
-	            // `com.android.kotlin.multiplatform.*` uses `androidHostTest`.
-	            testComponent.name == "androidHostTest" -> "androidHostTest"
-	            testComponent.name.startsWith("androidDeviceTest") -> "androidDeviceTest"
-	            testComponent is UnitTest -> "androidUnitTest"
-	            // Classic `com.android.*` projects use `androidInstrumentedTest*` for instrumented tests.
-	            else -> "androidInstrumentedTest"
-	        }
-	
-	        private fun isClasspathTest(testComponent: TestComponent): Boolean =
-	            testComponent is UnitTest ||
-	                // `com.android.kotlin.multiplatform.*` host tests (a.k.a. unit tests on the JVM).
-	                testComponent.name == "androidHostTest"
-	
-	        private fun configureClasspathTestResources(
-	            testComponent: TestComponent,
-	            existingResourceDirsInOrder: List<File>
-	        ) {
-	            // Android host/unit tests load resources from the test runtime classpath (Java resources).
-	            // Add KMP test resource dirs so `ClassLoader.getResource` can find them.
-	            val testResources = testComponent.sources.resources ?: return
-	            // For consistent overrides with DuplicatesStrategy.EXCLUDE, add platform-specific dirs first.
-	            for (resourceDir in existingResourceDirsInOrder.asReversed()) {
-	                testResources.addStaticSourceDirectory(resourceDir.absolutePath)
-	            }
-	        }
-	
-	        private fun configureAssetsTestResources(
-	            project: Project,
-	            variant: Variant,
-	            testComponent: TestComponent,
-	            existingResourceDirsInOrder: List<File>
-	        ) {
-	            // Device/instrumented tests load resources from the APK assets.
-	            // Transform the merged assets to include KMP resource dirs.
-	            val taskName = "kotlinxResources" + listOf(variant.name, testComponent.name, "mergeAssets")
-	                .joinToString("") { it.replaceFirstChar(Char::titlecase) }
-	            val taskProvider = project.tasks.register(
-	                taskName,
-	                MergeKotlinResourcesIntoAssetsTask::class.java
-	            ) { it.additionalAssetDirs.from(existingResourceDirsInOrder) }
-	
-	            testComponent.artifacts
-	                .use(taskProvider)
-	                .wiredWithDirectories(
-	                    MergeKotlinResourcesIntoAssetsTask::inputAssetsDir,
-	                    MergeKotlinResourcesIntoAssetsTask::outputAssetsDir
-	                )
-	                .toTransform(SingleArtifact.ASSETS)
-	        }
-	
-	        private fun resourceDirsInOrder(
-	            kotlinExt: KotlinMultiplatformExtension,
-	            sourceSetPrefix: String,
+        private fun configureVariant(
+            project: Project,
+            kotlinExt: KotlinMultiplatformExtension,
+            variant: Variant
+        ) {
+            val testComponents = testComponents(variant)
+            if (testComponents.isEmpty()) return
+
+            val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
+            for (testComponent in testComponents) {
+                val sourceSetPrefix = sourceSetPrefix(testComponent)
+
+                // We filter non-existent resource dirs here so we avoid wiring an assets transform
+                // when there are no KMP resources. This means dirs created during the build won't be picked up.
+                val existingResourceDirsInOrder = resourceDirsInOrder(kotlinExt, sourceSetPrefix, variantSuffix)
+                    .filter(File::exists)
+                if (existingResourceDirsInOrder.isEmpty()) continue
+
+                if (isClasspathTest(testComponent)) {
+                    configureClasspathTestResources(testComponent, existingResourceDirsInOrder)
+                } else {
+                    configureAssetsTestResources(project, variant, testComponent, existingResourceDirsInOrder)
+                }
+            }
+        }
+
+        private fun testComponents(variant: Variant): List<TestComponent> = buildList<TestComponent> {
+            (variant as? HasAndroidTest)?.androidTest?.let(::add)
+            (variant as? HasUnitTest)?.unitTest?.let(::add)
+            // AGP 8.x doesn't expose host/device tests via typed APIs in `gradle-api`
+            // (`HasHostTests` / `HasDeviceTests`), so we fall back to scanning the variant components by name.
+            // TODO(AGP 9+): Once we can raise our minimum supported `gradle-api` to 9.0.0+,
+            // replace this block with:
+            // (variant as? HasHostTests)?.hostTests?.values?.forEach(::add)
+            // (variant as? HasDeviceTests)?.deviceTests?.values?.forEach(::add)
+            variant.components.filterIsInstance<TestComponent>()
+                .filter { it.name == "androidHostTest" || it.name.startsWith("androidDeviceTest") }
+                .let(::addAll)
+        }.distinctBy { it.name }
+
+        private fun sourceSetPrefix(testComponent: TestComponent): String = when {
+            // `com.android.kotlin.multiplatform.*` uses `androidHostTest`.
+            testComponent.name == "androidHostTest" -> "androidHostTest"
+            testComponent.name.startsWith("androidDeviceTest") -> "androidDeviceTest"
+            testComponent is UnitTest -> "androidUnitTest"
+            // Classic `com.android.*` projects use `androidInstrumentedTest*` for instrumented tests.
+            else -> "androidInstrumentedTest"
+        }
+
+        private fun isClasspathTest(testComponent: TestComponent): Boolean =
+            testComponent is UnitTest ||
+                // `com.android.kotlin.multiplatform.*` host tests (a.k.a. unit tests on the JVM).
+                testComponent.name == "androidHostTest"
+
+        private fun configureClasspathTestResources(
+            testComponent: TestComponent,
+            existingResourceDirsInOrder: List<File>
+        ) {
+            // Android host/unit tests load resources from the test runtime classpath (Java resources).
+            // Add KMP test resource dirs so `ClassLoader.getResource` can find them.
+            val testResources = testComponent.sources.resources ?: return
+            // For consistent overrides with DuplicatesStrategy.EXCLUDE, add platform-specific dirs first.
+            for (resourceDir in existingResourceDirsInOrder.asReversed()) {
+                testResources.addStaticSourceDirectory(resourceDir.absolutePath)
+            }
+        }
+
+        private fun configureAssetsTestResources(
+            project: Project,
+            variant: Variant,
+            testComponent: TestComponent,
+            existingResourceDirsInOrder: List<File>
+        ) {
+            // Device/instrumented tests load resources from the APK assets.
+            // Transform the merged assets to include KMP resource dirs.
+            val taskName = "kotlinxResources" + listOf(variant.name, testComponent.name, "mergeAssets")
+                .joinToString("") { it.replaceFirstChar(Char::titlecase) }
+            val taskProvider = project.tasks.register(
+                taskName,
+                MergeKotlinResourcesIntoAssetsTask::class.java
+            ) { it.additionalAssetDirs.from(existingResourceDirsInOrder) }
+
+            testComponent.artifacts
+                .use(taskProvider)
+                .wiredWithDirectories(
+                    MergeKotlinResourcesIntoAssetsTask::inputAssetsDir,
+                    MergeKotlinResourcesIntoAssetsTask::outputAssetsDir
+                )
+                .toTransform(SingleArtifact.ASSETS)
+        }
+
+        private fun resourceDirsInOrder(
+            kotlinExt: KotlinMultiplatformExtension,
+            sourceSetPrefix: String,
             variantSuffix: String
         ): List<File> {
             val targetSourceSets = listOf(

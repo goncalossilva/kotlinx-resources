@@ -133,9 +133,11 @@ But if you want to override a common file, you can have a platform-specific vers
 To have platform-specific resources override common ones, set the strategy to `EXCLUDE`:
 
 ```kotlin
-tasks.withType<Copy>().configureEach {
-    if (name.contains("Test(?:Copy|Process)Resources$".toRegex())) {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+afterEvaluate {
+    tasks.withType<AbstractCopyTask>().configureEach {
+        if (name.contains("Test") && (name.endsWith("Resources") || name.endsWith("JavaRes"))) {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
     }
 }
 ```

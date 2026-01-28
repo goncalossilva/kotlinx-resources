@@ -93,9 +93,11 @@ kotlin {
 }
 
 // Exclude duplicate resources. This way, platform-specific take precedence.
-tasks.withType<Copy>().configureEach {
-    if (name.contains("Test(?:Copy|Process)Resources$".toRegex())) {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+afterEvaluate {
+    tasks.withType<AbstractCopyTask>().configureEach {
+        if (name.contains("Test") && (name.endsWith("Resources") || name.endsWith("JavaRes"))) {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
     }
 }
 

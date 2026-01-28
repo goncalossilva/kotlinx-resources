@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class AndroidResourceTest {
-
     @Test
     fun commonTestResourceExists() {
         assertTrue(Resource("302.json").exists())

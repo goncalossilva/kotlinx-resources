@@ -3,7 +3,9 @@ package com.goncalossilva.resources
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.HasAndroidTest
+import com.android.build.api.variant.HasUnitTest
 import com.android.build.api.variant.TestComponent
+import com.android.build.api.variant.UnitTest
 import com.android.build.api.variant.Variant
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -49,7 +51,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     override fun apply(target: Project) {
         super.apply(target)
 
-        configureAndroidInstrumentedTestAssets(target)
+        configureAndroidTestResources(target)
     }
 
     override fun getCompilerPluginId() = BuildConfig.PLUGIN_ID
@@ -326,14 +328,16 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Wires KMP `androidDeviceTest` resources into the Android device/instrumented test APK.
+     * Wires test resources into Android test tasks.
      *
-     * KMP places test resources under `src/<sourceSet>/resources`, but Android device/instrumented
-     * tests read resources from the APK assets. This hooks into AGP's Variant API and transforms
-     * the merged assets artifact to include those resource directories (including transitive
-     * `dependsOn` source sets like `commonTest`).
+     * - Unit tests read resources from the test runtime classpath (Java resources).
+     * - Device/instrumented tests read resources from the APK assets.
+     *
+     * KMP places test resources under `src/<sourceSet>/resources`, so we hook into AGP's Variant
+     * API to ensure those directories (including transitive `dependsOn` source sets like
+     * `commonTest`) are visible to Android's test components.
      */
-    private fun configureAndroidInstrumentedTestAssets(project: Project) {
+    private fun configureAndroidTestResources(project: Project) {
         listOf(
             "com.android.kotlin.multiplatform.library",
             "com.android.kotlin.multiplatform.application",
@@ -349,7 +353,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Configures Android test variants to package KMP test resources as assets.
+     * Configures Android test components via the AGP Variant API.
      *
      * Kept as a separate object so AGP classes are only loaded when an Android plugin is applied,
      * avoiding `ClassNotFoundException` for non-Android builds.
@@ -376,50 +380,90 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             kotlinExt: KotlinMultiplatformExtension,
             variant: Variant
         ) {
-            val testComponents = buildList<TestComponent> {
-                (variant as? HasAndroidTest)?.androidTest?.let(::add)
-                // AGP 8.x doesn't expose device tests via a typed API in `gradle-api`, so we fall back to
-                // scanning the variant components by name. Once we require AGP 9.0.0+, we can switch to:
-                // (variant as? HasAndroidTest)?.androidTest
-                // (variant as? HasDeviceTests)?.deviceTests?.values
-                variant.components.filterIsInstance<TestComponent>()
-                    .filter { it.name == "androidTest" || it.name.startsWith("androidDeviceTest") }
-                    .let(::addAll)
-            }.distinctBy { it.name }
+            val testComponents = testComponents(variant)
             if (testComponents.isEmpty()) return
 
             val variantSuffix = variant.name.replaceFirstChar { it.uppercaseChar() }
             for (testComponent in testComponents) {
-                val sourceSetPrefix = if (testComponent.name.startsWith("androidDeviceTest")) {
-                    "androidDeviceTest"
-                } else {
-                    // Classic `com.android.*` projects use `androidInstrumentedTest*` for instrumented tests.
-                    "androidInstrumentedTest"
-                }
+                val sourceSetPrefix = sourceSetPrefix(testComponent)
 
-                val resourceDirsInOrder = resourceDirsInOrder(kotlinExt, sourceSetPrefix, variantSuffix)
                 // We filter non-existent resource dirs here so we avoid wiring an assets transform
                 // when there are no KMP resources. This means dirs created during the build won't be picked up.
-                val existingResourceDirsInOrder = resourceDirsInOrder.filter(File::exists)
-                if (existingResourceDirsInOrder.isNotEmpty()) {
-                    // KMP places resources under `src/<sourceSet>/resources`, but Android test components
-                    // load assets from the APK. Transform the merged assets to include those directories.
-                    val taskName = "kotlinxResources" + listOf(variant.name, testComponent.name, "mergeAssets")
-                        .joinToString("") { it.replaceFirstChar(Char::titlecase) }
-                    val taskProvider = project.tasks.register(
-                        taskName,
-                        MergeKotlinResourcesIntoAssetsTask::class.java
-                    ) { it.additionalAssetDirs.from(existingResourceDirsInOrder) }
+                val existingResourceDirsInOrder = resourceDirsInOrder(kotlinExt, sourceSetPrefix, variantSuffix)
+                    .filter(File::exists)
+                if (existingResourceDirsInOrder.isEmpty()) continue
 
-                    testComponent.artifacts
-                        .use(taskProvider)
-                        .wiredWithDirectories(
-                            MergeKotlinResourcesIntoAssetsTask::inputAssetsDir,
-                            MergeKotlinResourcesIntoAssetsTask::outputAssetsDir
-                        )
-                        .toTransform(SingleArtifact.ASSETS)
+                if (isClasspathTest(testComponent)) {
+                    configureClasspathTestResources(testComponent, existingResourceDirsInOrder)
+                } else {
+                    configureAssetsTestResources(project, variant, testComponent, existingResourceDirsInOrder)
                 }
             }
+        }
+
+        private fun testComponents(variant: Variant): List<TestComponent> = buildList<TestComponent> {
+            (variant as? HasAndroidTest)?.androidTest?.let(::add)
+            (variant as? HasUnitTest)?.unitTest?.let(::add)
+            // AGP 8.x doesn't expose host/device tests via typed APIs in `gradle-api`
+            // (`HasHostTests` / `HasDeviceTests`), so we fall back to scanning the variant components by name.
+            // TODO(AGP 9+): Once we can raise our minimum supported `gradle-api` to 9.0.0+,
+            // replace this block with:
+            // (variant as? HasHostTests)?.hostTests?.values?.forEach(::add)
+            // (variant as? HasDeviceTests)?.deviceTests?.values?.forEach(::add)
+            variant.components.filterIsInstance<TestComponent>()
+                .filter { it.name == "androidHostTest" || it.name.startsWith("androidDeviceTest") }
+                .let(::addAll)
+        }.distinctBy { it.name }
+
+        private fun sourceSetPrefix(testComponent: TestComponent): String = when {
+            // `com.android.kotlin.multiplatform.*` uses `androidHostTest`.
+            testComponent.name == "androidHostTest" -> "androidHostTest"
+            testComponent.name.startsWith("androidDeviceTest") -> "androidDeviceTest"
+            testComponent is UnitTest -> "androidUnitTest"
+            // Classic `com.android.*` projects use `androidInstrumentedTest*` for instrumented tests.
+            else -> "androidInstrumentedTest"
+        }
+
+        private fun isClasspathTest(testComponent: TestComponent): Boolean =
+            testComponent is UnitTest ||
+                // `com.android.kotlin.multiplatform.*` host tests (a.k.a. unit tests on the JVM).
+                testComponent.name == "androidHostTest"
+
+        private fun configureClasspathTestResources(
+            testComponent: TestComponent,
+            existingResourceDirsInOrder: List<File>
+        ) {
+            // Android host/unit tests load resources from the test runtime classpath (Java resources).
+            // Add KMP test resource dirs so `ClassLoader.getResource` can find them.
+            val testResources = testComponent.sources.resources ?: return
+            // For consistent overrides with DuplicatesStrategy.EXCLUDE, add platform-specific dirs first.
+            for (resourceDir in existingResourceDirsInOrder.asReversed()) {
+                testResources.addStaticSourceDirectory(resourceDir.absolutePath)
+            }
+        }
+
+        private fun configureAssetsTestResources(
+            project: Project,
+            variant: Variant,
+            testComponent: TestComponent,
+            existingResourceDirsInOrder: List<File>
+        ) {
+            // Device/instrumented tests load resources from the APK assets.
+            // Transform the merged assets to include KMP resource dirs.
+            val taskName = "kotlinxResources" + listOf(variant.name, testComponent.name, "mergeAssets")
+                .joinToString("") { it.replaceFirstChar(Char::titlecase) }
+            val taskProvider = project.tasks.register(
+                taskName,
+                MergeKotlinResourcesIntoAssetsTask::class.java
+            ) { it.additionalAssetDirs.from(existingResourceDirsInOrder) }
+
+            testComponent.artifacts
+                .use(taskProvider)
+                .wiredWithDirectories(
+                    MergeKotlinResourcesIntoAssetsTask::inputAssetsDir,
+                    MergeKotlinResourcesIntoAssetsTask::outputAssetsDir
+                )
+                .toTransform(SingleArtifact.ASSETS)
         }
 
         private fun resourceDirsInOrder(
@@ -443,6 +487,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                     pendingSourceSets.addAll(sourceSet.dependsOn)
                 }
             }
+
+            // KMP doesn't always express Android test hierarchies via `dependsOn` (e.g. classic
+            // `androidTarget { }` projects). Add `commonTest` explicitly so `commonTest/resources`
+            // are available to both unit and device/instrumented Android tests.
+            kotlinExt.sourceSets.findByName("commonTest")?.let(sourceSetsForAssets::add)
 
             return sourceSetsForAssets
                 .asSequence()

@@ -28,6 +28,10 @@ kotlin {
             jvmTarget = JvmTarget.JVM_11
         }
 
+        // Enable Android host/unit tests (task: :resources-test-android:testAndroidHostTest) to exercise classpath resources.
+        withHostTest {}
+
+        // Enable Android device/instrumented tests (task: :resources-test-android:connectedAndroidDeviceTest) to exercise asset resources.
         withDeviceTest {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
@@ -37,9 +41,8 @@ kotlin {
 
     sourceSets {
         val commonTest by getting
-        val androidDeviceTest by getting {
-            dependsOn(commonTest)
-        }
+        val androidHostTest by getting
+        val androidDeviceTest by getting
 
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -47,6 +50,10 @@ kotlin {
         }
 
         androidDeviceTest.dependencies {
+            // androidDeviceTest must be in a different hierarchy tree than androidHostTest (which depends on commonTest),
+            // so it doesn't inherit commonTest dependencies.
+            implementation(kotlin("test"))
+            implementation("com.goncalossilva:resources-library")
             implementation(libs.androidx.test.runner)
         }
     }
@@ -55,4 +62,13 @@ kotlin {
 detekt {
     config.setFrom(files("../config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
+}
+
+// Exclude duplicate resources. This way, platform-specific take precedence.
+afterEvaluate {
+    tasks.withType<AbstractCopyTask>().configureEach {
+        if (name.contains("Test") && (name.endsWith("Resources") || name.endsWith("JavaRes"))) {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+    }
 }

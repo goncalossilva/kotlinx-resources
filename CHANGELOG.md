@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.14.4] - 2026-01-28
+
 ### Fixed
 
 - Fix Android unit/host tests missing `commonTest` resources on the test classpath. ([#264](https://github.com/goncalossilva/kotlinx-resources/issues/264))

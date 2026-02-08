@@ -112,13 +112,14 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             )
 
             if (isIosCompilation(compilation)) {
-                // HACK: Avoid task dependency conflicts with Compose Multiplatform on iOS.
+                // Declare a dependency on Compose Multiplatform resource assembly tasks on iOS,
+                // since our copy task reads from resource dirs that include Compose-generated outputs.
                 val composeResourceTasks = project.tasks.matching { task ->
                     task.name.startsWith("assemble") &&
                         task.name.contains(target.targetName) &&
                         task.name.endsWith("TestResources")
                 }
-                copyResourcesTask.configure { it.mustRunAfter(composeResourceTasks) }
+                copyResourcesTask.configure { it.dependsOn(composeResourceTasks) }
             } else if (!isAppleCompilation(compilation)) {
                 project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
                     testTask.workingDir = binary.outputDirectory.absolutePath

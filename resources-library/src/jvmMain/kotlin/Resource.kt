@@ -1,25 +1,25 @@
 package com.goncalossilva.resources
 
-import java.io.File
+import java.io.InputStream
 
 public actual class Resource actual constructor(private val path: String) {
 
-    private val resourcePath: String?
-        get() = Resource::class.java.classLoader.getResource(path)?.path
+    private val resource
+        get() = Resource::class.java.classLoader.getResource(path)
 
-    private val resourceFile: File
-        get() = File(resourcePath)
+    private val resourceStream: InputStream
+        get() = Resource::class.java.classLoader.getResourceAsStream(path)!!
 
-    public actual fun exists(): Boolean = resourcePath != null
+    public actual fun exists(): Boolean = resource != null
 
     public actual fun readText(charset: Charset): String = runCatching {
-        resourceFile.readText(charset.toJavaCharset())
+        resourceStream.use { it.readBytes().toString(charset.toJavaCharset()) }
     }.getOrElse { cause ->
         throw ResourceReadException("$path: No such file or directory", cause)
     }
 
     public actual fun readBytes(): ByteArray = runCatching {
-        resourceFile.readBytes()
+        resourceStream.use { it.readBytes() }
     }.getOrElse { cause ->
         throw ResourceReadException("$path: No such file or directory", cause)
     }

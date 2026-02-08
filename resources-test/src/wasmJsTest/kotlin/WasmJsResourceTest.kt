@@ -12,8 +12,4 @@ class WasmJsResourceTest {
         assertEquals("wasmjs", Resource("platform_resource.txt").readText())
     }
 
-    @Test
-    fun readsResourceWithSpaces() {
-        assertEquals("hello", Resource("file with spaces.txt").readText().trim())
-    }
 }

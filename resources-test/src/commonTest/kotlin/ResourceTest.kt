@@ -128,6 +128,11 @@ class ResourceTest {
         assertEquals("H\u00E9llo", Resource("charset-utf8.txt").readText())
     }
 
+    @Test
+    fun readsResourceWithSpaces() {
+        assertEquals("hello", Resource("file with spaces.txt").readText().trim())
+    }
+
     companion object {
         const val JSON: String = "{}\n"
         val GZIP: ByteArray = byteArrayOf(

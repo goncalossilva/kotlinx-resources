@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix JVM resource loading when filenames contain spaces or other URL-special characters. ([#272](https://github.com/goncalossilva/kotlinx-resources/issues/272))
+
 ## [0.14.4] - 2026-01-28
 
 ### Fixed

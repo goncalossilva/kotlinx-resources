@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-02-09
+
 ### Added
 
 - Make `Resource.path` public. ([#271](https://github.com/goncalossilva/kotlinx-resources/issues/271))

@@ -62,7 +62,7 @@ private external fun wasiPathFilestatGet(
 // Buffer size balances memory usage with I/O efficiency for typical resource files.
 private const val BUFFER_SIZE = 8 * 1024
 
-public actual class Resource actual constructor(private val path: String) {
+public actual class Resource actual constructor(public actual val path: String) {
     public actual fun exists(): Boolean = withScopedMemoryAllocator { allocator ->
         val pathBytes = path.encodeToByteArray()
         val pathPtr = allocator.writeBytes(pathBytes)

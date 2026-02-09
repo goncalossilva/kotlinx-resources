@@ -22,7 +22,7 @@ import platform.Foundation.dataWithContentsOfFile
 import platform.Foundation.stringWithContentsOfFile
 
 @OptIn(UnsafeNumber::class)
-public actual class Resource actual constructor(private val path: String) {
+public actual class Resource actual constructor(public actual val path: String) {
     private val absolutePath = NSBundle.mainBundle.pathForResource(
         path.substringBeforeLast("."),
         path.substringAfterLast(".")

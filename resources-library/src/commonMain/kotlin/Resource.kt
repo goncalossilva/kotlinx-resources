@@ -9,6 +9,11 @@ package com.goncalossilva.resources
  */
 public expect class Resource(path: String) {
     /**
+     * The resource path, as provided to the constructor.
+     */
+    public val path: String
+
+    /**
      * Returns true when the resource exists, false when it doesn't.
      */
     public fun exists(): Boolean

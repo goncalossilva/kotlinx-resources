@@ -2,7 +2,7 @@ package com.goncalossilva.resources
 
 import java.io.InputStream
 
-public actual class Resource actual constructor(private val path: String) {
+public actual class Resource actual constructor(public actual val path: String) {
 
     private val resource
         get() = Resource::class.java.classLoader.getResource(path)

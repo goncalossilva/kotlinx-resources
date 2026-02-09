@@ -12,7 +12,7 @@ import platform.posix.fread
 import platform.posix.posix_errno
 import platform.posix.strerror
 
-public actual class Resource actual constructor(private val path: String) {
+public actual class Resource actual constructor(public actual val path: String) {
     public actual fun exists(): Boolean = access(path, F_OK) != -1
 
     public actual fun readText(charset: Charset): String {

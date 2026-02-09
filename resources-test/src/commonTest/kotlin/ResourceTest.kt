@@ -133,6 +133,13 @@ class ResourceTest {
         assertEquals("hello", Resource("file with spaces.txt").readText().trim())
     }
 
+    @Test
+    fun pathReturnsOriginalValue() {
+        assertEquals("302.json", Resource("302.json").path)
+        assertEquals("a/302.json", Resource("a/302.json").path)
+        assertEquals("file with spaces.txt", Resource("file with spaces.txt").path)
+    }
+
     companion object {
         const val JSON: String = "{}\n"
         val GZIP: ByteArray = byteArrayOf(

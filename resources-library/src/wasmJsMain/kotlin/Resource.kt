@@ -11,7 +11,7 @@ import kotlin.js.toJsString
  * It's impossible to separate browser/node JS runtimes, as they can't be published separately.
  * See: https://youtrack.jetbrains.com/issue/KT-47038
  */
-public actual class Resource actual constructor(private val path: String) {
+public actual class Resource actual constructor(public actual val path: String) {
     private val resourceBrowser: ResourceBrowser by lazy { ResourceBrowser(path) }
     private val resourceNode: ResourceNode by lazy { ResourceNode(path) }
 

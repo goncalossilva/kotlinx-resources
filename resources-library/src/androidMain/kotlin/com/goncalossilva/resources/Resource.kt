@@ -11,7 +11,7 @@ import java.io.IOException
  *
  * Assets are tried first (when running in an instrumentation context), falling back to ClassLoader.
  */
-public actual class Resource actual constructor(private val path: String) {
+public actual class Resource actual constructor(public actual val path: String) {
     /**
      * Normalized path with leading '/' stripped.
      *

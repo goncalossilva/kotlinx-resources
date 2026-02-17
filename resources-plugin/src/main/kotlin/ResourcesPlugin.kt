@@ -37,7 +37,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
-import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.util.suffixIfNot
 import java.io.File
 import javax.inject.Inject
@@ -101,6 +100,8 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         val project = compilation.target.project
         val target = compilation.target
         val testBinaries = target.binaries.filter { it.outputKind == NativeOutputKind.TEST }
+        val composeAssembleTaskName = getTaskName("assemble", target.targetName, "testResources")
+        val composeResourceTasks = project.tasks.matching { it.name == composeAssembleTaskName }
 
         for (binary in testBinaries) {
             val copyResourcesTask = setupCopyResourcesTask(
@@ -111,16 +112,11 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 dependantTasks = listOf(binary.linkTaskName)
             )
 
-            if (isIosCompilation(compilation)) {
-                // Declare a dependency on Compose Multiplatform resource assembly tasks on iOS,
-                // since our copy task reads from resource dirs that include Compose-generated outputs.
-                val composeResourceTasks = project.tasks.matching { task ->
-                    task.name.startsWith("assemble") &&
-                        task.name.contains(target.targetName) &&
-                        task.name.endsWith("TestResources")
-                }
-                copyResourcesTask.configure { it.dependsOn(composeResourceTasks) }
-            } else if (!isAppleCompilation(compilation)) {
+            // Depend on Compose target resource assembly when present, since the copy task can
+            // read from Compose-generated resource dirs.
+            copyResourcesTask.configure { it.dependsOn(composeResourceTasks) }
+
+            if (!isAppleCompilation(compilation)) {
                 project.tasks.withType(KotlinNativeTest::class.java) { testTask ->
                     testTask.workingDir = binary.outputDirectory.absolutePath
                     testTask.dependsOn(copyResourcesTask)
@@ -208,10 +204,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun isAppleCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
         return kotlinCompilation.konanTarget.family.isAppleFamily
-    }
-
-    private fun isIosCompilation(kotlinCompilation: KotlinNativeCompilation): Boolean {
-        return kotlinCompilation.konanTarget.family == Family.IOS
     }
 
     private fun isJsNodeCompilation(kotlinCompilation: KotlinCompilation<*>): Boolean {

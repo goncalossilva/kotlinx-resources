@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+
+- Require Java 17 or newer to run the Gradle plugin. ([#308](https://github.com/goncalossilva/kotlinx-resources/pull/308))
+
 ### Fixed
 
 - Fix native macOS/tvOS/watchOS test task dependency conflict with Compose Multiplatform resource assembly. ([#279](https://github.com/goncalossilva/kotlinx-resources/issues/279))

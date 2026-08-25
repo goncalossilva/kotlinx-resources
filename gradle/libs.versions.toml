@@ -6,6 +6,7 @@ android-sdk-compile = "36"
 android-sdk-min = "21"
 androidx-test-core = "1.7.0"
 androidx-test-runner = "1.7.0"
+jetbrains-annotations = "26.1.0"
 useanybrowser = "0.5.0"
 buildconfig = "6.0.10"
 detekt = "1.23.8"
@@ -17,6 +18,7 @@ yarn = "1.22.22"
 [libraries]
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

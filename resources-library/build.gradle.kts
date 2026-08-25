@@ -82,7 +82,11 @@ kotlin {
             languageSettings.optIn("kotlinx.cinterop.BetaInteropApi")
         }
 
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                api(libs.jetbrains.annotations)
+            }
+        }
         val jsMain by getting
         val wasmJsMain by getting
         val wasmWasiMain by getting {

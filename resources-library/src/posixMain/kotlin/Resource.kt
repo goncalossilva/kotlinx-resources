@@ -4,6 +4,7 @@ import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.readBytes
+import org.intellij.lang.annotations.Language
 import platform.posix.F_OK
 import platform.posix.access
 import platform.posix.fclose
@@ -12,7 +13,9 @@ import platform.posix.fread
 import platform.posix.posix_errno
 import platform.posix.strerror
 
-public actual class Resource actual constructor(public actual val path: String) {
+public actual class Resource actual constructor(
+    @Language("file-reference") public actual val path: String
+) {
     public actual fun exists(): Boolean = access(path, F_OK) != -1
 
     public actual fun readText(charset: Charset): String {

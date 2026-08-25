@@ -7,6 +7,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.readBytes
 import kotlinx.cinterop.value
+import org.intellij.lang.annotations.Language
 import platform.Foundation.NSASCIIStringEncoding
 import platform.Foundation.NSBundle
 import platform.Foundation.NSData
@@ -22,7 +23,9 @@ import platform.Foundation.dataWithContentsOfFile
 import platform.Foundation.stringWithContentsOfFile
 
 @OptIn(UnsafeNumber::class)
-public actual class Resource actual constructor(public actual val path: String) {
+public actual class Resource actual constructor(
+    @Language("file-reference") public actual val path: String
+) {
     private val absolutePath = NSBundle.mainBundle.pathForResource(
         path.substringBeforeLast("."),
         path.substringAfterLast(".")

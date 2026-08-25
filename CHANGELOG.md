@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+
+- Add IDE completion and navigation for resource paths. ([#64](https://github.com/goncalossilva/kotlinx-resources/issues/64))
+
 ### Changed
 
 - Require Java 17 or newer to run the Gradle plugin. ([#308](https://github.com/goncalossilva/kotlinx-resources/pull/308))

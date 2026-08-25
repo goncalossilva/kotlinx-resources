@@ -1,8 +1,11 @@
 package com.goncalossilva.resources
 
 import java.io.InputStream
+import org.intellij.lang.annotations.Language
 
-public actual class Resource actual constructor(public actual val path: String) {
+public actual class Resource actual constructor(
+    @Language("file-reference") public actual val path: String
+) {
 
     private val resource
         get() = Resource::class.java.classLoader.getResource(path)

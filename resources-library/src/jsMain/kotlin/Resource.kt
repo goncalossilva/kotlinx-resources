@@ -2,6 +2,7 @@ package com.goncalossilva.resources
 
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
+import org.intellij.lang.annotations.Language
 import org.w3c.xhr.XMLHttpRequest
 import kotlin.js.definedExternally
 
@@ -19,7 +20,9 @@ private external class TextDecoder(encoding: String = definedExternally) {
  *
  * Workaround inspired by Ktor: https://github.com/ktorio/ktor/blob/b8f18e40baabf9756a16843d6cbd80bff6f006c6/ktor-utils/js/src/io/ktor/util/PlatformUtilsJs.kt#L9-L15
  */
-public actual class Resource actual constructor(public actual val path: String) {
+public actual class Resource actual constructor(
+    @Language("file-reference") public actual val path: String
+) {
     private val resourceBrowser: ResourceBrowser by lazy { ResourceBrowser(path) }
     private val resourceNode: ResourceNode by lazy { ResourceNode(path) }
 

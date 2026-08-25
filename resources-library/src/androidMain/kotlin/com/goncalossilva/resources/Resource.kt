@@ -3,6 +3,7 @@ package com.goncalossilva.resources
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.IOException
+import org.intellij.lang.annotations.Language
 
 /**
  * Android resource implementation supporting two execution contexts:
@@ -11,7 +12,9 @@ import java.io.IOException
  *
  * Assets are tried first (when running in an instrumentation context), falling back to ClassLoader.
  */
-public actual class Resource actual constructor(public actual val path: String) {
+public actual class Resource actual constructor(
+    @Language("file-reference") public actual val path: String
+) {
     /**
      * Normalized path with leading '/' stripped.
      *

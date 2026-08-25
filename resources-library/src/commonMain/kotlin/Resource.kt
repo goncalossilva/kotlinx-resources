@@ -1,5 +1,7 @@
 package com.goncalossilva.resources
 
+import org.intellij.lang.annotations.Language
+
 /**
  * Provides access to resource on [path].
  *
@@ -7,7 +9,9 @@ package com.goncalossilva.resources
  * `Resource("some/optional/folders/file.txt")` for a file located at
  * `src/commonTest/resources/some/optional/folders/file.txt`.
  */
-public expect class Resource(path: String) {
+public expect class Resource(
+    @Language("file-reference") path: String
+) {
     /**
      * The resource path, as provided to the constructor.
      */

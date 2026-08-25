@@ -28,7 +28,7 @@ kotlin {
 
     jvm {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
+            jvmTarget = JvmTarget.JVM_1_8
         }
     }
 
@@ -38,7 +38,7 @@ kotlin {
         minSdk = libs.versions.android.sdk.min.get().toInt()
 
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
+            jvmTarget = JvmTarget.JVM_1_8
         }
     }
 

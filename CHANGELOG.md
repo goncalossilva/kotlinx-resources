@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-08-25
+
 ### Added
 
 - Add IDE completion and navigation for resource paths. ([#64](https://github.com/goncalossilva/kotlinx-resources/issues/64))

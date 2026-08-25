@@ -14,7 +14,7 @@ import platform.posix.posix_errno
 import platform.posix.strerror
 
 public actual class Resource actual constructor(
-    @Language("file-reference") public actual val path: String
+    @Language(value = "file-reference", prefix = "/") public actual val path: String
 ) {
     public actual fun exists(): Boolean = access(path, F_OK) != -1
 

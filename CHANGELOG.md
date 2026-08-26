@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Removed
+
+- Remove IDE completion and navigation metadata for resource paths while the approach is reconsidered. ([#317](https://github.com/goncalossilva/kotlinx-resources/pull/317))
+
 ### Fixed
 
 - Fix `wasmWasi` targets missing resources from shared source sets. ([#322](https://github.com/goncalossilva/kotlinx-resources/issues/322))

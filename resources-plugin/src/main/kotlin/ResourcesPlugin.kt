@@ -532,7 +532,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
     ): TaskProvider<Task> {
         val project = kotlinCompilation.target.project
         val tasks = project.tasks
-        val resourceDirs = getResourceDirs(kotlinCompilation)
+        val resourceDirs = project.provider { getResourceDirs(kotlinCompilation) }
 
         val copyTask = tasks.register(taskName) { task ->
             task.inputs.files(resourceDirs)
@@ -543,7 +543,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 override fun execute(task: Task) {
                     // Sort so common* source sets (e.g., commonTest) are processed before
                     // platform-specific ones (e.g., wasmWasiTest), allowing overrides.
-                    val sortedDirs = resourceDirs.sortedWith(
+                    val sortedDirs = resourceDirs.get().sortedWith(
                         compareBy { resourceDir: File ->
                             val sourceSetName = resourceDir.parentFile?.name ?: ""
                             if (sourceSetName.startsWith("common")) 0 else 1

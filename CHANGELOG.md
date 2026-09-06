@@ -4,6 +4,10 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix `wasmWasi` targets missing resources from shared source sets. ([#322](https://github.com/goncalossilva/kotlinx-resources/issues/322))
+
 ## [0.16.0] - 2026-08-25
 
 ### Added

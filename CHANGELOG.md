@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-09-06
+
 ### Removed
 
 - Remove IDE completion and navigation metadata for resource paths while the approach is reconsidered. ([#317](https://github.com/goncalossilva/kotlinx-resources/pull/317))

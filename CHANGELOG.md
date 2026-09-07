@@ -4,6 +4,11 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix `wasmJs` target with Kotlin 2.4.20+ by replacing `require('fs')` with `process.getBuiltinModule('fs')`.
+  Requires Node.js 20.16+ or 22.3+ for `wasmJs`; older versions fail with a clear error.
+
 ## [0.16.1] - 2026-09-06
 
 ### Removed
@@ -107,9 +112,9 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 ### Changed
 
 - **BREAKING:** Resource paths are now specified relative to the resources folder. ([#162](https://github.com/goncalossilva/kotlinx-resources/pull/162) - thanks [@egorikftp](https://github.com/egorikftp)!)
-  
+
   For example, a file located at `src/commonTest/resources/a-folder/a-file.txt` is now accessed using `Resource("a-folder/a-file.txt")` without the `src/commonTest/resources/` prefix.
-  
+
   See README for more details.
 
 - **BREAKING:** Task names were changed to be more consistent.
@@ -171,7 +176,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Changed
 
-- Removed compilation name in task names to avoid colliding with [native.cocoapods](https://kotlinlang.org/docs/native-cocoapods.html), an official plugin. Unfortunately, this does mean that `kotlinx-resources` is currently incompatible with `moko-resources`. 
+- Removed compilation name in task names to avoid colliding with [native.cocoapods](https://kotlinlang.org/docs/native-cocoapods.html), an official plugin. Unfortunately, this does mean that `kotlinx-resources` is currently incompatible with `moko-resources`.
 
 ## [0.3.1] - 2023-03-29
 
@@ -222,7 +227,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Fixed
 
-- Add explicit version to plugin artifact to prevent issues with resolution.  
+- Add explicit version to plugin artifact to prevent issues with resolution.
 
 ## [0.2.0] - 2021-12-08
 

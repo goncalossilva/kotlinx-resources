@@ -105,8 +105,7 @@ public actual class Resource actual constructor(public actual val path: String) 
         init {
             if (!hasGetBuiltinModule()) {
                 throw UnsupportedOperationException(
-                    "kotlinx-resources requires Node.js 20.16+ or 22.3+ on wasmJs " +
-                        "(process.getBuiltinModule is unavailable in Node ${nodeVersion()})"
+                    "process.getBuiltinModule is unavailable in Node ${nodeVersion()}"
                 )
             }
         }

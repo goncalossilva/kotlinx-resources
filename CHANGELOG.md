@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.16.2] - 2026-09-08
+
 ### Fixed
 
 - Fix `wasmJs` target with Kotlin 2.4.20+ by replacing `require('fs')` with `process.getBuiltinModule('fs')`. ([#325](https://github.com/goncalossilva/kotlinx-resources/pull/325))

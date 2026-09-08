@@ -102,6 +102,14 @@ public actual class Resource actual constructor(public actual val path: String) 
         private val jsPath: JsString = path.toJsString()
         private val errorPrefix: String = path
 
+        init {
+            if (!hasGetBuiltinModule()) {
+                throw UnsupportedOperationException(
+                    "process.getBuiltinModule is unavailable in Node ${nodeVersion()}"
+                )
+            }
+        }
+
         fun exists(): Boolean = nodeExistsSync(jsPath)
 
         fun readText(charset: Charset): String {
@@ -141,13 +149,19 @@ private val IS_BROWSER: Boolean = js(IS_BROWSER_JS_CHECK)
 
 private val IS_NODE: Boolean = js(IS_NODE_JS_CHECK)
 
-private fun nodeExistsSync(path: JsString): Boolean = js("require('fs').existsSync(path)")
+private fun nodeExistsSync(path: JsString): Boolean =
+    js("process.getBuiltinModule('fs').existsSync(path)")
 
 private fun nodeReadFileSync(path: JsString, encoding: JsString): JsString =
-    js("require('fs').readFileSync(path, encoding)")
+    js("process.getBuiltinModule('fs').readFileSync(path, encoding)")
 
 private fun nodeReadFileSyncBytes(path: JsString): NodeBuffer =
-    js("require('fs').readFileSync(path)")
+    js("process.getBuiltinModule('fs').readFileSync(path)")
+
+private fun hasGetBuiltinModule(): Boolean =
+    js("typeof process.getBuiltinModule === 'function'")
+
+private fun nodeVersion(): JsString = js("process.versions.node")
 
 private external class NodeBuffer : JsAny {
     val length: Int

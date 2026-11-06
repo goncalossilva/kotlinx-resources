@@ -234,9 +234,6 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
-    private fun getTaskName(prefix: String, vararg qualifiers: String) =
-        "$prefix${qualifiers.joinToString("") { it.replaceFirstChar(Char::titlecase) }}"
-
     private fun setupCopyResourcesTask(
         kotlinCompilation: KotlinCompilation<*>,
         taskName: String,
@@ -430,9 +427,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
             testComponent: TestComponent,
             existingResourceDirsInOrder: List<File>
         ) {
-            val taskName = "kotlinxResources" + testComponent.name.replaceFirstChar(Char::titlecase) + "MergeClasspath"
+            // Avoid the *Resources suffix targeted by consumer duplicate-policy hooks.
+            val taskName = getTaskName(testComponent.name, "mergeResourceFiles")
             val mergeTask = project.tasks.register(taskName, Sync::class.java) { task ->
-                task.into(project.layout.buildDirectory.dir("kotlinxResources/${testComponent.name}"))
+                task.into(project.layout.buildDirectory.dir(task.name))
                 task.duplicatesStrategy = DuplicatesStrategy.INCLUDE
                 // Copy common resources first, then overwrite them with platform-specific resources.
                 existingResourceDirsInOrder.forEach { task.from(it) }
@@ -456,8 +454,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         ) {
             // Device/instrumented tests load resources from the APK assets.
             // Transform the merged assets to include KMP resource dirs.
-            val taskName = "kotlinxResources" + listOf(variant.name, testComponent.name, "mergeAssets")
-                .joinToString("") { it.replaceFirstChar(Char::titlecase) }
+            val taskName = getTaskName(variant.name, testComponent.name, "mergeAssets")
             val taskProvider = project.tasks.register(
                 taskName,
                 MergeKotlinResourcesIntoAssetsTask::class.java
@@ -652,5 +649,10 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
         }
 
         return patchTask
+    }
+
+    private companion object {
+        fun getTaskName(prefix: String, vararg qualifiers: String) =
+            "$prefix${qualifiers.joinToString("") { it.replaceFirstChar(Char::titlecase) }}"
     }
 }

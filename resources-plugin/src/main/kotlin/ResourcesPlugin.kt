@@ -4,6 +4,7 @@ import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.HasAndroidTest
 import com.android.build.api.variant.HasUnitTest
+import com.android.build.api.variant.HostTest
 import com.android.build.api.variant.TestComponent
 import com.android.build.api.variant.UnitTest
 import com.android.build.api.variant.Variant
@@ -24,8 +25,10 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -387,7 +390,7 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 if (existingResourceDirsInOrder.isEmpty()) continue
 
                 if (isClasspathTest(testComponent)) {
-                    configureClasspathTestResources(testComponent, existingResourceDirsInOrder)
+                    configureClasspathTestResources(project, testComponent, existingResourceDirsInOrder)
                 } else {
                     configureAssetsTestResources(project, variant, testComponent, existingResourceDirsInOrder)
                 }
@@ -423,15 +426,25 @@ class ResourcesPlugin : KotlinCompilerPluginSupportPlugin {
                 testComponent.name == "androidHostTest"
 
         private fun configureClasspathTestResources(
+            project: Project,
             testComponent: TestComponent,
             existingResourceDirsInOrder: List<File>
         ) {
-            // Android host/unit tests load resources from the test runtime classpath (Java resources).
-            // Add KMP test resource dirs so `ClassLoader.getResource` can find them.
-            val testResources = testComponent.sources.resources ?: return
-            // For consistent overrides with DuplicatesStrategy.EXCLUDE, add platform-specific dirs first.
-            for (resourceDir in existingResourceDirsInOrder.asReversed()) {
-                testResources.addStaticSourceDirectory(resourceDir.absolutePath)
+            val taskName = "kotlinxResources" + testComponent.name.replaceFirstChar(Char::titlecase) + "MergeClasspath"
+            val mergeTask = project.tasks.register(taskName, Sync::class.java) { task ->
+                task.into(project.layout.buildDirectory.dir("kotlinxResources/${testComponent.name}"))
+                task.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                // Copy common resources first, then overwrite them with platform-specific resources.
+                existingResourceDirsInOrder.forEach { task.from(it) }
+            }
+            val mergedResources = project.files(mergeTask)
+            val configureTestTask: (Test) -> Unit = { testTask ->
+                // AGP retains its own resource sources; make our merged output win classpath lookup.
+                testTask.classpath = mergedResources + testTask.classpath
+            }
+            when (testComponent) {
+                is UnitTest -> testComponent.configureTestTask(configureTestTask)
+                is HostTest -> testComponent.configureTestTask(configureTestTask)
             }
         }
 

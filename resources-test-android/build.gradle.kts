@@ -63,12 +63,3 @@ detekt {
     config.setFrom(files("../config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
 }
-
-// Exclude duplicate resources. This way, platform-specific take precedence.
-afterEvaluate {
-    tasks.withType<AbstractCopyTask>().configureEach {
-        if (name.contains("Test") && (name.endsWith("Resources") || name.endsWith("JavaRes"))) {
-            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        }
-    }
-}

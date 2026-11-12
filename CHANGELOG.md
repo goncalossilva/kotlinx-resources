@@ -4,6 +4,8 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.16.3] - 2026-11-12
+
 ### Fixed
 
 - Allow Android projects using `compileSdk` 34 or higher to consume the library without requiring SDK 36. ([#343](https://github.com/goncalossilva/kotlinx-resources/issues/343))

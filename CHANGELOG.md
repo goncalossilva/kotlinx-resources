@@ -6,6 +6,7 @@ Notable changes are documented in this file, whose format follows [Keep a Change
 
 ### Fixed
 
+- Allow Android projects using `compileSdk` 34 or higher to consume the library without requiring SDK 36. ([#343](https://github.com/goncalossilva/kotlinx-resources/issues/343))
 - Fix Android host tests loading common resources instead of platform-specific overrides with AGP 9.5.1. ([#338](https://github.com/goncalossilva/kotlinx-resources/pull/338))
 
 ## [0.16.2] - 2026-09-08

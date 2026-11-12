@@ -37,6 +37,11 @@ kotlin {
         compileSdk = libs.versions.android.sdk.compile.get().toInt()
         minSdk = libs.versions.android.sdk.min.get().toInt()
 
+        aarMetadata {
+            // Support consumers pinned to SDK 34 to avoid https://youtrack.jetbrains.com/issue/KT-71375.
+            minCompileSdk = 34
+        }
+
         compilerOptions {
             jvmTarget = JvmTarget.JVM_1_8
         }
